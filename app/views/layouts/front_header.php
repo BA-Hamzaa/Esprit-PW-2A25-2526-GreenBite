@@ -11,6 +11,15 @@
 <body>
 <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
 
+  <div id="app-loader" class="app-loader">
+    <div class="app-loader-card">
+      <div class="app-loader-icon"><span>🌱</span></div>
+      <div class="app-loader-title">NutriGreen</div>
+      <div class="app-loader-subtitle">Préparation de votre espace sain et durable…</div>
+      <div class="app-loader-ring"></div>
+    </div>
+  </div>
+
   <div class="page-with-sidebar">
     <!-- ===== SIDEBAR FRONTOFFICE ===== -->
     <nav class="admin-sidebar front-sidebar">

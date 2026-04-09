@@ -16,6 +16,15 @@
   }
 </script>
 
+  <div id="app-loader" class="app-loader">
+    <div class="app-loader-card">
+      <div class="app-loader-icon"><span>🌱</span></div>
+      <div class="app-loader-title">NutriGreen Admin</div>
+      <div class="app-loader-subtitle">Chargement des outils d'administration…</div>
+      <div class="app-loader-ring"></div>
+    </div>
+  </div>
+
   <div class="page-with-sidebar">
     <!-- ===== SIDEBAR ADMIN ===== -->
     <nav class="admin-sidebar">
