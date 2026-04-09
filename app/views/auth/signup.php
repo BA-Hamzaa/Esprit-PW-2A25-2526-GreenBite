@@ -11,6 +11,15 @@
 <body>
 <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
 
+<div id="app-loader" class="app-loader">
+  <div class="app-loader-card">
+    <div class="app-loader-icon"><span>🌱</span></div>
+    <div class="app-loader-title">NutriGreen</div>
+    <div class="app-loader-subtitle">Création de votre espace nutritif...</div>
+    <div class="app-loader-ring"></div>
+  </div>
+</div>
+
 <div style="min-height:100vh;display:flex;background:var(--background)">
   <!-- Left panel - branding -->
   <div style="flex:1;background:linear-gradient(135deg, #1B4332 0%, var(--primary) 30%, #245a42 60%, #52B788 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
@@ -120,6 +129,13 @@
     lucide.createIcons();
     setTimeout(()=>{ t.classList.add('hiding'); setTimeout(()=>t.remove(), 300); }, 3000);
   }
+  window.addEventListener('load', function() {
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+      loader.classList.add('app-loader--hidden');
+      setTimeout(() => loader.remove(), 500);
+    }
+  });
 </script>
 </body>
 </html>

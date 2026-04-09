@@ -103,6 +103,14 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+window.addEventListener('load', hideAppLoader);
+function hideAppLoader() {
+  const loader = document.getElementById('app-loader');
+  if (!loader) return;
+  loader.classList.add('app-loader--hidden');
+  setTimeout(() => loader.remove(), 500);
+}
+
 /* ============================================
    Delete Confirmation Modal
    ============================================ */
