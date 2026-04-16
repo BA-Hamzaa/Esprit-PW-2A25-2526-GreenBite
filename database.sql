@@ -260,3 +260,21 @@ INSERT INTO plan_repas (plan_id, repas_id, jour) VALUES
 (1, 4, 2), (1, 5, 2),
 (2, 1, 1), (2, 3, 1),
 (2, 5, 2), (2, 2, 3);
+
+-- =============================================
+-- MODULE 4 : RÉGIMES ALIMENTAIRES
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS regime_alimentaire (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(150) NOT NULL,
+    objectif VARCHAR(150) NOT NULL,
+    description TEXT,
+    duree_semaines INT NOT NULL,
+    calories_jour INT NOT NULL,
+    restrictions TEXT,
+    soumis_par VARCHAR(150) NOT NULL,
+    statut ENUM('en_attente', 'accepte', 'refuse') DEFAULT 'en_attente',
+    commentaire_admin TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

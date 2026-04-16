@@ -40,7 +40,11 @@
           <div class="flex items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--border)">
             <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:var(--primary);color:white;border-radius:50%;font-weight:bold">J<?= $jour ?></div>
             <h3 class="font-semibold text-lg" style="color:var(--text-primary)">Jour <?= $jour ?></h3>
-            <span class="text-xs" style="color:var(--text-muted);margin-left:auto"><?= date('d M Y', strtotime($plan['date_debut'] . ' + ' . ($jour - 1) . ' days')) ?></span>
+            <?php
+              $t = strtotime($plan['date_debut'] . ' + ' . ($jour - 1) . ' days');
+              $mois = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+            ?>
+            <span class="text-xs" style="color:var(--text-muted);margin-left:auto"><?= date('d', $t) . ' ' . $mois[(int)date('n', $t)-1] . ' ' . date('Y', $t) ?></span>
           </div>
 
           <?php if (!isset($repasByDay[$jour]) || empty($repasByDay[$jour])): ?>

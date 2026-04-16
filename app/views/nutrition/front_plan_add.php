@@ -57,7 +57,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">
           <label class="form-label" for="duree_jours"><i data-lucide="clock" style="width:0.875rem;height:0.875rem"></i> Durée (en jours)</label>
-          <input type="number" name="duree_jours" id="duree_jours" class="form-input" value="<?= htmlspecialchars($_POST['duree_jours'] ?? '7') ?>" min="1">
+          <input type="number" name="duree_jours" id="duree_jours" class="form-input" value="<?= htmlspecialchars($_POST['duree_jours'] ?? '7') ?>">
         </div>
         <div class="form-group">
           <label class="form-label" for="date_debut"><i data-lucide="calendar" style="width:0.875rem;height:0.875rem"></i> Date de début</label>
@@ -81,7 +81,7 @@
           </div>
           <div style="width:100px">
             <label class="text-xs font-semibold uppercase mb-1 block" style="color:var(--text-muted)">Jour n°</label>
-            <input type="number" name="jours[]" class="form-input" placeholder="Ex: 1" min="1" value="1">
+            <input type="number" name="jours[]" class="form-input" placeholder="Ex: 1" value="1">
           </div>
           <div style="padding-top:1.5rem">
             <button type="button" class="icon-btn" style="width:2.5rem;height:2.5rem;color:var(--destructive)" onclick="this.closest('.repas-row').remove()"><i data-lucide="trash-2" style="width:1rem;height:1rem"></i></button>
@@ -126,7 +126,7 @@ document.getElementById('add-repas-btn').addEventListener('click', function() {
       </div>
       <div style="width:100px">
         <label class="text-xs font-semibold uppercase mb-1 block" style="color:var(--text-muted)">Jour n°</label>
-        <input type="number" name="jours[]" class="form-input" placeholder="Ex: 1" min="1" value="1">
+        <input type="number" name="jours[]" class="form-input" placeholder="Ex: 1" value="1">
       </div>
       <div style="padding-top:1.5rem">
         <button type="button" class="icon-btn" style="width:2.5rem;height:2.5rem;color:var(--destructive)" onclick="this.closest('.repas-row').remove()"><i data-lucide="trash-2" style="width:1rem;height:1rem"></i></button>
@@ -143,7 +143,8 @@ document.getElementById('planForm').addEventListener('submit', function(e) {
   if (document.getElementById('nom').value.trim() === '') errors.push('Le nom du plan est obligatoire.');
   if (document.getElementById('type_objectif').value === '') errors.push('Le type d\'objectif est obligatoire.');
   if (!document.getElementById('objectif_calories').value) errors.push('L\'objectif calorique est obligatoire.');
-  if (!document.getElementById('duree_jours').value) errors.push('La durée en jours est obligatoire.');
+  const dureeVal = document.getElementById('duree_jours').value;
+  if (!dureeVal || parseInt(dureeVal) <= 0) errors.push('La durée en jours doit être supérieure à 0.');
   if (!document.getElementById('date_debut').value) errors.push('La date de début est obligatoire.');
   
   if (errors.length > 0) {

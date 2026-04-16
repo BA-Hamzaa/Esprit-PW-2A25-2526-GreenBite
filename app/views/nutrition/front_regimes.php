@@ -42,9 +42,7 @@ $objectifColors = [
         </p>
       </div>
     </div>
-    <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-add" class="btn btn-primary" style="border-radius:var(--radius-full)">
-      <i data-lucide="plus-circle" style="width:1rem;height:1rem"></i> Proposer un régime
-    </a>
+
   </div>
 
   <?php if (empty($regimes)): ?>
@@ -69,7 +67,7 @@ $objectifColors = [
         $ico    = $objectifIcons[$obj]   ?? 'target';
         $colors = $objectifColors[$obj]  ?? ['from'=>'#52B788','to'=>'#2D6A4F','bg'=>'rgba(82,183,136,0.08)'];
       ?>
-        <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border);transition:all 0.3s;display:flex;flex-direction:column"
+        <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $regime['id'] ?>" class="card" style="padding:0;overflow:hidden;border:1px solid var(--border);transition:all 0.3s;display:flex;flex-direction:column;text-decoration:none;cursor:pointer"
              onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,0.1)'"
              onmouseout="this.style.transform='none';this.style.boxShadow=''">
 
@@ -126,7 +124,7 @@ $objectifColors = [
               <span style="font-size:0.65rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($regime['created_at'])) ?></span>
             </div>
           </div>
-        </div>
+        </a>
       <?php endforeach; ?>
     </div>
 
@@ -152,7 +150,7 @@ $objectifColors = [
         </div>
         <div>
           <h2 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--text-primary)">Mes Propositions</h2>
-          <p style="font-size:0.75rem;color:var(--text-muted)">Régimes que vous avez soumis — en attente ou refusés</p>
+          <p style="font-size:0.75rem;color:var(--text-muted)">Historique de vos propositions (en attente ou refusées)</p>
         </div>
       </div>
 
@@ -161,6 +159,7 @@ $objectifColors = [
         $stConfig = [
             'en_attente' => ['label'=>'En attente', 'color'=>'#f59e0b', 'bg'=>'rgba(245,158,11,0.1)', 'icon'=>'clock'],
             'refuse'     => ['label'=>'Refusé',     'color'=>'#ef4444', 'bg'=>'rgba(239,68,68,0.1)',  'icon'=>'x-circle'],
+            'accepte'    => ['label'=>'Accepté',    'color'=>'#10b981', 'bg'=>'rgba(16,185,129,0.1)', 'icon'=>'check-circle'],
         ];
         foreach ($myRegimes as $mr):
           $st     = $stConfig[$mr['statut']] ?? $stConfig['en_attente'];
@@ -172,7 +171,7 @@ $objectifColors = [
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
 
               <!-- Left: icon + info -->
-              <div style="display:flex;align-items:center;gap:0.875rem;flex:1;min-width:0">
+              <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $mr['id'] ?>" style="display:flex;align-items:center;gap:0.875rem;flex:1;min-width:0;text-decoration:none;transition:opacity 0.2s" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
                 <div style="width:2.5rem;height:2.5rem;border-radius:0.75rem;background:<?= $colors['bg'] ?>;border:1px solid <?= $colors['from'] ?>22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <i data-lucide="<?= $ico ?>" style="width:1.1rem;height:1.1rem;color:<?= $colors['from'] ?>"></i>
                 </div>
@@ -180,7 +179,7 @@ $objectifColors = [
                   <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($mr['nom']) ?></div>
                   <div style="font-size:0.72rem;color:var(--text-muted)"><?= $obj ?> · <?= (int)$mr['duree_semaines'] ?> semaines · <?= number_format((int)$mr['calories_jour']) ?> kcal/j</div>
                 </div>
-              </div>
+              </a>
 
               <!-- Middle: status badge -->
               <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0">
@@ -203,7 +202,8 @@ $objectifColors = [
                   <i data-lucide="edit-3" style="width:0.75rem;height:0.75rem"></i> Modifier
                 </a>
 
-                <!-- Delete button -->
+                <!-- Delete button (hidden if accepted to prevent errors) -->
+                <?php if ($mr['statut'] !== 'accepte'): ?>
                 <button type="button"
                    onclick="openDeleteConfirm('<?= BASE_URL ?>/?page=nutrition&action=regime-delete&id=<?= $mr['id'] ?>', '<?= addslashes(htmlspecialchars($mr['nom'])) ?>')"
                    style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);cursor:pointer;transition:all 0.2s;flex-shrink:0"
@@ -212,6 +212,9 @@ $objectifColors = [
                    title="Supprimer ma proposition">
                   <i data-lucide="trash-2" style="width:0.75rem;height:0.75rem"></i>
                 </button>
+                <?php else: ?>
+                <div style="width:2rem;height:2rem;flex-shrink:0"></div>
+                <?php endif; ?>
               </div>
             </div>
           </div>

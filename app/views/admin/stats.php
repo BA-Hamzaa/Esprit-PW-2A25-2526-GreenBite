@@ -23,7 +23,12 @@
           <span style="width:7px;height:7px;background:#4ade80;border-radius:50%;animation:pulse 2s infinite"></span>
           En ligne
         </span>
-        <span style="color:rgba(255,255,255,0.5);font-size:0.8rem"><?= date('d/m/Y H:i') ?></span>
+        <span style="color:rgba(255,255,255,0.5);font-size:0.8rem">
+          <?php
+            $mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            echo date('d') . ' ' . $mois[(int)date('n')-1] . ' ' . date('Y - H:i');
+          ?>
+        </span>
       </div>
     </div>
   </div>

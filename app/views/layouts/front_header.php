@@ -25,7 +25,9 @@
       <!-- Logo -->
       <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding:1.5rem 1.5rem 1.25rem;position:relative;z-index:1">
         <a href="<?= BASE_URL ?>/" style="display:flex;align-items:center;text-decoration:none;margin-bottom:0.4rem">
-          <img src="<?= BASE_URL ?>/assets/images/logo.png" alt="GreenBite Logo" style="height:2.5rem;width:auto;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15))" />
+          <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.75rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
+            <i data-lucide="leaf" style="width:1.35rem;height:1.35rem;color:#a7f3d0"></i>
+          </div>
           <span style="margin-left:0.75rem;font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;text-shadow:0 2px 4px rgba(0,0,0,0.1)">GreenBite</span>
         </a>
 
@@ -145,7 +147,13 @@
                 else echo 'Bonsoir 🌙';
               ?>
             </h2>
-            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:1px"><?= date('l d F Y') ?></p>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:1px">
+              <?php
+                $jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+                $mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+                echo $jours[date('w')] . ' ' . date('d') . ' ' . $mois[(int)date('n')-1] . ' ' . date('Y');
+              ?>
+            </p>
           </div>
         </div>
         <div class="flex items-center gap-2">

@@ -75,7 +75,7 @@
         <label for="beDuree" style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
           Durée (semaines) <span style="color:#ef4444">*</span>
         </label>
-        <input type="number" name="duree_semaines" id="beDuree" min="1" max="52"
+        <input type="number" name="duree_semaines" id="beDuree" 
                value="<?= htmlspecialchars($_POST['duree_semaines'] ?? $regime['duree_semaines']) ?>"
                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
                onfocus="clearFieldError('beDuree')" oninput="clearFieldError('beDuree')">
@@ -90,7 +90,7 @@
       <label for="beCalories" style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
         Apport calorique journalier (kcal) <span style="color:#ef4444">*</span>
       </label>
-      <input type="number" name="calories_jour" id="beCalories" min="500" max="6000"
+      <input type="number" name="calories_jour" id="beCalories" 
              value="<?= htmlspecialchars($_POST['calories_jour'] ?? $regime['calories_jour']) ?>"
              style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
              onfocus="clearFieldError('beCalories')" oninput="clearFieldError('beCalories')">
