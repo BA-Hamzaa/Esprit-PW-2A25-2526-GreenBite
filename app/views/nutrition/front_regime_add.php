@@ -74,9 +74,7 @@
       <input type="text" name="nom" id="raNom"
              value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>"
              placeholder="Ex: Régime méditerranéen 4 semaines"
-             style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none"
-             onfocus="clearFieldError('raNom')"
-             oninput="clearFieldError('raNom')">
+             style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none">
       <div class="regime-field-error" id="err-raNom">
         <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
         <span></span>
@@ -91,8 +89,7 @@
           Objectif <span style="color:#ef4444">*</span>
         </label>
         <select name="objectif" id="raObjectif"
-                style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;cursor:pointer"
-                onchange="clearFieldError('raObjectif')">
+                style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;cursor:pointer">
           <option value="">-- Choisir --</option>
           <option value="perte_poids"    <?= ($_POST['objectif'] ?? '') === 'perte_poids'    ? 'selected' : '' ?>>Perte de poids</option>
           <option value="maintien"       <?= ($_POST['objectif'] ?? '') === 'maintien'       ? 'selected' : '' ?>>Maintien du poids</option>
@@ -109,12 +106,10 @@
           <i data-lucide="calendar" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
           Durée (semaines) <span style="color:#ef4444">*</span>
         </label>
-        <input type="number" name="duree_semaines" id="raDuree" min="1" max="52"
+        <input type="number" name="duree_semaines" id="raDuree" 
                value="<?= htmlspecialchars($_POST['duree_semaines'] ?? '') ?>"
                placeholder="Ex: 4"
-               style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none"
-               onfocus="clearFieldError('raDuree')"
-               oninput="clearFieldError('raDuree')">
+               style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none">
         <div class="regime-field-error" id="err-raDuree">
           <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
           <span></span>
@@ -128,12 +123,10 @@
         <i data-lucide="flame" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
         Apport calorique journalier (kcal) <span style="color:#ef4444">*</span>
       </label>
-      <input type="number" name="calories_jour" id="raCalories" min="500" max="6000"
+      <input type="number" name="calories_jour" id="raCalories" 
              value="<?= htmlspecialchars($_POST['calories_jour'] ?? '') ?>"
              placeholder="Ex: 1800"
-             style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none"
-             onfocus="clearFieldError('raCalories')"
-             oninput="clearFieldError('raCalories')">
+             style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none">
       <div class="regime-field-error" id="err-raCalories">
         <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
         <span></span>
@@ -144,28 +137,34 @@
     <div>
       <label for="raDesc" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
         <i data-lucide="file-text" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
-        Description générale
-        <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+        Description générale <span style="color:#ef4444">*</span>
       </label>
       <textarea name="description" id="raDesc" rows="4"
                 placeholder="Décrivez votre régime : principes, aliments recommandés, conseils…"
                 style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;resize:vertical"
                 onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
                 onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+      <div class="regime-field-error" id="err-raDesc">
+        <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+        <span></span>
+      </div>
     </div>
 
     <!-- Restrictions -->
     <div>
       <label for="raRestrictions" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
         <i data-lucide="shield-check" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
-        Restrictions / particularités
-        <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+        Restrictions / particularités <span style="color:#ef4444">*</span>
       </label>
       <textarea name="restrictions" id="raRestrictions" rows="2"
                 placeholder="Ex: Sans gluten, végétarien, sans lactose, halal…"
                 style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;resize:vertical"
                 onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
                 onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['restrictions'] ?? '') ?></textarea>
+      <div class="regime-field-error" id="err-raRestrictions">
+        <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+        <span></span>
+      </div>
     </div>
 
     <!-- Soumis par -->
@@ -177,9 +176,7 @@
       <input type="text" name="soumis_par" id="raSoumisBy"
              value="<?= htmlspecialchars($_POST['soumis_par'] ?? '') ?>"
              placeholder="Ex: Jean Dupont"
-             style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none"
-             onfocus="clearFieldError('raSoumisBy')"
-             oninput="clearFieldError('raSoumisBy')">
+             style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none">
       <div class="regime-field-error" id="err-raSoumisBy">
         <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
         <span></span>
@@ -203,93 +200,107 @@
 function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
-  if (!field || !errBox) return;
+  if (!field || !errBox) return false;
   field.classList.add('regime-input-invalid');
   field.style.borderColor = '#ef4444';
   field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
   errBox.querySelector('span').textContent = message;
   errBox.classList.add('visible');
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  return false;
 }
 
 function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
-  if (!field || !errBox) return;
+  if (!field || !errBox) return true;
   field.classList.remove('regime-input-invalid');
   field.style.borderColor = '';
   field.style.boxShadow   = '';
   errBox.classList.remove('visible');
+  return true;
 }
+
+/* ===== Real-time Validation Functions ===== */
+function validateNom() {
+  clearFieldError('raNom');
+  const nom = document.getElementById('raNom').value.trim();
+  if (!nom) return showFieldError('raNom', 'Le nom du régime est obligatoire.');
+  if (nom.length < 3) return showFieldError('raNom', 'Le nom doit contenir au moins 3 caractères.');
+  return true;
+}
+
+function validateObjectif() {
+  clearFieldError('raObjectif');
+  if (!document.getElementById('raObjectif').value) return showFieldError('raObjectif', 'Veuillez choisir un objectif.');
+  return true;
+}
+
+function validateDuree() {
+  clearFieldError('raDuree');
+  const val = document.getElementById('raDuree').value.trim();
+  if (val === '') return showFieldError('raDuree', 'La durée est obligatoire.');
+  const d = parseInt(val);
+  if (isNaN(d) || d < 1 || d > 52) return showFieldError('raDuree', 'La durée doit être entre 1 et 52 semaines (valeur positive seulement).');
+  return true;
+}
+
+function validateCalories() {
+  clearFieldError('raCalories');
+  const val = document.getElementById('raCalories').value.trim();
+  if (val === '') return showFieldError('raCalories', "L'apport calorique journalier est obligatoire.");
+  const c = parseInt(val);
+  if (isNaN(c) || c < 500 || c > 6000) return showFieldError('raCalories', 'Les calories doivent être entre 500 et 6 000 kcal/jour (valeur positive).');
+  return true;
+}
+
+function validateDesc() {
+  clearFieldError('raDesc');
+  if (!document.getElementById('raDesc').value.trim()) return showFieldError('raDesc', 'La description est obligatoire.');
+  return true;
+}
+
+function validateRestr() {
+  clearFieldError('raRestrictions');
+  if (!document.getElementById('raRestrictions').value.trim()) return showFieldError('raRestrictions', 'Les restrictions sont obligatoires.');
+  return true;
+}
+
+function validateSoumisBy() {
+  clearFieldError('raSoumisBy');
+  const n = document.getElementById('raSoumisBy').value.trim();
+  if (!n) return showFieldError('raSoumisBy', 'Votre nom est obligatoire.');
+  if (n.length < 2) return showFieldError('raSoumisBy', 'Votre nom doit contenir au moins 2 caractères.');
+  return true;
+}
+
+/* ===== Bind Events ===== */
+document.getElementById('raNom').addEventListener('input', validateNom);
+document.getElementById('raObjectif').addEventListener('change', validateObjectif);
+document.getElementById('raDuree').addEventListener('input', validateDuree);
+document.getElementById('raCalories').addEventListener('input', validateCalories);
+document.getElementById('raDesc').addEventListener('input', validateDesc);
+document.getElementById('raRestrictions').addEventListener('input', validateRestr);
+document.getElementById('raSoumisBy').addEventListener('input', validateSoumisBy);
 
 /* ===== Form submit validation ===== */
 document.getElementById('regimeAddForm').addEventListener('submit', function(e) {
-  let firstErrorId = null;
-  let hasError     = false;
+  let valid = true;
+  if (!validateNom()) valid = false;
+  if (!validateObjectif()) valid = false;
+  if (!validateDuree()) valid = false;
+  if (!validateCalories()) valid = false;
+  if (!validateDesc()) valid = false;
+  if (!validateRestr()) valid = false;
+  if (!validateSoumisBy()) valid = false;
 
-  // Nom
-  const nom = document.getElementById('raNom').value.trim();
-  if (!nom) {
-    showFieldError('raNom', 'Le nom du régime est obligatoire.');
-    if (!firstErrorId) firstErrorId = 'raNom';
-    hasError = true;
-  } else if (nom.length < 3) {
-    showFieldError('raNom', 'Le nom doit contenir au moins 3 caractères.');
-    if (!firstErrorId) firstErrorId = 'raNom';
-    hasError = true;
-  }
-
-  // Objectif
-  const objectif = document.getElementById('raObjectif').value;
-  if (!objectif) {
-    showFieldError('raObjectif', 'Veuillez choisir un objectif.');
-    if (!firstErrorId) firstErrorId = 'raObjectif';
-    hasError = true;
-  }
-
-  // Durée
-  const duree = parseInt(document.getElementById('raDuree').value);
-  if (!duree || isNaN(duree)) {
-    showFieldError('raDuree', 'La durée est obligatoire.');
-    if (!firstErrorId) firstErrorId = 'raDuree';
-    hasError = true;
-  } else if (duree < 1 || duree > 52) {
-    showFieldError('raDuree', 'La durée doit être entre 1 et 52 semaines.');
-    if (!firstErrorId) firstErrorId = 'raDuree';
-    hasError = true;
-  }
-
-  // Calories
-  const cal = parseInt(document.getElementById('raCalories').value);
-  if (!cal || isNaN(cal)) {
-    showFieldError('raCalories', "L'apport calorique journalier est obligatoire.");
-    if (!firstErrorId) firstErrorId = 'raCalories';
-    hasError = true;
-  } else if (cal < 500 || cal > 6000) {
-    showFieldError('raCalories', 'Les calories doivent être entre 500 et 6 000 kcal/jour.');
-    if (!firstErrorId) firstErrorId = 'raCalories';
-    hasError = true;
-  }
-
-  // Soumis par
-  const nom_user = document.getElementById('raSoumisBy').value.trim();
-  if (!nom_user) {
-    showFieldError('raSoumisBy', 'Votre nom est obligatoire.');
-    if (!firstErrorId) firstErrorId = 'raSoumisBy';
-    hasError = true;
-  } else if (nom_user.length < 2) {
-    showFieldError('raSoumisBy', 'Votre nom doit contenir au moins 2 caractères.');
-    if (!firstErrorId) firstErrorId = 'raSoumisBy';
-    hasError = true;
-  }
-
-  if (hasError) {
+  if (!valid) {
     e.preventDefault();
-    // Scroll to first error
-    const firstField = document.getElementById(firstErrorId);
-    if (firstField) {
-      firstField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      firstField.focus();
+    // find first error
+    const firstInvalid = document.querySelector('.regime-input-invalid');
+    if (firstInvalid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInvalid.focus();
     }
   }
 });

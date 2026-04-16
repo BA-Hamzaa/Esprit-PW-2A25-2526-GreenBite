@@ -547,21 +547,62 @@ class NutritionController {
     // FRONTOFFICE — RÉGIMES ALIMENTAIRES
     // =============================================
 
+    /** Détail d'un régime (Front) */
+    public function detailRegimeFront() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $regime = $this->regimeModel->getById($id);
+        if (!$regime) {
+            $_SESSION['error'] = "Régime introuvable.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
+            exit;
+        }
+
+        require_once BASE_PATH . '/app/views/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/nutrition/front_regime_detail.php';
+        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+    }
+
     /** Liste des régimes acceptés + régimes du client (Front) */
     public function listRegimes() {
         $regimes    = $this->regimeModel->getAccepted();
+        
         $myRegimes  = [];
         $myName     = $_SESSION['regime_user'] ?? '';
+        $myIds      = $_SESSION['my_regime_ids'] ?? [];
+        
+        // 1. Récupérer par nom (pour historique)
         if (!empty($myName)) {
-            // Inclure ses propres régimes même non acceptés
-            $allMine = $this->regimeModel->getByUser($myName);
-            // Filtrer: ceux non acceptés vont dans "mes propositions"
-            foreach ($allMine as $r) {
-                if ($r['statut'] !== 'accepte') {
-                    $myRegimes[] = $r;
+            $regimesByName = $this->regimeModel->getByUser($myName);
+            foreach ($regimesByName as $r) {
+                $myRegimes[$r['id']] = $r;
+            }
+        }
+
+        // 2. Récupérer par IDs mémorisés en session (pour les noms différents)
+        if (!empty($myIds)) {
+            foreach ($myIds as $id) {
+                if (!isset($myRegimes[$id])) {
+                    $r = $this->regimeModel->getById($id);
+                    if ($r) {
+                        $myRegimes[$r['id']] = $r;
+                    }
                 }
             }
         }
+        
+        // Trier par date la plus récente et filtrer (cacher les acceptés)
+        $filtered = [];
+        foreach ($myRegimes as $r) {
+            if ($r['statut'] === 'en_attente' || $r['statut'] === 'refuse') {
+                $filtered[] = $r;
+            }
+        }
+        $myRegimes = $filtered;
+
+        usort($myRegimes, function($a, $b) {
+            return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+        });
+
         require_once BASE_PATH . '/app/views/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/nutrition/front_regimes.php';
         require_once BASE_PATH . '/app/views/layouts/front_footer.php';
@@ -585,9 +626,15 @@ class NutritionController {
                     'restrictions'   => trim($_POST['restrictions'] ?? ''),
                     'soumis_par'     => $soumis_par
                 ];
-                $this->regimeModel->create($data);
-                // Mémoriser le nom en session pour afficher ses propositions
+                $regimeId = $this->regimeModel->create($data);
+                
+                // Mémoriser l'auteur et l'ID du régime
                 $_SESSION['regime_user'] = $soumis_par;
+                if (!isset($_SESSION['my_regime_ids'])) {
+                    $_SESSION['my_regime_ids'] = [];
+                }
+                $_SESSION['my_regime_ids'][] = $regimeId;
+                
                 $_SESSION['success'] = "Votre régime a été soumis\u00a0! Il sera examiné par notre équipe.";
                 header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
                 exit;
@@ -605,6 +652,16 @@ class NutritionController {
         $regime = $this->regimeModel->getById($id);
         if (!$regime) {
             $_SESSION['error'] = "Régime introuvable.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
+            exit;
+        }
+
+        $myName = $_SESSION['regime_user'] ?? '';
+        $myIds  = $_SESSION['my_regime_ids'] ?? [];
+        $isAuthorized = (!empty($myName) && $regime['soumis_par'] === $myName) || in_array($id, $myIds);
+        
+        if (!$isAuthorized) {
+            $_SESSION['error'] = "Vous n'êtes pas autorisé à modifier ce régime.";
             header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
             exit;
         }
@@ -653,9 +710,12 @@ class NutritionController {
             exit;
         }
 
-        // Vérification simple : le régime doit appartenir au nom en session
+        // Vérification d'autorisation (nom ou ID mémorisé)
         $myName = $_SESSION['regime_user'] ?? '';
-        if (empty($myName) || $regime['soumis_par'] !== $myName) {
+        $myIds  = $_SESSION['my_regime_ids'] ?? [];
+        $isAuthorized = (!empty($myName) && $regime['soumis_par'] === $myName) || in_array($id, $myIds);
+        
+        if (!$isAuthorized) {
             $_SESSION['error'] = "Vous n'êtes pas autorisé à supprimer ce régime.";
             header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
             exit;
@@ -886,6 +946,12 @@ class NutritionController {
         }
         if (!isset($post['calories_jour']) || !is_numeric($post['calories_jour']) || (int)$post['calories_jour'] <= 0) {
             $errors[] = "L'apport calorique journalier doit être un nombre positif.";
+        }
+        if (empty(trim($post['description'] ?? ''))) {
+            $errors[] = "La description est obligatoire.";
+        }
+        if (empty(trim($post['restrictions'] ?? ''))) {
+            $errors[] = "Les restrictions sont obligatoires.";
         }
         if (empty(trim($post['soumis_par'] ?? ''))) {
             $errors[] = "Votre nom est obligatoire.";

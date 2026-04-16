@@ -17,7 +17,7 @@
 <?php endif; ?>
 
 <div class="card" style="padding:2.5rem;max-width:56rem">
-  <form method="POST">
+  <form method="POST" id="adminPlanForm" novalidate>
     <div class="grid grid-cols-2 gap-6 mb-6">
       <div class="form-group col-span-2">
         <label class="form-label" for="nom">Nom du plan</label>
@@ -70,7 +70,7 @@
             </select>
           </div>
           <div style="width:150px">
-            <input type="number" name="jours[]" class="form-input" placeholder="Jour (ex: 1)" min="1" value="1">
+            <input type="number" name="jours[]" class="form-input" placeholder="Jour (ex: 1)" value="1">
           </div>
           <button type="button" class="btn btn-outline-danger btn-round" style="padding:0.75rem" onclick="this.closest('.repas-row').remove()"><i data-lucide="trash-2"></i></button>
         </div>
@@ -86,7 +86,7 @@
               </select>
             </div>
             <div style="width:150px">
-              <input type="number" name="jours[]" class="form-input" min="1" value="<?= $pr['jour'] ?>">
+              <input type="number" name="jours[]" class="form-input" value="<?= $pr['jour'] ?>">
             </div>
             <button type="button" class="btn btn-outline-danger btn-round" style="padding:0.75rem" onclick="this.closest('.repas-row').remove()"><i data-lucide="trash-2"></i></button>
           </div>
@@ -122,11 +122,26 @@ document.getElementById('add-repas-btn').addEventListener('click', function() {
       </select>
     </div>
     <div style="width:150px">
-      <input type="number" name="jours[]" class="form-input" min="1" value="${currentJour}">
+      <input type="number" name="jours[]" class="form-input" value="${currentJour}">
     </div>
     <button type="button" class="btn btn-outline-danger btn-round" style="padding:0.75rem" onclick="this.closest('.repas-row').remove()"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(newRow);
   if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+
+document.getElementById('adminPlanForm').addEventListener('submit', function(e) {
+  let errors = [];
+  if (document.getElementById('nom').value.trim() === '') errors.push('Le nom du plan est obligatoire.');
+  if (document.getElementById('type_objectif').value === '') errors.push('Le type d\'objectif est obligatoire.');
+  if (!document.getElementById('objectif_calories').value) errors.push('L\'objectif calorique est obligatoire.');
+  const dureeVal = document.getElementById('duree_jours').value;
+  if (!dureeVal || parseInt(dureeVal) <= 0) errors.push('La durée en jours doit être supérieure à 0.');
+  if (!document.getElementById('date_debut').value) errors.push('La date de début est obligatoire.');
+  
+  if (errors.length > 0) {
+    e.preventDefault();
+    alert(errors[0]);
+  }
 });
 </script>

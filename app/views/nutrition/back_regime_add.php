@@ -44,8 +44,7 @@
       <input type="text" name="nom" id="baNom"
              value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>"
              placeholder="Ex: Régime méditerranéen équilibré"
-             style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-             onfocus="clearFieldError('baNom')" oninput="clearFieldError('baNom')">
+             style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none">
       <div class="regime-field-error" id="err-baNom">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -58,8 +57,7 @@
           Objectif <span style="color:#ef4444">*</span>
         </label>
         <select name="objectif" id="baObjectif"
-                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;cursor:pointer"
-                onchange="clearFieldError('baObjectif')">
+                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;cursor:pointer">
           <option value="">-- Choisir --</option>
           <option value="perte_poids"    <?= ($_POST['objectif'] ?? '') === 'perte_poids'    ? 'selected' : '' ?>>Perte de poids</option>
           <option value="maintien"       <?= ($_POST['objectif'] ?? '') === 'maintien'       ? 'selected' : '' ?>>Maintien du poids</option>
@@ -74,10 +72,9 @@
         <label for="baDuree" style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
           Durée (semaines) <span style="color:#ef4444">*</span>
         </label>
-        <input type="number" name="duree_semaines" id="baDuree" min="1" max="52"
+        <input type="number" name="duree_semaines" id="baDuree" 
                value="<?= htmlspecialchars($_POST['duree_semaines'] ?? '4') ?>"
-               style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-               onfocus="clearFieldError('baDuree')" oninput="clearFieldError('baDuree')">
+               style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none">
         <div class="regime-field-error" id="err-baDuree">
           <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
         </div>
@@ -89,10 +86,9 @@
       <label for="baCalories" style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
         Apport calorique journalier (kcal) <span style="color:#ef4444">*</span>
       </label>
-      <input type="number" name="calories_jour" id="baCalories" min="500" max="6000"
+      <input type="number" name="calories_jour" id="baCalories" 
              value="<?= htmlspecialchars($_POST['calories_jour'] ?? '2000') ?>"
-             style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-             onfocus="clearFieldError('baCalories')" oninput="clearFieldError('baCalories')">
+             style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none">
       <div class="regime-field-error" id="err-baCalories">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -101,25 +97,27 @@
     <!-- Description -->
     <div>
       <label style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
-        Description <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+        Description <span style="color:#ef4444">*</span>
       </label>
-      <textarea name="description" rows="4"
+      <textarea id="baDesc" name="description" rows="4"
                 placeholder="Décrivez ce régime…"
-                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"
-                onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-                onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+      <div class="regime-field-error" id="err-baDesc">
+        <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
+      </div>
     </div>
 
     <!-- Restrictions -->
     <div>
       <label style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
-        Restrictions <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+        Restrictions <span style="color:#ef4444">*</span>
       </label>
-      <textarea name="restrictions" rows="2"
+      <textarea id="baRestrictions" name="restrictions" rows="2"
                 placeholder="Ex: Sans gluten, végétarien…"
-                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"
-                onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-                onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['restrictions'] ?? '') ?></textarea>
+                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"><?= htmlspecialchars($_POST['restrictions'] ?? '') ?></textarea>
+      <div class="regime-field-error" id="err-baRestrictions">
+        <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
+      </div>
     </div>
 
     <!-- Auteur -->
@@ -130,8 +128,7 @@
       <input type="text" name="soumis_par" id="baAuteur"
              value="<?= htmlspecialchars($_POST['soumis_par'] ?? 'Admin GreenBite') ?>"
              placeholder="Ex: Équipe GreenBite"
-             style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-             onfocus="clearFieldError('baAuteur')" oninput="clearFieldError('baAuteur')">
+             style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none">
       <div class="regime-field-error" id="err-baAuteur">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -153,51 +150,94 @@
 function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
-  if (!field || !errBox) return;
+  if (!field || !errBox) return false;
   field.style.borderColor = '#ef4444';
   field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
   errBox.querySelector('span').textContent = message;
   errBox.classList.add('visible');
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  return false;
 }
 function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
-  if (!field || !errBox) return;
+  if (!field || !errBox) return true;
   field.style.borderColor = '';
   field.style.boxShadow   = '';
   errBox.classList.remove('visible');
+  return true;
 }
 
+/* ===== Real-time Validation Functions ===== */
+function validateNom() {
+  clearFieldError('baNom');
+  const nom = document.getElementById('baNom').value.trim();
+  if (!nom) return showFieldError('baNom', 'Le nom est obligatoire.');
+  if (nom.length < 3) return showFieldError('baNom', 'Au moins 3 caractères.');
+  return true;
+}
+function validateObjectif() {
+  clearFieldError('baObjectif');
+  if (!document.getElementById('baObjectif').value) return showFieldError('baObjectif', 'Veuillez choisir un objectif.');
+  return true;
+}
+function validateDuree() {
+  clearFieldError('baDuree');
+  const val = document.getElementById('baDuree').value.trim();
+  if (val === '') return showFieldError('baDuree', 'La durée est obligatoire.');
+  const d = parseInt(val);
+  if (isNaN(d) || d < 1 || d > 52) return showFieldError('baDuree', 'Entre 1 et 52 semaines (valeur positive seulement).');
+  return true;
+}
+function validateCalories() {
+  clearFieldError('baCalories');
+  const val = document.getElementById('baCalories').value.trim();
+  if (val === '') return showFieldError('baCalories', "L'apport calorique journalier est obligatoire.");
+  const c = parseInt(val);
+  if (isNaN(c) || c < 500 || c > 6000) return showFieldError('baCalories', 'Entre 500 et 6 000 kcal/jour (valeur positive).');
+  return true;
+}
+function validateDesc() {
+  clearFieldError('baDesc');
+  if (!document.getElementById('baDesc').value.trim()) return showFieldError('baDesc', 'La description est obligatoire.');
+  return true;
+}
+function validateRestr() {
+  clearFieldError('baRestrictions');
+  if (!document.getElementById('baRestrictions').value.trim()) return showFieldError('baRestrictions', 'Les restrictions sont obligatoires.');
+  return true;
+}
+function validateAuteur() {
+  clearFieldError('baAuteur');
+  const n = document.getElementById('baAuteur').value.trim();
+  if (!n) return showFieldError('baAuteur', "L'auteur est obligatoire.");
+  if (n.length < 2) return showFieldError('baAuteur', 'Au moins 2 caractères.');
+  return true;
+}
+
+/* ===== Bind Events ===== */
+document.getElementById('baNom').addEventListener('input', validateNom);
+document.getElementById('baObjectif').addEventListener('change', validateObjectif);
+document.getElementById('baDuree').addEventListener('input', validateDuree);
+document.getElementById('baCalories').addEventListener('input', validateCalories);
+document.getElementById('baDesc').addEventListener('input', validateDesc);
+document.getElementById('baRestrictions').addEventListener('input', validateRestr);
+document.getElementById('baAuteur').addEventListener('input', validateAuteur);
+
 document.getElementById('backRegimeAddForm').addEventListener('submit', function(e) {
-  let firstErr = null, hasError = false;
+  let valid = true;
+  if (!validateNom()) valid = false;
+  if (!validateObjectif()) valid = false;
+  if (!validateDuree()) valid = false;
+  if (!validateCalories()) valid = false;
+  if (!validateDesc()) valid = false;
+  if (!validateRestr()) valid = false;
+  if (!validateAuteur()) valid = false;
 
-  const rules = [
-    { id:'baNom',      val:() => document.getElementById('baNom').value.trim(),
-      check: v => !v ? 'Le nom est obligatoire.' : v.length < 3 ? 'Au moins 3 caractères.' : null },
-    { id:'baObjectif', val:() => document.getElementById('baObjectif').value,
-      check: v => !v ? "Veuillez choisir un objectif." : null },
-    { id:'baDuree',    val:() => parseInt(document.getElementById('baDuree').value),
-      check: v => isNaN(v) ? 'La durée est obligatoire.' : v < 1 || v > 52 ? 'Entre 1 et 52 semaines.' : null },
-    { id:'baCalories', val:() => parseInt(document.getElementById('baCalories').value),
-      check: v => isNaN(v) ? "L'apport calorique est obligatoire." : v < 500 || v > 6000 ? 'Entre 500 et 6 000 kcal.' : null },
-    { id:'baAuteur',   val:() => document.getElementById('baAuteur').value.trim(),
-      check: v => !v ? "L'auteur est obligatoire." : v.length < 2 ? 'Au moins 2 caractères.' : null },
-  ];
-
-  rules.forEach(r => {
-    const msg = r.check(r.val());
-    if (msg) {
-      showFieldError(r.id, msg);
-      if (!firstErr) firstErr = r.id;
-      hasError = true;
-    }
-  });
-
-  if (hasError) {
+  if (!valid) {
     e.preventDefault();
-    const el = document.getElementById(firstErr);
-    if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); el.focus(); }
+    const firstInvalid = document.querySelector('.visible')?.parentElement.querySelector('input, textarea, select');
+    if (firstInvalid) { firstInvalid.scrollIntoView({ behavior:'smooth', block:'center' }); firstInvalid.focus(); }
   }
 });
 </script>

@@ -113,7 +113,7 @@ $objectifLabels = [
           <i data-lucide="calendar" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
           Durée (semaines) <span style="color:#ef4444">*</span>
         </label>
-        <input type="number" name="duree_semaines" id="reDuree" min="1" max="52"
+        <input type="number" name="duree_semaines" id="reDuree" 
                value="<?= htmlspecialchars($_POST['duree_semaines'] ?? $regime['duree_semaines']) ?>"
                style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none"
                onfocus="clearFieldError('reDuree')"
@@ -131,7 +131,7 @@ $objectifLabels = [
         <i data-lucide="flame" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
         Apport calorique journalier (kcal) <span style="color:#ef4444">*</span>
       </label>
-      <input type="number" name="calories_jour" id="reCalories" min="500" max="6000"
+      <input type="number" name="calories_jour" id="reCalories" 
              value="<?= htmlspecialchars($_POST['calories_jour'] ?? $regime['calories_jour']) ?>"
              style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none"
              onfocus="clearFieldError('reCalories')"
@@ -144,26 +144,34 @@ $objectifLabels = [
 
     <!-- Description -->
     <div>
-      <label style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
+      <label for="reDesc" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
         <i data-lucide="file-text" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
-        Description générale <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+        Description générale <span style="color:#ef4444">*</span>
       </label>
-      <textarea name="description" rows="4"
+      <textarea name="description" id="reDesc" rows="4"
                 style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;resize:vertical"
                 onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
                 onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
+      <div class="regime-field-error" id="err-reDesc">
+        <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+        <span></span>
+      </div>
     </div>
 
     <!-- Restrictions -->
     <div>
-      <label style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
+      <label for="reRestrictions" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
         <i data-lucide="shield-check" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.35rem"></i>
-        Restrictions / particularités <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+        Restrictions / particularités <span style="color:#ef4444">*</span>
       </label>
-      <textarea name="restrictions" rows="2"
+      <textarea name="restrictions" id="reRestrictions" rows="2"
                 style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;resize:vertical"
                 onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
                 onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
+      <div class="regime-field-error" id="err-reRestrictions">
+        <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+        <span></span>
+      </div>
     </div>
 
     <!-- Hidden: soumis_par -->
@@ -190,66 +198,102 @@ $objectifLabels = [
 </div>
 
 <script>
+/* ===== Inline field validation helpers ===== */
 function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
-  if (!field || !errBox) return;
+  if (!field || !errBox) return false;
+  field.classList.add('regime-input-invalid');
   field.style.borderColor = '#ef4444';
   field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
   errBox.querySelector('span').textContent = message;
   errBox.classList.add('visible');
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  return false;
 }
+
 function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
-  if (!field || !errBox) return;
+  if (!field || !errBox) return true;
+  field.classList.remove('regime-input-invalid');
   field.style.borderColor = '';
   field.style.boxShadow   = '';
   errBox.classList.remove('visible');
+  return true;
 }
 
-document.getElementById('regimeEditForm').addEventListener('submit', function(e) {
-  let firstErrorId = null;
-  let hasError     = false;
-
+/* ===== Real-time Validation Functions ===== */
+function validateNom() {
+  clearFieldError('reNom');
   const nom = document.getElementById('reNom').value.trim();
-  if (!nom) {
-    showFieldError('reNom', 'Le nom du régime est obligatoire.');
-    if (!firstErrorId) firstErrorId = 'reNom'; hasError = true;
-  } else if (nom.length < 3) {
-    showFieldError('reNom', 'Le nom doit contenir au moins 3 caractères.');
-    if (!firstErrorId) firstErrorId = 'reNom'; hasError = true;
-  }
+  if (!nom) return showFieldError('reNom', 'Le nom du régime est obligatoire.');
+  if (nom.length < 3) return showFieldError('reNom', 'Le nom doit contenir au moins 3 caractères.');
+  return true;
+}
 
-  const objectif = document.getElementById('reObjectif').value;
-  if (!objectif) {
-    showFieldError('reObjectif', 'Veuillez choisir un objectif.');
-    if (!firstErrorId) firstErrorId = 'reObjectif'; hasError = true;
-  }
+function validateObjectif() {
+  clearFieldError('reObjectif');
+  if (!document.getElementById('reObjectif').value) return showFieldError('reObjectif', 'Veuillez choisir un objectif.');
+  return true;
+}
 
-  const duree = parseInt(document.getElementById('reDuree').value);
-  if (!duree || isNaN(duree)) {
-    showFieldError('reDuree', 'La durée est obligatoire.');
-    if (!firstErrorId) firstErrorId = 'reDuree'; hasError = true;
-  } else if (duree < 1 || duree > 52) {
-    showFieldError('reDuree', 'La durée doit être entre 1 et 52 semaines.');
-    if (!firstErrorId) firstErrorId = 'reDuree'; hasError = true;
-  }
+function validateDuree() {
+  clearFieldError('reDuree');
+  const val = document.getElementById('reDuree').value.trim();
+  if (val === '') return showFieldError('reDuree', 'La durée est obligatoire.');
+  const d = parseInt(val);
+  if (isNaN(d) || d < 1 || d > 52) return showFieldError('reDuree', 'La durée doit être entre 1 et 52 semaines (valeur positive seulement).');
+  return true;
+}
 
-  const cal = parseInt(document.getElementById('reCalories').value);
-  if (!cal || isNaN(cal)) {
-    showFieldError('reCalories', "L'apport calorique journalier est obligatoire.");
-    if (!firstErrorId) firstErrorId = 'reCalories'; hasError = true;
-  } else if (cal < 500 || cal > 6000) {
-    showFieldError('reCalories', 'Les calories doivent être entre 500 et 6 000 kcal/jour.');
-    if (!firstErrorId) firstErrorId = 'reCalories'; hasError = true;
-  }
+function validateCalories() {
+  clearFieldError('reCalories');
+  const val = document.getElementById('reCalories').value.trim();
+  if (val === '') return showFieldError('reCalories', "L'apport calorique journalier est obligatoire.");
+  const c = parseInt(val);
+  if (isNaN(c) || c < 500 || c > 6000) return showFieldError('reCalories', 'Les calories doivent être entre 500 et 6 000 kcal/jour (valeur positive).');
+  return true;
+}
 
-  if (hasError) {
+function validateDesc() {
+  clearFieldError('reDesc');
+  if (!document.getElementById('reDesc').value.trim()) return showFieldError('reDesc', 'La description est obligatoire.');
+  return true;
+}
+
+function validateRestr() {
+  clearFieldError('reRestrictions');
+  if (!document.getElementById('reRestrictions').value.trim()) return showFieldError('reRestrictions', 'Les restrictions sont obligatoires.');
+  return true;
+}
+
+/* ===== Bind Events ===== */
+document.getElementById('reNom').addEventListener('input', validateNom);
+document.getElementById('reObjectif').addEventListener('change', validateObjectif);
+document.getElementById('reDuree').addEventListener('input', validateDuree);
+document.getElementById('reCalories').addEventListener('input', validateCalories);
+document.getElementById('reDesc').addEventListener('input', validateDesc);
+document.getElementById('reRestrictions').addEventListener('input', validateRestr);
+
+/* ===== Form submit validation ===== */
+document.getElementById('regimeEditForm').addEventListener('submit', function(e) {
+  let valid = true;
+  if (!validateNom()) valid = false;
+  if (!validateObjectif()) valid = false;
+  if (!validateDuree()) valid = false;
+  if (!validateCalories()) valid = false;
+  if (!validateDesc()) valid = false;
+  if (!validateRestr()) valid = false;
+
+  if (!valid) {
     e.preventDefault();
-    const firstField = document.getElementById(firstErrorId);
-    if (firstField) { firstField.scrollIntoView({ behavior:'smooth', block:'center' }); firstField.focus(); }
+    // find first error
+    const firstInvalid = document.querySelector('.regime-input-invalid');
+    if (firstInvalid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInvalid.focus();
+    }
   }
 });
 </script>
