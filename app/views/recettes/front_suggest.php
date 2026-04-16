@@ -108,7 +108,7 @@
             <i data-lucide="clock" style="width:0.875rem;height:0.875rem"></i> Temps (min) <span style="color:var(--destructive)">*</span>
           </label>
           <input type="number" name="temps_preparation" id="temps_preparation" class="form-input"
-                 placeholder="30" min="1"
+                 placeholder="30" 
                  value="<?= htmlspecialchars($_POST['temps_preparation'] ?? '') ?>">
         </div>
         <div class="form-group">
@@ -139,7 +139,7 @@
             <i data-lucide="flame" style="width:0.875rem;height:0.875rem"></i> Calories (kcal)
           </label>
           <input type="number" name="calories_total" id="calories_total" class="form-input"
-                 placeholder="450" min="0"
+                 placeholder="450" 
                  value="<?= htmlspecialchars($_POST['calories_total'] ?? '0') ?>">
         </div>
         <div class="form-group">
@@ -147,7 +147,7 @@
             <i data-lucide="leaf" style="width:0.875rem;height:0.875rem"></i> Score CO₂
           </label>
           <input type="number" name="score_carbone" id="score_carbone" class="form-input"
-                 step="0.01" placeholder="1.20" min="0"
+                 placeholder="1.20" 
                  value="<?= htmlspecialchars($_POST['score_carbone'] ?? '0') ?>">
         </div>
         <div class="form-group">
@@ -175,7 +175,7 @@
               <?php endforeach; ?>
             </select>
             <input type="number" name="quantites[]" class="form-input"
-                   style="width:120px" placeholder="Quantité" step="0.01" min="0.01">
+                   style="width:120px" placeholder="Quantité" >
             <button type="button" class="icon-btn"
                     style="width:2rem;height:2rem;color:var(--destructive);flex-shrink:0"
                     onclick="this.closest('.ingredient-row').remove()">

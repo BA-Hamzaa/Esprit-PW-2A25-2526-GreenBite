@@ -5,6 +5,10 @@
  */
 session_start();
 
+// Configuration locale et Fuseau horaire
+date_default_timezone_set('Africa/Tunis');
+setlocale(LC_TIME, 'fr_FR.UTF-8', 'fra', 'french');
+
 // Chemin de base du projet
 define('BASE_PATH', dirname(__DIR__));
 define('BASE_URL', '');
@@ -97,6 +101,7 @@ switch ($page) {
             case 'regime-add':      $controller->addRegime(); break;
             case 'regime-edit':     $controller->editRegime(); break;
             case 'regime-delete':   $controller->deleteRegimeFront(); break;
+            case 'regime-detail':   $controller->detailRegimeFront(); break;
             default:                $controller->listFront(); break;
         }
         break;

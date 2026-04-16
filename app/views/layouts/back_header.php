@@ -17,6 +17,92 @@
     document.documentElement.setAttribute('data-theme', 'dark');
   }
 </script>
+<style>
+/* Special Floating Sidebar UI */
+body {
+  background-color: #f8fafc;
+}
+[data-theme='dark'] body {
+  background-color: #0f172a;
+}
+.admin-sidebar {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  bottom: 1.5rem;
+  width: 260px;
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(16px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+}
+[data-theme='dark'] .admin-sidebar {
+  background: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+.page-content-admin {
+  margin-left: calc(260px + 3rem) !important;
+  padding-top: 1.5rem;
+  min-height: 100vh;
+}
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+}
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+.sidebar-section-label {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 0.7rem !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+.sidebar-nav-item {
+  color: rgba(255, 255, 255, 0.7) !important;
+  border-radius: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+  padding: 0.65rem 1rem !important;
+  transition: all 0.3s ease !important;
+}
+.sidebar-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+  transform: translateX(3px);
+}
+.sidebar-nav-item.active {
+  background: linear-gradient(135deg, rgba(82,183,136,0.25), rgba(45,106,79,0.15)) !important;
+  color: #a7f3d0 !important;
+  border-left: 3px solid #52B788 !important;
+  box-shadow: inset 0 0 20px rgba(82,183,136,0.05);
+}
+.sidebar-nav-item i {
+  color: inherit !important;
+}
+.admin-logo-text {
+  margin-left: 0.75rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a7f3d0, #52B788);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
+}
+</style>
 
   <div class="page-with-sidebar">
     <!-- ===== SIDEBAR ADMIN ===== -->
@@ -25,8 +111,10 @@
       <!-- Logo -->
       <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding:1.5rem 1.5rem 1.25rem;position:relative;z-index:1">
         <a href="<?= BASE_URL ?>/" style="display:flex;align-items:center;text-decoration:none;margin-bottom:0.4rem">
-          <img src="<?= BASE_URL ?>/assets/images/logo.png" alt="GreenBite Logo" style="height:2.5rem;width:auto;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15))" />
-          <span style="margin-left:0.75rem;font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;text-shadow:0 2px 4px rgba(0,0,0,0.1)">GreenBite</span>
+          <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.75rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
+            <i data-lucide="leaf" style="width:1.35rem;height:1.35rem;color:#a7f3d0"></i>
+          </div>
+          <span class="admin-logo-text">GreenBite</span>
         </a>
 
         <div style="display:flex;align-items:center;gap:0.4rem">
