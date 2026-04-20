@@ -1,120 +1,53 @@
 <?php
-/**
- * Modèle RegimeAlimentaire — Gestion des régimes alimentaires
- * Workflow : soumis par l'utilisateur → validé / refusé par l'admin
- */
 class RegimeAlimentaire {
-    private $pdo;
+    private $id                = null;
+    private $nom               = null;
+    private $objectif          = null;
+    private $description       = null;
+    private $duree_semaines    = null;
+    private $calories_jour     = null;
+    private $restrictions      = null;
+    private $soumis_par        = null;
+    private $statut            = null;
+    private $commentaire_admin = null;
+    private $created_at        = null;
 
-    public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
+    function __construct($nom, $objectif, $duree_semaines, $calories_jour, $soumis_par,
+                         $statut = 'en_attente', $description = '', $restrictions = '') {
+        $this->nom            = $nom;
+        $this->objectif       = $objectif;
+        $this->duree_semaines = $duree_semaines;
+        $this->calories_jour  = $calories_jour;
+        $this->soumis_par     = $soumis_par;
+        $this->statut         = $statut;
+        $this->description    = $description;
+        $this->restrictions   = $restrictions;
     }
 
-    /** Récupérer tous les régimes (admin) */
-    public function getAll() {
-        $stmt = $this->pdo->query(
-            "SELECT * FROM regime_alimentaire ORDER BY created_at DESC"
-        );
-        return $stmt->fetchAll();
-    }
+    // ==================== GETTERS ====================
 
-    /** Récupérer uniquement les régimes acceptés (front public) */
-    public function getAccepted() {
-        $stmt = $this->pdo->query(
-            "SELECT * FROM regime_alimentaire WHERE statut = 'accepte' ORDER BY created_at DESC"
-        );
-        return $stmt->fetchAll();
-    }
+    function getId()               { return $this->id; }
+    function getNom()              { return $this->nom; }
+    function getObjectif()         { return $this->objectif; }
+    function getDescription()      { return $this->description; }
+    function getDureeSemaines()    { return $this->duree_semaines; }
+    function getCaloriesJour()     { return $this->calories_jour; }
+    function getRestrictions()     { return $this->restrictions; }
+    function getSoumisPar()        { return $this->soumis_par; }
+    function getStatut()           { return $this->statut; }
+    function getCommentaireAdmin() { return $this->commentaire_admin; }
+    function getCreatedAt()        { return $this->created_at; }
 
-    /** Récupérer les régimes en attente (admin) */
-    public function getPending() {
-        $stmt = $this->pdo->query(
-            "SELECT * FROM regime_alimentaire WHERE statut = 'en_attente' ORDER BY created_at DESC"
-        );
-        return $stmt->fetchAll();
-    }
+    // ==================== SETTERS ====================
 
-    /** Récupérer les régimes d'un utilisateur par son nom (front) */
-    public function getByUser($soumis_par) {
-        $stmt = $this->pdo->prepare(
-            "SELECT * FROM regime_alimentaire WHERE soumis_par = ? ORDER BY created_at DESC"
-        );
-        $stmt->execute([$soumis_par]);
-        return $stmt->fetchAll();
-    }
-
-    /** Récupérer un régime par ID */
-    public function getById($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM regime_alimentaire WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
-
-    /** Créer un nouveau régime (statut = en_attente) */
-    public function create($data) {
-        $stmt = $this->pdo->prepare(
-            "INSERT INTO regime_alimentaire
-             (nom, objectif, description, duree_semaines, calories_jour, restrictions, soumis_par, statut)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        );
-        $stmt->execute([
-            $data['nom'],
-            $data['objectif'],
-            $data['description'] ?? '',
-            $data['duree_semaines'],
-            $data['calories_jour'],
-            $data['restrictions'] ?? '',
-            $data['soumis_par'],
-            $data['statut'] ?? 'en_attente'
-        ]);
-        return $this->pdo->lastInsertId();
-    }
-
-    /** Mettre à jour les données d'un régime */
-    public function update($id, $data) {
-        $stmt = $this->pdo->prepare(
-            "UPDATE regime_alimentaire
-             SET nom = ?, objectif = ?, description = ?, duree_semaines = ?,
-                 calories_jour = ?, restrictions = ?, statut = ?
-             WHERE id = ?"
-        );
-        return $stmt->execute([
-            $data['nom'],
-            $data['objectif'],
-            $data['description'] ?? '',
-            $data['duree_semaines'],
-            $data['calories_jour'],
-            $data['restrictions'] ?? '',
-            $data['statut'],
-            $id
-        ]);
-    }
-
-    /** Mettre à jour le statut (accept / refuse) + commentaire admin */
-    public function updateStatut($id, $statut, $commentaire = null) {
-        $stmt = $this->pdo->prepare(
-            "UPDATE regime_alimentaire SET statut = ?, commentaire_admin = ? WHERE id = ?"
-        );
-        return $stmt->execute([$statut, $commentaire, $id]);
-    }
-
-    /** Supprimer un régime */
-    public function delete($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM regime_alimentaire WHERE id = ?");
-        return $stmt->execute([$id]);
-    }
-
-    /** Compter les régimes en attente (pour badge admin) */
-    public function countPending() {
-        $stmt = $this->pdo->query(
-            "SELECT COUNT(*) as total FROM regime_alimentaire WHERE statut = 'en_attente'"
-        );
-        return $stmt->fetch()['total'];
-    }
-
-    /** Compter tous les régimes */
-    public function count() {
-        $stmt = $this->pdo->query("SELECT COUNT(*) as total FROM regime_alimentaire");
-        return $stmt->fetch()['total'];
-    }
+    function setNom(string $nom)                     { $this->nom = $nom; }
+    function setObjectif(string $objectif)           { $this->objectif = $objectif; }
+    function setDescription(string $description)     { $this->description = $description; }
+    function setDureeSemaines(int $duree_semaines)   { $this->duree_semaines = $duree_semaines; }
+    function setCaloriesJour(int $calories_jour)     { $this->calories_jour = $calories_jour; }
+    function setRestrictions(string $restrictions)   { $this->restrictions = $restrictions; }
+    function setSoumisPar(string $soumis_par)        { $this->soumis_par = $soumis_par; }
+    function setStatut(string $statut)               { $this->statut = $statut; }
+    function setCommentaireAdmin($commentaire_admin) { $this->commentaire_admin = $commentaire_admin; }
 }
+?>

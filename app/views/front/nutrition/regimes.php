@@ -67,7 +67,7 @@ $objectifColors = [
         $ico    = $objectifIcons[$obj]   ?? 'target';
         $colors = $objectifColors[$obj]  ?? ['from'=>'#52B788','to'=>'#2D6A4F','bg'=>'rgba(82,183,136,0.08)'];
       ?>
-        <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $regime['id'] ?>" class="card" style="padding:0;overflow:hidden;border:1px solid var(--border);transition:all 0.3s;display:flex;flex-direction:column;text-decoration:none;cursor:pointer"
+        <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $regime['id'] ?>" class="card searchable-regime" style="padding:0;overflow:hidden;border:1px solid var(--border);transition:all 0.3s;display:flex;flex-direction:column;text-decoration:none;cursor:pointer"
              onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,0.1)'"
              onmouseout="this.style.transform='none';this.style.boxShadow=''">
 
@@ -167,7 +167,7 @@ $objectifColors = [
           $ico    = $objectifIcons[$mr['objectif']]  ?? 'target';
           $colors = $objectifColors[$mr['objectif']] ?? ['from'=>'#52B788','to'=>'#2D6A4F','bg'=>'rgba(82,183,136,0.08)'];
         ?>
-          <div class="card" style="padding:1.25rem;border:1px solid var(--border);transition:all 0.25s" onmouseover="this.style.transform='translateX(3px)'" onmouseout="this.style.transform='none'">
+          <div class="card searchable-regime" style="padding:1.25rem;border:1px solid var(--border);transition:all 0.25s" onmouseover="this.style.transform='translateX(3px)'" onmouseout="this.style.transform='none'">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
 
               <!-- Left: icon + info -->
@@ -275,5 +275,35 @@ document.getElementById('deleteConfirmModal').addEventListener('click', function
 // ESC key to close
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeDeleteConfirm();
+});
+
+// Dynamic Client-side Search
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('globalSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const query = this.value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.searchable-regime');
+      
+      cards.forEach(card => {
+        // Retrieve text from within the card to perform lookup
+        const title = card.querySelector('h3, div[style*="font-weight:700"]')?.textContent.toLowerCase() || '';
+        const badge = card.querySelector('span[style*="text-transform:uppercase"]')?.textContent.toLowerCase() || '';
+        const restrictions = card.querySelector('div[style*="align-items:flex-start"] span')?.textContent.toLowerCase() || '';
+        const fullText = (title + ' ' + badge + ' ' + restrictions).toLowerCase();
+
+        if (fullText.includes(query)) {
+          card.style.display = card.tagName.toLowerCase() === 'div' ? 'flex' : 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+    
+    // Trigger once on load in case there is already text (like from PHP redirect)
+    if(searchInput.value) {
+       searchInput.dispatchEvent(new Event('input'));
+    }
+  }
 });
 </script>

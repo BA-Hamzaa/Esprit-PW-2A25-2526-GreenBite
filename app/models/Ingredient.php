@@ -1,57 +1,31 @@
 <?php
-/**
- * Modèle Ingredient — Gestion des ingrédients de référence
- */
 class Ingredient {
-    private $pdo;
+    private $id                 = null;
+    private $nom                = null;
+    private $unite              = null;
+    private $calories_par_unite = null;
+    private $is_local           = null;
 
-    public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
+    function __construct($nom, $unite, $calories_par_unite = 0, $is_local = 0) {
+        $this->nom                = $nom;
+        $this->unite              = $unite;
+        $this->calories_par_unite = $calories_par_unite;
+        $this->is_local           = $is_local;
     }
 
-    /** Récupérer tous les ingrédients */
-    public function getAll() {
-        $stmt = $this->pdo->query("SELECT * FROM ingredient ORDER BY nom ASC");
-        return $stmt->fetchAll();
-    }
+    // ==================== GETTERS ====================
 
-    /** Récupérer un ingrédient par ID */
-    public function getById($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM ingredient WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
+    function getId()               { return $this->id; }
+    function getNom()              { return $this->nom; }
+    function getUnite()            { return $this->unite; }
+    function getCaloriesParUnite() { return $this->calories_par_unite; }
+    function getIsLocal()          { return $this->is_local; }
 
-    /** Créer un ingrédient */
-    public function create($data) {
-        $stmt = $this->pdo->prepare(
-            "INSERT INTO ingredient (nom, unite, calories_par_unite, is_local) VALUES (?, ?, ?, ?)"
-        );
-        return $stmt->execute([
-            $data['nom'],
-            $data['unite'],
-            $data['calories_par_unite'],
-            $data['is_local']
-        ]);
-    }
+    // ==================== SETTERS ====================
 
-    /** Mettre à jour un ingrédient */
-    public function update($id, $data) {
-        $stmt = $this->pdo->prepare(
-            "UPDATE ingredient SET nom=?, unite=?, calories_par_unite=?, is_local=? WHERE id=?"
-        );
-        return $stmt->execute([
-            $data['nom'],
-            $data['unite'],
-            $data['calories_par_unite'],
-            $data['is_local'],
-            $id
-        ]);
-    }
-
-    /** Supprimer un ingrédient */
-    public function delete($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM ingredient WHERE id = ?");
-        return $stmt->execute([$id]);
-    }
+    function setNom(string $nom)                          { $this->nom = $nom; }
+    function setUnite(string $unite)                      { $this->unite = $unite; }
+    function setCaloriesParUnite(int $calories_par_unite) { $this->calories_par_unite = $calories_par_unite; }
+    function setIsLocal(int $is_local)                    { $this->is_local = $is_local; }
 }
+?>

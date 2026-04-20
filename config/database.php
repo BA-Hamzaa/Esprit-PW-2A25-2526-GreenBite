@@ -32,4 +32,9 @@ class Database {
         }
         return self::$instance->pdo;
     }
+
+    // Alias utilisé dans tous les contrôleurs du projet
+    public static function getConnexion() {
+        return self::getInstance();
+    }
 }
