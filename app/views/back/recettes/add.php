@@ -110,6 +110,6 @@ document.getElementById('recetteForm').addEventListener('submit', function(e) {
   if (errors.length > 0) {
     e.preventDefault();
     showToast('error', errors[0]);
-  }); }
+  }
 });
 </script>

@@ -1,72 +1,37 @@
 <?php
-/**
- * Modèle Commande — Gestion des commandes et de la liaison commande ↔ produits
- */
 class Commande {
-    private $pdo;
+    private $id             = null;
+    private $client_nom     = null;
+    private $client_email   = null;
+    private $client_adresse = null;
+    private $total          = null;
+    private $statut         = null;
+    private $created_at     = null;
 
-    public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
+    function __construct($client_nom, $client_email, $client_adresse, $total, $statut = 'en_attente') {
+        $this->client_nom     = $client_nom;
+        $this->client_email   = $client_email;
+        $this->client_adresse = $client_adresse;
+        $this->total          = $total;
+        $this->statut         = $statut;
     }
 
-    /** Récupérer toutes les commandes */
-    public function getAll() {
-        $stmt = $this->pdo->query("SELECT * FROM commande ORDER BY created_at DESC");
-        return $stmt->fetchAll();
-    }
+    // ==================== GETTERS ====================
 
-    /** Récupérer une commande par ID */
-    public function getById($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM commande WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
+    function getId()            { return $this->id; }
+    function getClientNom()     { return $this->client_nom; }
+    function getClientEmail()   { return $this->client_email; }
+    function getClientAdresse() { return $this->client_adresse; }
+    function getTotal()         { return $this->total; }
+    function getStatut()        { return $this->statut; }
+    function getCreatedAt()     { return $this->created_at; }
 
-    /** Créer une commande */
-    public function create($data) {
-        $stmt = $this->pdo->prepare(
-            "INSERT INTO commande (client_nom, client_email, client_adresse, total, statut) 
-             VALUES (?, ?, ?, ?, 'en_attente')"
-        );
-        $stmt->execute([
-            $data['client_nom'],
-            $data['client_email'],
-            $data['client_adresse'],
-            $data['total']
-        ]);
-        return $this->pdo->lastInsertId();
-    }
+    // ==================== SETTERS ====================
 
-    /** Ajouter un produit à la commande */
-    public function addProduit($commandeId, $produitId, $quantite, $prixUnitaire) {
-        $stmt = $this->pdo->prepare(
-            "INSERT INTO commande_produit (commande_id, produit_id, quantite, prix_unitaire) 
-             VALUES (?, ?, ?, ?)"
-        );
-        return $stmt->execute([$commandeId, $produitId, $quantite, $prixUnitaire]);
-    }
-
-    /** Récupérer les produits d'une commande */
-    public function getProduits($commandeId) {
-        $stmt = $this->pdo->prepare(
-            "SELECT cp.*, p.nom, p.image 
-             FROM commande_produit cp 
-             JOIN produit p ON cp.produit_id = p.id 
-             WHERE cp.commande_id = ?"
-        );
-        $stmt->execute([$commandeId]);
-        return $stmt->fetchAll();
-    }
-
-    /** Mettre à jour le statut d'une commande */
-    public function updateStatut($id, $statut) {
-        $stmt = $this->pdo->prepare("UPDATE commande SET statut = ? WHERE id = ?");
-        return $stmt->execute([$statut, $id]);
-    }
-
-    /** Supprimer une commande */
-    public function delete($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM commande WHERE id = ?");
-        return $stmt->execute([$id]);
-    }
+    function setClientNom(string $client_nom)         { $this->client_nom = $client_nom; }
+    function setClientEmail(string $client_email)     { $this->client_email = $client_email; }
+    function setClientAdresse(string $client_adresse) { $this->client_adresse = $client_adresse; }
+    function setTotal(float $total)                   { $this->total = $total; }
+    function setStatut(string $statut)                { $this->statut = $statut; }
 }
+?>

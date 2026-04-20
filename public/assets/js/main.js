@@ -47,6 +47,15 @@
     });
   });
 
+  // Handle bfcache (Back/Forward navigation)
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      overlay.style.opacity = '0';
+      document.documentElement.style.overflow = ''; 
+      overlay.style.display = 'none';
+    }
+  });
+
   // Fade in on navigation
   document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
@@ -123,6 +132,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }, 0);
     });
+  });
+
+  // Handle bfcache for form buttons
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      document.querySelectorAll('button[data-loading="true"]').forEach(btn => {
+        delete btn.dataset.loading;
+        if (btn.dataset.originalHtml) {
+          btn.innerHTML = btn.dataset.originalHtml;
+        }
+        btn.style.opacity = '';
+        btn.style.pointerEvents = '';
+      });
+    }
   });
 
   // ===== Smooth table rows =====

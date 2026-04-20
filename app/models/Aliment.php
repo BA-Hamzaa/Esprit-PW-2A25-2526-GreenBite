@@ -1,61 +1,39 @@
 <?php
-/**
- * Modèle Aliment — Gestion des aliments de référence
- */
 class Aliment {
-    private $pdo;
+    private $id        = null;
+    private $nom       = null;
+    private $calories  = null;
+    private $proteines = null;
+    private $glucides  = null;
+    private $lipides   = null;
+    private $unite     = null;
 
-    public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
+    function __construct($nom, $calories, $proteines = 0.0, $glucides = 0.0, $lipides = 0.0, $unite = 'g') {
+        $this->nom       = $nom;
+        $this->calories  = $calories;
+        $this->proteines = $proteines;
+        $this->glucides  = $glucides;
+        $this->lipides   = $lipides;
+        $this->unite     = $unite;
     }
 
-    /** Récupérer tous les aliments */
-    public function getAll() {
-        $stmt = $this->pdo->query("SELECT * FROM aliment ORDER BY nom ASC");
-        return $stmt->fetchAll();
-    }
+    // ==================== GETTERS ====================
 
-    /** Récupérer un aliment par ID */
-    public function getById($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM aliment WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
+    function getId()        { return $this->id; }
+    function getNom()       { return $this->nom; }
+    function getCalories()  { return $this->calories; }
+    function getProteines() { return $this->proteines; }
+    function getGlucides()  { return $this->glucides; }
+    function getLipides()   { return $this->lipides; }
+    function getUnite()     { return $this->unite; }
 
-    /** Créer un aliment */
-    public function create($data) {
-        $stmt = $this->pdo->prepare(
-            "INSERT INTO aliment (nom, calories, proteines, glucides, lipides, unite) VALUES (?, ?, ?, ?, ?, ?)"
-        );
-        return $stmt->execute([
-            $data['nom'],
-            $data['calories'],
-            $data['proteines'],
-            $data['glucides'],
-            $data['lipides'],
-            $data['unite']
-        ]);
-    }
+    // ==================== SETTERS ====================
 
-    /** Mettre à jour un aliment */
-    public function update($id, $data) {
-        $stmt = $this->pdo->prepare(
-            "UPDATE aliment SET nom = ?, calories = ?, proteines = ?, glucides = ?, lipides = ?, unite = ? WHERE id = ?"
-        );
-        return $stmt->execute([
-            $data['nom'],
-            $data['calories'],
-            $data['proteines'],
-            $data['glucides'],
-            $data['lipides'],
-            $data['unite'],
-            $id
-        ]);
-    }
-
-    /** Supprimer un aliment */
-    public function delete($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM aliment WHERE id = ?");
-        return $stmt->execute([$id]);
-    }
+    function setNom(string $nom)        { $this->nom = $nom; }
+    function setCalories(int $calories) { $this->calories = $calories; }
+    function setProteines(float $prot)  { $this->proteines = $prot; }
+    function setGlucides(float $gluc)   { $this->glucides = $gluc; }
+    function setLipides(float $lip)     { $this->lipides = $lip; }
+    function setUnite(string $unite)    { $this->unite = $unite; }
 }
+?>

@@ -158,9 +158,9 @@
         </div>
         <div class="flex items-center gap-2">
           <!-- Search -->
-          <div class="front-topbar-search">
-            <i data-lucide="search" style="width:0.875rem;height:0.875rem;color:var(--text-muted);position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);pointer-events:none"></i>
-            <input type="text" placeholder="Rechercher..." style="width:13rem;padding:0.5rem 0.75rem 0.5rem 2.25rem;border:1.5px solid var(--border);border-radius:var(--radius-full);font-size:0.8rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none" onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)';this.style.width='17rem'" onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.width='13rem'">
+          <div class="front-topbar-search" style="position:relative;">
+            <i data-lucide="search" style="width:0.875rem;height:0.875rem;color:var(--text-muted);position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);pointer-events:none;z-index:2;"></i>
+            <input type="text" id="globalSearchInput" value="<?= htmlspecialchars($_GET['search'] ?? '') ?>" placeholder="Rechercher..." style="width:13rem;padding:0.5rem 0.75rem 0.5rem 2.25rem;border:1.5px solid var(--border);border-radius:var(--radius-full);font-size:0.8rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none" onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)';this.style.width='17rem'" onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none';this.style.width='13rem'">
           </div>
 
           <!-- Divider -->
