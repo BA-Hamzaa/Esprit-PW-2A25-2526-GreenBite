@@ -265,7 +265,7 @@ class NutritionController
     /////..............................Afficher tous les Plans............................../////
     function AfficherPlans()
     {
-        $sql = "SELECT * FROM plan_nutritionnel ORDER BY date_debut DESC, created_at DESC";
+        $sql = "SELECT * FROM plan_nutritionnel WHERE statut = 'accepte' ORDER BY date_debut DESC, created_at DESC";
         $db = Database::getConnexion();
         try {
             $plans = $db->query($sql)->fetchAll();
@@ -283,6 +283,28 @@ class NutritionController
                 $stmt->bindValue(':plan_id', $p['id']);
                 $stmt->execute();
                 $p['repas'] = $stmt->fetchAll();
+            }
+            return $plans;
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    /////..............................Afficher Plans d'un Client (par nom)............................../////
+    function AfficherPlansClient($soumis_par)
+    {
+        $sql = "SELECT * FROM plan_nutritionnel WHERE soumis_par = :soumis_par ORDER BY created_at DESC";
+        $db = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':soumis_par', $soumis_par);
+            $query->execute();
+            $plans = $query->fetchAll();
+            foreach ($plans as &$p) {
+                $stmt = $db->prepare("SELECT COUNT(*) FROM plan_repas WHERE plan_id = :plan_id");
+                $stmt->bindValue(':plan_id', $p['id']);
+                $stmt->execute();
+                $p['nb_repas'] = $stmt->fetchColumn();
             }
             return $plans;
         } catch (Exception $e) {
@@ -353,8 +375,8 @@ class NutritionController
     /////..............................Ajouter Plan............................../////
     function AjouterPlan(PlanNutritionnel $plan)
     {
-        $sql = "INSERT INTO plan_nutritionnel (nom, description, objectif_calories, duree_jours, type_objectif, date_debut)
-                VALUES (:nom, :description, :objectif_calories, :duree_jours, :type_objectif, :date_debut)";
+        $sql = "INSERT INTO plan_nutritionnel (nom, description, objectif_calories, duree_jours, type_objectif, date_debut, soumis_par, statut, commentaire_admin, programme_activites)
+                VALUES (:nom, :description, :objectif_calories, :duree_jours, :type_objectif, :date_debut, :soumis_par, :statut, :commentaire_admin, :programme_activites)";
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -365,6 +387,10 @@ class NutritionController
                 'duree_jours' => $plan->getDureeJours(),
                 'type_objectif' => $plan->getTypeObjectif(),
                 'date_debut' => $plan->getDateDebut(),
+                'soumis_par' => $plan->getSoumisPar(),
+                'statut' => $plan->getStatut(),
+                'commentaire_admin' => $plan->getCommentaireAdmin(),
+                'programme_activites' => $plan->getProgrammeActivites(),
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
@@ -408,7 +434,10 @@ class NutritionController
                     objectif_calories = :objectif_calories,
                     duree_jours       = :duree_jours,
                     type_objectif     = :type_objectif,
-                    date_debut        = :date_debut
+                    date_debut        = :date_debut,
+                    statut            = :statut,
+                    commentaire_admin = NULL,
+                    programme_activites = :programme_activites
                 WHERE id = :id";
         $db = Database::getConnexion();
         try {
@@ -420,8 +449,23 @@ class NutritionController
                 'duree_jours' => $plan->getDureeJours(),
                 'type_objectif' => $plan->getTypeObjectif(),
                 'date_debut' => $plan->getDateDebut(),
+                'statut' => $plan->getStatut(),
+                'programme_activites' => $plan->getProgrammeActivites(),
                 'id' => $id,
             ]);
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    /////..............................Modifier Statut Plan (Back)............................../////
+    function ModifierStatutPlan($id, $statut, $commentaire = null)
+    {
+        $sql = "UPDATE plan_nutritionnel SET statut = :statut, commentaire_admin = :commentaire WHERE id = :id";
+        $db = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['statut' => $statut, 'commentaire' => $commentaire, 'id' => $id]);
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
         }
@@ -643,6 +687,9 @@ class NutritionController
         if (empty(trim($post['nom'] ?? ''))) {
             $errors[] = "Le nom du plan est obligatoire.";
         }
+        if (empty(trim($post['soumis_par'] ?? ''))) {
+            $errors[] = "Votre nom est obligatoire.";
+        }
         if (!isset($post['objectif_calories']) || !is_numeric($post['objectif_calories']) || (int) $post['objectif_calories'] <= 0) {
             $errors[] = "L'objectif calorique doit être un nombre positif.";
         }
@@ -652,9 +699,6 @@ class NutritionController
         $typesValides = ['perte_poids', 'maintien', 'prise_masse'];
         if (empty($post['type_objectif'] ?? '') || !in_array($post['type_objectif'], $typesValides)) {
             $errors[] = "Le type d'objectif est invalide.";
-        }
-        if (empty($post['date_debut'] ?? '') || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $post['date_debut'])) {
-            $errors[] = "La date de début est obligatoire (format AAAA-MM-JJ).";
         }
         return $errors;
     }
@@ -695,9 +739,9 @@ class NutritionController
     function listFront()
     {
         $repas = $this->AfficherRepasJour();
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/list.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/list.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Ajouter Repas............................../////
@@ -739,18 +783,44 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/add.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/add.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Liste Plans............................../////
     function listPlans()
     {
         $plans = $this->AfficherPlans();
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/plans.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        $myName = $_SESSION['plan_user'] ?? '';
+        $myIds = $_SESSION['my_plan_ids'] ?? [];
+        $myPlans = [];
+        if (!empty($myName)) {
+            foreach ($this->AfficherPlansClient($myName) as $p) {
+                $myPlans[$p['id']] = $p;
+            }
+        }
+        foreach ($myIds as $id) {
+            if (!isset($myPlans[$id])) {
+                $p = $this->RecupererPlan($id);
+                if ($p) {
+                    $myPlans[$p['id']] = $p;
+                }
+            }
+        }
+        $filtered = [];
+        foreach ($myPlans as $p) {
+            if ($p['statut'] === 'en_attente' || $p['statut'] === 'refuse') {
+                $filtered[] = $p;
+            }
+        }
+        $myPlans = $filtered;
+        usort($myPlans, function ($a, $b) {
+            return strtotime($b['created_at']) <=> strtotime($a['created_at']); });
+
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/plans.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Détail Plan............................../////
@@ -773,9 +843,9 @@ class NutritionController
             $pr['aliments'] = $this->AfficherAlimentsRepas($pr['id']);
             $repasByDay[$jour][] = $pr;
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/plan_detail.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/plan_detail.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Ajouter Plan............................../////
@@ -791,9 +861,18 @@ class NutritionController
                     (int) $_POST['objectif_calories'],
                     (int) $_POST['duree_jours'],
                     $_POST['type_objectif'],
-                    $_POST['date_debut'],
-                    trim($_POST['description'] ?? '')
+                    $_POST['date_debut'] ?? date('Y-m-d'),
+                    trim($_POST['description'] ?? ''),
+                    trim($_POST['soumis_par']),
+                    'en_attente'
                 );
+                // Build programme_activites JSON from day-by-day inputs
+                $duree = (int) $_POST['duree_jours'];
+                $activites = [];
+                for ($j = 1; $j <= $duree; $j++) {
+                    $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
+                }
+                $plan->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
                 $planId = $this->AjouterPlan($plan);
                 if (!empty($_POST['repas_ids'])) {
                     foreach ($_POST['repas_ids'] as $i => $repasId) {
@@ -803,14 +882,20 @@ class NutritionController
                         }
                     }
                 }
-                $_SESSION['success'] = "Plan nutritionnel créé avec succès !";
+                if (!isset($_SESSION['my_plan_ids'])) {
+                    $_SESSION['my_plan_ids'] = [];
+                }
+                $_SESSION['my_plan_ids'][] = $planId;
+                $_SESSION['plan_user'] = trim($_POST['soumis_par']);
+
+                $_SESSION['success'] = "Plan nutritionnel soumis avec succès et en attente de validation !";
                 header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/plan_add.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/plan_add.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Modifier Plan............................../////
@@ -823,10 +908,22 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
             exit;
         }
+        $myName = $_SESSION['plan_user'] ?? '';
+        $myIds = $_SESSION['my_plan_ids'] ?? [];
+        $isAuthorized = (!empty($myName) && $plan['soumis_par'] === $myName) || in_array($id, $myIds);
+        if (!$isAuthorized || $plan['statut'] !== 'en_attente') {
+            $_SESSION['error'] = "Modification non autorisée ou le plan est déjà traité.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
         $errors = [];
         $repas = $this->AfficherTousRepas();
         $planRepas = $this->RecupererLiensPlanRepas($id);
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $_POST['soumis_par'] = $plan['soumis_par'];
+            $_POST['date_debut'] = $plan['date_debut'];
+
             $errors = $this->ValiderPlan($_POST);
             if (empty($errors)) {
                 $p = new PlanNutritionnel(
@@ -835,35 +932,110 @@ class NutritionController
                     (int) $_POST['duree_jours'],
                     $_POST['type_objectif'],
                     $_POST['date_debut'],
-                    trim($_POST['description'] ?? '')
+                    trim($_POST['description'] ?? ''),
+                    $plan['soumis_par'],
+                    'en_attente'
                 );
+                $duree = (int) $_POST['duree_jours'];
+                $activites = [];
+                for ($j = 1; $j <= $duree; $j++) {
+                    $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
+                }
+                $p->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+                
                 $this->ModifierPlan($p, $id);
                 $this->SupprimerRepasPlan($id);
                 if (!empty($_POST['repas_ids'])) {
-                    foreach ($_POST['repas_ids'] as $i => $repasId) {
-                        $jour = $_POST['jours'][$i] ?? 1;
-                        if (!empty($repasId) && $jour > 0) {
-                            $this->LierRepasPlan($id, $repasId, $jour);
-                        }
-                    }
+                     foreach ($_POST['repas_ids'] as $i => $repasId) {
+                         $jour = $_POST['jours'][$i] ?? 1;
+                         if (!empty($repasId) && $jour > 0) {
+                             $this->LierRepasPlan($id, $repasId, $jour);
+                         }
+                     }
                 }
-                $_SESSION['success'] = "Plan modifié avec succès !";
+                $_SESSION['success'] = "Votre plan a été mis à jour.";
                 header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/plan_edit.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/plan_edit.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Supprimer Plan............................../////
     function deletePlan()
     {
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $plan = $this->RecupererPlan($id);
+        if (!$plan) {
+            $_SESSION['error'] = "Plan introuvable.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
+        $myName = $_SESSION['plan_user'] ?? '';
+        $myIds = $_SESSION['my_plan_ids'] ?? [];
+        $isAuthorized = (!empty($myName) && $plan['soumis_par'] === $myName) || in_array($id, $myIds);
+        if (!$isAuthorized || $plan['statut'] !== 'en_attente') {
+            $_SESSION['error'] = "Suppression non autorisée ou le plan est déjà traité.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
         $this->SupprimerPlan($id);
-        $_SESSION['success'] = "Plan supprimé avec succès !";
+        $_SESSION['success'] = "Votre proposition a été supprimée.";
         header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+        exit;
+    }
+
+    /////..............................FRONTOFFICE — Suivre un Plan (choisir date)............................../////
+    function followPlan()
+    {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $plan = $this->RecupererPlan($id);
+        if (!$plan) {
+            $_SESSION['error'] = "Plan introuvable.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $dateDebut = $_POST['date_debut'] ?? '';
+            if (empty($dateDebut) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateDebut)) {
+                $_SESSION['error'] = "Veuillez choisir une date de début valide.";
+                header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
+                exit;
+            }
+            // Store in session: the user's chosen start date for this plan
+            if (!isset($_SESSION['followed_plans'])) {
+                $_SESSION['followed_plans'] = [];
+            }
+            $_SESSION['followed_plans'][$id] = [
+                'date_debut' => $dateDebut,
+                'followed_at' => date('Y-m-d H:i:s'),
+            ];
+            $_SESSION['success'] = "Vous suivez maintenant ce plan ! Il commence le " . date('d/m/Y', strtotime($dateDebut)) . ".";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
+            exit;
+        }
+        // GET: redirect back
+        header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
+        exit;
+    }
+
+    /////..............................FRONTOFFICE — Ne plus suivre un Plan............................../////
+    function unfollowPlan()
+    {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        if (isset($_SESSION['followed_plans'][$id])) {
+            unset($_SESSION['followed_plans'][$id]);
+        }
+        $_SESSION['success'] = "Vous ne suivez plus ce plan.";
+        // Redirect back to the referring page, or plan detail
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        if (strpos($referer, 'page=home') !== false || (strpos($referer, 'page=') === false && strpos($referer, 'action=') === false)) {
+            header('Location: ' . BASE_URL . '/');
+        } else {
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
+        }
         exit;
     }
 
@@ -912,9 +1084,9 @@ class NutritionController
             });
         }
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/regimes.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/regimes.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Détail Régime............................../////
@@ -927,9 +1099,9 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
             exit;
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/regime_detail.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/regime_detail.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Proposer Régime............................../////
@@ -937,6 +1109,11 @@ class NutritionController
     {
         $errors = [];
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Lors de l'intégration, le nom sera récupéré automatiquement de la session utilisateur
+            // Adaptez 'user' et 'nom' selon la structure de votre session
+            $nomUtilisateur = $_SESSION['user']['nom'] ?? $_SESSION['user']['prenom'] ?? $_SESSION['username'] ?? 'Utilisateur Inconnu';
+            $_POST['soumis_par'] = $nomUtilisateur;
+
             $errors = $this->ValiderRegime($_POST);
             if (empty($errors)) {
                 $regime = new RegimeAlimentaire(
@@ -960,9 +1137,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/regime_add.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/regime_add.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Modifier Régime............................../////
@@ -1003,9 +1180,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/nutrition/regime_edit.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/nutrition/regime_edit.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Supprimer Régime (Client)............................../////
@@ -1044,9 +1221,9 @@ class NutritionController
     function listBack()
     {
         $repas = $this->AfficherTousRepas();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/list.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/list.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function addBack()
@@ -1081,9 +1258,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function editBack()
@@ -1127,9 +1304,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function deleteBack()
@@ -1144,9 +1321,9 @@ class NutritionController
     function listAliments()
     {
         $aliments = $this->AfficherAliments();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/aliments.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/aliments.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function addAliment()
@@ -1169,9 +1346,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/aliment_add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/aliment_add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function editAliment()
@@ -1201,9 +1378,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/aliment_edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/aliment_edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function deleteAliment()
@@ -1218,9 +1395,9 @@ class NutritionController
     function listPlansBack()
     {
         $plans = $this->AfficherPlansBack();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/plans.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/plans.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function addPlanBack()
@@ -1228,6 +1405,8 @@ class NutritionController
         $errors = [];
         $repas = $this->AfficherTousRepas();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $_POST['soumis_par'] = 'Admin';
+            $_POST['date_debut'] = date('Y-m-d'); // Default since it's removed from form
             $errors = $this->ValiderPlan($_POST);
             if (empty($errors)) {
                 $plan = new PlanNutritionnel(
@@ -1236,8 +1415,19 @@ class NutritionController
                     (int) $_POST['duree_jours'],
                     $_POST['type_objectif'],
                     $_POST['date_debut'],
-                    trim($_POST['description'] ?? '')
+                    trim($_POST['description'] ?? ''),
+                    'Admin',
+                    'accepte'
                 );
+                
+                // Build programme_activites JSON from day-by-day inputs
+                $duree = (int) $_POST['duree_jours'];
+                $activites = [];
+                for ($j = 1; $j <= $duree; $j++) {
+                    $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
+                }
+                $plan->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+
                 $planId = $this->AjouterPlan($plan);
                 if (!empty($_POST['repas_ids'])) {
                     foreach ($_POST['repas_ids'] as $i => $repasId) {
@@ -1252,9 +1442,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/plan_add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/plan_add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function editPlanBack()
@@ -1270,6 +1460,8 @@ class NutritionController
         $repas = $this->AfficherTousRepas();
         $planRepas = $this->RecupererLiensPlanRepas($id);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $_POST['soumis_par'] = $plan['soumis_par'] ?? 'Admin';
+            $_POST['date_debut'] = $plan['date_debut'];
             $errors = $this->ValiderPlan($_POST);
             if (empty($errors)) {
                 $p = new PlanNutritionnel(
@@ -1278,8 +1470,17 @@ class NutritionController
                     (int) $_POST['duree_jours'],
                     $_POST['type_objectif'],
                     $_POST['date_debut'],
-                    trim($_POST['description'] ?? '')
+                    trim($_POST['description'] ?? ''),
+                    $plan['soumis_par'] ?? 'Admin',
+                    $plan['statut'] ?? 'accepte'
                 );
+                $duree = (int) $_POST['duree_jours'];
+                $activites = [];
+                for ($j = 1; $j <= $duree; $j++) {
+                    $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
+                }
+                $p->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+
                 $this->ModifierPlan($p, $id);
                 $this->SupprimerRepasPlan($id);
                 if (!empty($_POST['repas_ids'])) {
@@ -1295,9 +1496,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/plan_edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/plan_edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function deletePlanBack()
@@ -1309,13 +1510,34 @@ class NutritionController
         exit;
     }
 
+    function acceptPlan()
+    {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $commentaire = isset($_POST['commentaire_admin']) ? trim($_POST['commentaire_admin']) : null;
+        $this->ModifierStatutPlan($id, 'accepte', $commentaire);
+        $_SESSION['success'] = "Plan approuvé avec succès !";
+        header('Location: ' . BASE_URL . '/?page=admin-nutrition&action=plans');
+        exit;
+    }
+
+    function refusePlan()
+    {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        // Check for 'commentaire' in POST, fallback to empty string
+        $commentaire = isset($_POST['commentaire']) ? trim($_POST['commentaire']) : null;
+        $this->ModifierStatutPlan($id, 'refuse', $commentaire);
+        $_SESSION['success'] = "Plan refusé.";
+        header('Location: ' . BASE_URL . '/?page=admin-nutrition&action=plans');
+        exit;
+    }
+
     function listRegimesBack()
     {
         $regimes = $this->AfficherTousRegimes();
-        $nbPending = $this->CompterRegimesEnAttente();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/regimes.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        $pendingCount = $this->CompterRegimesEnAttente();
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/regimes.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function acceptRegime()
@@ -1369,9 +1591,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/regime_add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/regime_add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     function editRegimeBack()
@@ -1408,9 +1630,9 @@ class NutritionController
                 exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/nutrition/regime_edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/regime_edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 }
 ?>

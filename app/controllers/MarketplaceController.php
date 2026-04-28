@@ -310,7 +310,7 @@ class MarketplaceController {
 
     /////..............................Upload Image (méthode privée)............................../////
     private function uploadImage($imageFile) {
-        $uploadDir    = BASE_PATH . '/public/assets/images/uploads/';
+        $uploadDir    = BASE_PATH . '/app/models/public/assets/images/uploads/';
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize      = 2 * 1024 * 1024;
 
@@ -342,9 +342,9 @@ class MarketplaceController {
         $produits   = $this->AfficherProduitsFront($search, $categorie, $bio);
         $categories = $this->AfficherCategories();
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/marketplace/list.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/marketplace/list.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Détail Produit............................../////
@@ -358,9 +358,9 @@ class MarketplaceController {
             exit;
         }
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/marketplace/detail.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/marketplace/detail.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Passer Commande............................../////
@@ -414,17 +414,17 @@ class MarketplaceController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/marketplace/order.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/marketplace/order.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................BACKOFFICE — Liste Produits............................../////
     function listBack() {
         $produits = $this->AfficherProduitsBack();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/marketplace/list.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/marketplace/list.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Ajouter Produit............................../////
@@ -452,9 +452,9 @@ class MarketplaceController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/marketplace/add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/marketplace/add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Modifier Produit............................../////
@@ -491,9 +491,9 @@ class MarketplaceController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/marketplace/edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/marketplace/edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Supprimer Produit............................../////
@@ -508,9 +508,9 @@ class MarketplaceController {
     /////..............................BACKOFFICE — Liste Commandes............................../////
     function listCommandes() {
         $commandes = $this->AfficherCommandes();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/marketplace/commandes.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/marketplace/commandes.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Détail Commande............................../////
@@ -526,9 +526,9 @@ class MarketplaceController {
 
         $produits = $this->RecupererProduitsCommande($id);
 
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/marketplace/commande_detail.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/marketplace/commande_detail.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Modifier Statut Commande............................../////

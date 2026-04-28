@@ -392,7 +392,7 @@ class RecettesController {
 
     /////..............................Upload Image (méthode privée)............................../////
     private function uploadImage($imageFile) {
-        $uploadDir    = BASE_PATH . '/public/assets/images/uploads/';
+        $uploadDir    = BASE_PATH . '/app/models/public/assets/images/uploads/';
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize      = 2 * 1024 * 1024;
 
@@ -418,9 +418,9 @@ class RecettesController {
         $recettes   = $this->AfficherRecettesFront($difficulte, $categorie);
         $categories = $this->AfficherCategoriesRecettes();
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/recettes/list.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/recettes/list.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Détail Recette............................../////
@@ -433,9 +433,9 @@ class RecettesController {
         }
         $ingredients = $this->RecupererIngredientsRecette($id);
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/recettes/detail.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/recettes/detail.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Suggérer une Recette............................../////
@@ -475,9 +475,9 @@ class RecettesController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/recettes/suggest.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/recettes/suggest.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Mes Suggestions............................../////
@@ -486,9 +486,9 @@ class RecettesController {
         $myRecettes = [];
         if (!empty($myName)) { $myRecettes = $this->AfficherSuggestionsClient($myName); }
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/recettes/my_suggestions.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/recettes/my_suggestions.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Modifier une Suggestion............................../////
@@ -538,9 +538,9 @@ class RecettesController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/front/recettes/edit_suggestion.php';
-        require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/recettes/edit_suggestion.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 
     /////..............................FRONTOFFICE — Supprimer Suggestion............................../////
@@ -568,9 +568,9 @@ class RecettesController {
     /////..............................BACKOFFICE — Liste Recettes............................../////
     function listBack() {
         $recettes = $this->AfficherRecettesBack();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/list.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/list.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Ajouter Recette............................../////
@@ -601,9 +601,9 @@ class RecettesController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Modifier Recette............................../////
@@ -643,9 +643,9 @@ class RecettesController {
             }
         }
 
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Supprimer Recette............................../////
@@ -659,9 +659,9 @@ class RecettesController {
     /////..............................BACKOFFICE — Modération............................../////
     function moderationList() {
         $recettes = $this->AfficherRecettesEnAttente();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/moderation.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/moderation.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Accepter Recette............................../////
@@ -695,9 +695,9 @@ class RecettesController {
     /////..............................BACKOFFICE — Liste Ingrédients............................../////
     function listIngredients() {
         $ingredients = $this->AfficherIngredients();
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/ingredients.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/ingredients.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Ajouter Ingrédient............................../////
@@ -717,9 +717,9 @@ class RecettesController {
                 header('Location: ' . BASE_URL . '/?page=admin-recettes&action=ingredients'); exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/ingredient_add.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/ingredient_add.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Modifier Ingrédient............................../////
@@ -745,9 +745,9 @@ class RecettesController {
                 header('Location: ' . BASE_URL . '/?page=admin-recettes&action=ingredients'); exit;
             }
         }
-        require_once BASE_PATH . '/app/views/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/back/recettes/ingredient_edit.php';
-        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/ingredient_edit.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
     /////..............................BACKOFFICE — Supprimer Ingrédient............................../////
