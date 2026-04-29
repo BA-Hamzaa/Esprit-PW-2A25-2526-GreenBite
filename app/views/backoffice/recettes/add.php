@@ -1,0 +1,115 @@
+<!-- Vue BackOffice : Ajouter une recette -->
+<div style="padding:2rem;max-width:56rem">
+  <a href="<?= BASE_URL ?>/?page=admin-recettes&action=list" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--secondary);font-weight:600;margin-bottom:1.5rem;transition:all 0.3s;text-decoration:none" onmouseover="this.style.transform='translateX(-4px)';this.style.color='var(--primary)'" onmouseout="this.style.transform='none';this.style.color='var(--secondary)'">
+    <i data-lucide="arrow-left" style="width:0.875rem;height:0.875rem"></i> Retour aux recettes
+  </a>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.75rem">
+    <div style="display:flex;align-items:center;justify-content:center;width:3.25rem;height:3.25rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border-radius:1rem;box-shadow:0 6px 18px rgba(45,106,79,0.18)">
+      <i data-lucide="plus-circle" style="width:1.625rem;height:1.625rem;color:var(--primary)"></i>
+    </div>
+    <div>
+      <h1 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;display:flex;align-items:center;gap:0.5rem">
+        <span style="display:block;width:4px;height:1.5rem;background:linear-gradient(180deg,var(--primary),var(--secondary));border-radius:2px"></span>
+        Ajouter une Recette
+      </h1>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-top:2px">Créez une nouvelle recette durable</p>
+    </div>
+  </div>
+
+
+  <?php if (!empty($errors)): ?>
+    <div class="p-4 rounded-xl mb-6 flex items-start gap-3" style="background:linear-gradient(135deg,#fee2e2,#fef2f2);color:#991b1b;border:1px solid #fca5a5" id="error-box">
+      <i data-lucide="alert-triangle" style="width:1.25rem;height:1.25rem;flex-shrink:0;margin-top:2px"></i>
+      <div><?php foreach ($errors as $e): ?><div class="mb-1"><?= htmlspecialchars($e) ?></div><?php endforeach; ?></div>
+    </div>
+  <?php endif; ?>
+
+  <div class="card" style="padding:2rem">
+    <form novalidate method="POST" enctype="multipart/form-data" id="recetteForm">
+      <div class="form-group">
+        <label class="form-label" for="titre"><i data-lucide="type" style="width:0.875rem;height:0.875rem"></i> Titre</label>
+        <input type="text" name="titre" id="titre" class="form-input" placeholder="Ex: Salade César au poulet bio" value="<?= htmlspecialchars($_POST['titre'] ?? '') ?>">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description"><i data-lucide="align-left" style="width:0.875rem;height:0.875rem"></i> Description courte</label>
+        <textarea name="description" id="description" class="form-textarea" rows="2"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="instructions"><i data-lucide="list-ordered" style="width:0.875rem;height:0.875rem"></i> Instructions (min 20 caractères)</label>
+        <textarea name="instructions" id="instructions" class="form-textarea" rows="5" placeholder="Décrivez les étapes..."><?= htmlspecialchars($_POST['instructions'] ?? '') ?></textarea>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="form-group">
+          <label class="form-label" for="temps_preparation"><i data-lucide="clock" style="width:0.875rem;height:0.875rem"></i> Temps (min)</label>
+          <input type="number" name="temps_preparation" id="temps_preparation" class="form-input" placeholder="30" value="<?= htmlspecialchars($_POST['temps_preparation'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="difficulte"><i data-lucide="signal" style="width:0.875rem;height:0.875rem"></i> Difficulté</label>
+          <select name="difficulte" id="difficulte" class="form-input">
+            <option value="">-- Choisir --</option>
+            <option value="facile" <?= (($_POST['difficulte'] ?? '') === 'facile') ? 'selected' : '' ?>>Facile</option>
+            <option value="moyen" <?= (($_POST['difficulte'] ?? '') === 'moyen') ? 'selected' : '' ?>>Moyen</option>
+            <option value="difficile" <?= (($_POST['difficulte'] ?? '') === 'difficile') ? 'selected' : '' ?>>Difficile</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="categorie"><i data-lucide="tag" style="width:0.875rem;height:0.875rem"></i> Catégorie</label>
+          <input type="text" name="categorie" id="categorie" class="form-input" placeholder="Salade, Bowl..." value="<?= htmlspecialchars($_POST['categorie'] ?? '') ?>">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="form-group">
+          <label class="form-label" for="calories_total"><i data-lucide="flame" style="width:0.875rem;height:0.875rem"></i> Calories</label>
+          <input type="number" name="calories_total" id="calories_total" class="form-input" placeholder="450" value="<?= htmlspecialchars($_POST['calories_total'] ?? '0') ?>">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="score_carbone"><i data-lucide="leaf" style="width:0.875rem;height:0.875rem"></i> Score CO₂</label>
+          <input type="number" name="score_carbone" id="score_carbone" class="form-input" step="0.01" placeholder="1.20" value="<?= htmlspecialchars($_POST['score_carbone'] ?? '0') ?>">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="image"><i data-lucide="image" style="width:0.875rem;height:0.875rem"></i> Image</label>
+          <input type="file" name="image" id="image" class="form-input" accept="image/*">
+        </div>
+      </div>
+
+      <div class="mb-6" style="border-top:1px solid var(--border);padding-top:1.5rem">
+        <label class="form-label"><i data-lucide="carrot" style="width:0.875rem;height:0.875rem"></i> Ingrédients</label>
+        <div id="ingredients-container" class="space-y-3">
+          <div class="flex gap-3 items-center ingredient-row" style="background:var(--muted);padding:0.75rem;border-radius:var(--radius-xl)">
+            <select name="ingredient_ids[]" class="form-input flex-1">
+              <option value="">-- Choisir --</option>
+              <?php foreach ($ingredients as $i): ?><option value="<?= $i['id'] ?>"><?= htmlspecialchars($i['nom']) ?> (<?= $i['unite'] ?>)</option><?php endforeach; ?>
+            </select>
+            <input type="number" name="quantites[]" class="form-input" style="width:120px" placeholder="Quantité" step="0.01">
+            <button type="button" class="icon-btn" style="width:2rem;height:2rem;color:var(--destructive);flex-shrink:0" onclick="this.closest('.ingredient-row').remove()"><i data-lucide="trash-2" style="width:0.875rem;height:0.875rem"></i></button>
+          </div>
+        </div>
+        <button type="button" id="add-ingredient-btn" class="btn btn-outline-primary btn-sm mt-3"><i data-lucide="plus" style="width:0.875rem;height:0.875rem"></i> Ajouter un ingrédient</button>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg rounded-xl"><i data-lucide="save" style="width:1.125rem;height:1.125rem"></i> Enregistrer</button>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('add-ingredient-btn').addEventListener('click', function() {
+  const c = document.getElementById('ingredients-container');
+  const row = c.querySelector('.ingredient-row').cloneNode(true);
+  row.querySelector('select').value = '';
+  row.querySelector('input[type="number"]').value = '';
+  c.appendChild(row);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+document.getElementById('recetteForm').addEventListener('submit', function(e) {
+  let errors = [];
+  if (document.getElementById('titre').value.trim() === '') errors.push("Le titre est obligatoire.");
+  if (document.getElementById('instructions').value.trim().length < 20) errors.push("Instructions : min 20 caractères.");
+  const temps = document.getElementById('temps_preparation').value;
+  if (temps === '' || parseInt(temps) <= 0) errors.push("Temps de préparation invalide.");
+  if (document.getElementById('difficulte').value === '') errors.push("Difficulté obligatoire.");
+  if (errors.length > 0) {
+    e.preventDefault();
+    showToast('error', errors[0]);
+  }
+});
+</script>
