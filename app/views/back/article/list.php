@@ -16,26 +16,27 @@
       </div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
-      <a href="<?= BASE_URL ?>/?page=admin-article&action=pending" class="btn" style="border-radius:var(--radius-xl);background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.22);color:#b45309">
+      <a href="<?= BASE_URL ?>/?page=admin-article&action=pending" class="btn" style="border-radius:var(--radius-full);background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.22);color:#b45309">
         <i data-lucide="clock" style="width:1rem;height:1rem"></i> En attente
       </a>
-      <a href="<?= BASE_URL ?>/?page=admin-comment&action=list" class="btn" style="border-radius:var(--radius-xl);background:rgba(45,106,79,0.06);border:1px solid rgba(45,106,79,0.15);color:var(--primary)">
+      <a href="<?= BASE_URL ?>/?page=admin-comment&action=list" class="btn" style="border-radius:var(--radius-full);background:rgba(45,106,79,0.06);border:1px solid rgba(45,106,79,0.15);color:var(--primary)">
         <i data-lucide="messages-square" style="width:1rem;height:1rem"></i> Commentaires
       </a>
-      <a href="<?= BASE_URL ?>/?page=admin-article&action=add" class="btn btn-primary" style="border-radius:var(--radius-xl)">
+      <a href="<?= BASE_URL ?>/?page=admin-article&action=add" class="btn btn-primary" style="border-radius:var(--radius-full)">
         <i data-lucide="plus-circle" style="width:1rem;height:1rem"></i> Ajouter
       </a>
     </div>
   </div>
 
   <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border)">
-    <div class="table-container">
-      <table class="table">
+    <div style="overflow-x:auto;">
+      <table class="table" style="width:100%;border-collapse:collapse;">
         <thead>
           <tr>
             <th>#</th>
             <th>Titre</th>
             <th>Auteur</th>
+            <th>Rôle</th>
             <th>Statut</th>
             <th>Commentaires</th>
             <th>Date</th>
@@ -45,7 +46,7 @@
         <tbody>
           <?php if (empty($articles)): ?>
             <tr>
-              <td colspan="7" style="text-align:center;padding:3.5rem 2rem;color:var(--text-muted)">
+              <td colspan="8" style="text-align:center;padding:3.5rem 2rem;color:var(--text-muted)">
                 <div style="display:inline-flex;align-items:center;justify-content:center;width:4rem;height:4rem;background:var(--muted);border-radius:var(--radius-full);margin-bottom:1rem">
                   <i data-lucide="inbox" style="width:2rem;height:2rem;color:var(--text-muted)"></i>
                 </div>
@@ -57,24 +58,41 @@
             <?php foreach ($articles as $a): ?>
               <?php
                 $statut = $a['statut'] ?? 'brouillon';
-                $badgeClass = 'badge-primary';
+                $badgeClass = 'badge-info';
                 if ($statut === 'publie') $badgeClass = 'badge-success';
                 elseif ($statut === 'en_attente') $badgeClass = 'badge-warning';
+                // Role badge colors
+                $role = $a['role_utilisateur'] ?? '—';
+                $roleColor = '#6b7280';
+                if (strpos($role, 'Chef') !== false) $roleColor = '#e76f51';
+                elseif (strpos($role, 'Nutritionniste') !== false || strpos($role, 'Diété') !== false) $roleColor = '#059669';
+                elseif (strpos($role, 'Étudiant') !== false) $roleColor = '#3b82f6';
+                elseif (strpos($role, 'Athlète') !== false || strpos($role, 'Sportif') !== false) $roleColor = '#f59e0b';
+                elseif (strpos($role, 'Parent') !== false) $roleColor = '#8b5cf6';
+                elseif (strpos($role, 'Jardinier') !== false) $roleColor = '#22c55e';
+                elseif (strpos($role, 'Food') !== false) $roleColor = '#ec4899';
+                elseif (strpos($role, 'Éco') !== false) $roleColor = '#14b8a6';
+                elseif (strpos($role, 'Passionné') !== false) $roleColor = '#f97316';
               ?>
               <tr>
                 <td><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= (int)$a['id'] ?></span></td>
-                <td style="max-width:320px">
+                <td style="max-width:280px">
                   <div style="display:flex;align-items:center;gap:0.625rem">
                     <div style="display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;background:linear-gradient(135deg,rgba(45,106,79,0.08),rgba(82,183,136,0.06));border-radius:0.625rem;flex-shrink:0">
                       <i data-lucide="file-text" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
                     </div>
-                    <span class="font-semibold" style="color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($a['titre']) ?></span>
+                    <span style="font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block"><?= htmlspecialchars($a['titre']) ?></span>
                   </div>
                 </td>
                 <td><?= htmlspecialchars($a['auteur'] ?? 'Admin') ?></td>
+                <td>
+                  <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.75rem;font-weight:600;color:<?= $roleColor ?>;background:<?= $roleColor ?>10;padding:0.2rem 0.6rem;border-radius:var(--radius-full);border:1px solid <?= $roleColor ?>30">
+                    <?= htmlspecialchars($role) ?>
+                  </span>
+                </td>
                 <td><span class="badge <?= $badgeClass ?>" style="font-size:0.65rem"><?= htmlspecialchars($statut) ?></span></td>
                 <td><?= (int)($a['nb_commentaires'] ?? 0) ?></td>
-                <td><?= htmlspecialchars($a['date_publication'] ?? '') ?></td>
+                <td style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($a['date_publication'] ?? '') ?></td>
                 <td>
                   <div style="display:flex;gap:0.375rem;align-items:center;flex-wrap:wrap">
                     <a href="<?= BASE_URL ?>/?page=admin-article&action=edit&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Modifier" style="background:rgba(45,106,79,0.06);border-color:rgba(45,106,79,0.15)">
@@ -106,4 +124,3 @@
     </div>
   </div>
 </div>
-

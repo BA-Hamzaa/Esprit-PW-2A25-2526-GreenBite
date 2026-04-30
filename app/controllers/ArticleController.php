@@ -45,7 +45,7 @@ class ArticleController
         }
     }
 
-    // RECHERCHE — articles publiés dont le titre ou contenu contient le mot-clé
+    // RECHERCHE — articles publiés dont le titre, contenu ou auteur contient le mot-clé
     function rechercherArticles($keyword)
     {
         $sql = "SELECT * FROM article
@@ -78,16 +78,18 @@ class ArticleController
 
     function addArticle(Article $article)
     {
-        $sql = "INSERT INTO article (titre, contenu, auteur, statut)
-                VALUES (:titre, :contenu, :auteur, :statut)";
+        // UPDATED: now includes role_utilisateur
+        $sql = "INSERT INTO article (titre, contenu, auteur, role_utilisateur, statut)
+                VALUES (:titre, :contenu, :auteur, :role_utilisateur, :statut)";
         $db = Database::getConnexion();
         try {
             $q = $db->prepare($sql);
             $q->execute([
-                'titre'  => $article->getTitre(),
-                'contenu' => $article->getContenu(),
-                'auteur' => $article->getAuteur(),
-                'statut' => $article->getStatut(),
+                'titre'            => $article->getTitre(),
+                'contenu'          => $article->getContenu(),
+                'auteur'           => $article->getAuteur(),
+                'role_utilisateur' => $article->getRoleUtilisateur(),
+                'statut'           => $article->getStatut(),
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
@@ -97,21 +99,24 @@ class ArticleController
 
     function updateArticle(Article $article, $id)
     {
+        // UPDATED: now includes role_utilisateur
         $sql = "UPDATE article SET
-                    titre   = :titre,
-                    contenu = :contenu,
-                    auteur  = :auteur,
-                    statut  = :statut
+                    titre            = :titre,
+                    contenu          = :contenu,
+                    auteur           = :auteur,
+                    role_utilisateur = :role_utilisateur,
+                    statut           = :statut
                 WHERE id = :id";
         $db = Database::getConnexion();
         try {
             $q = $db->prepare($sql);
             $q->execute([
-                'titre'  => $article->getTitre(),
-                'contenu' => $article->getContenu(),
-                'auteur' => $article->getAuteur(),
-                'statut' => $article->getStatut(),
-                'id'     => $id,
+                'titre'            => $article->getTitre(),
+                'contenu'          => $article->getContenu(),
+                'auteur'           => $article->getAuteur(),
+                'role_utilisateur' => $article->getRoleUtilisateur(),
+                'statut'           => $article->getStatut(),
+                'id'               => $id,
             ]);
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
@@ -150,7 +155,6 @@ class ArticleController
 
     function listCommentairesValides($article_id)
     {
-        // JOIN avec article pour satisfaire l'exigence de jointure
         $sql = "SELECT c.*, a.titre AS article_titre
                 FROM commentaire c
                 JOIN article a ON a.id = c.article_id
@@ -169,7 +173,6 @@ class ArticleController
 
     function addCommentaire(Commentaire $commentaire)
     {
-        // La colonne dans la DB s'appelle "pseudo"
         $sql = "INSERT INTO commentaire (article_id, pseudo, contenu, statut)
                 VALUES (:article_id, :pseudo, :contenu, :statut)";
         $db = Database::getConnexion();
@@ -177,7 +180,7 @@ class ArticleController
             $q = $db->prepare($sql);
             $q->execute([
                 'article_id' => $commentaire->getArticleId(),
-                'pseudo'     => $commentaire->getAuteur(),   // getAuteur() → colonne pseudo
+                'pseudo'     => $commentaire->getAuteur(),
                 'contenu'    => $commentaire->getContenu(),
                 'statut'     => $commentaire->getStatut(),
             ]);
@@ -195,22 +198,27 @@ class ArticleController
     {
         $errors = [];
 
-        $titre   = trim($post['titre'] ?? '');
-        $contenu = trim($post['contenu'] ?? '');
-        $auteur  = trim($post['auteur'] ?? '');
-        $statut  = $post['statut'] ?? 'brouillon';
+        $titre            = trim($post['titre'] ?? '');
+        $contenu          = trim($post['contenu'] ?? '');
+        $auteur           = trim($post['auteur'] ?? '');
+        $role_utilisateur = trim($post['role_utilisateur'] ?? ''); // NEW
+        $statut           = $post['statut'] ?? 'brouillon';
 
         if ($titre === '' || mb_strlen($titre) < 3) {
             $errors[] = "Le titre est obligatoire (min 3 caractères).";
         }
-        if (mb_strlen($titre) > 180) {
-            $errors[] = "Le titre ne peut pas dépasser 180 caractères.";
+        if (mb_strlen($titre) > 150) {
+            $errors[] = "Le titre ne peut pas dépasser 150 caractères.";
         }
         if ($contenu === '' || mb_strlen($contenu) < 20) {
             $errors[] = "Le contenu est obligatoire (min 20 caractères).";
         }
         if ($auteur === '' || mb_strlen($auteur) < 2) {
             $errors[] = "L'auteur est obligatoire (min 2 caractères).";
+        }
+        // NEW: validate role
+        if ($role_utilisateur === '') {
+            $errors[] = "Veuillez sélectionner votre profil (qui êtes-vous ?).";
         }
         $statutsValides = ['brouillon', 'en_attente', 'publie'];
         if (!in_array($statut, $statutsValides)) {
@@ -244,7 +252,6 @@ class ArticleController
 
     function listFront()
     {
-        // Recherche si mot-clé présent dans l'URL (?q=...)
         $keyword  = trim($_GET['q'] ?? '');
         $articles = $keyword !== ''
             ? $this->rechercherArticles($keyword)
@@ -262,10 +269,12 @@ class ArticleController
             $_POST['statut'] = 'en_attente';
             $errors = $this->validerArticle($_POST);
             if (empty($errors)) {
+                // UPDATED: now passes role_utilisateur to Article constructor
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
+                    trim($_POST['role_utilisateur'] ?? 'Passionné de cuisine'), // NEW
                     'en_attente'
                 );
                 $this->addArticle($a);
@@ -354,10 +363,12 @@ class ArticleController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->validerArticle($_POST);
             if (empty($errors)) {
+                // UPDATED: now passes role_utilisateur to Article constructor
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
+                    trim($_POST['role_utilisateur'] ?? 'Passionné de cuisine'), // NEW
                     $_POST['statut'] ?? 'brouillon'
                 );
                 $this->addArticle($a);
@@ -384,10 +395,12 @@ class ArticleController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->validerArticle($_POST);
             if (empty($errors)) {
+                // UPDATED: now passes role_utilisateur to Article constructor
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
+                    trim($_POST['role_utilisateur'] ?? $article['role_utilisateur'] ?? 'Passionné de cuisine'), // NEW
                     $_POST['statut'] ?? 'brouillon'
                 );
                 $this->updateArticle($a, $id);
