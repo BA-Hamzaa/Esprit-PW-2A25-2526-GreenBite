@@ -6,7 +6,8 @@
   <div style="position:fixed;bottom:15%;right:5%;width:120px;height:120px;background:radial-gradient(circle,rgba(45,106,79,0.06) 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:0;animation:floatReverse 12s ease-in-out infinite"></div>
 
   <!-- Welcome Hero Banner -->
-  <div style="background:linear-gradient(135deg, #0d2e1f 0%, #1B4332 25%, #2D6A4F 55%, #40916C 80%, #52B788 100%);border-radius:1.5rem;padding:3rem 2.5rem;color:#fff;border:none;position:relative;overflow:hidden;margin-bottom:2rem;box-shadow:0 20px 60px rgba(45,106,79,0.35)">
+  <div style="background:linear-gradient(118deg, rgba(4,16,11,0.94) 0%, rgba(13,42,30,0.88) 34%, rgba(24,78,52,0.80) 66%, rgba(38,122,82,0.72) 100%),url('https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1800&q=80') center/cover no-repeat;border-radius:1.5rem;padding:3rem 2.5rem;color:#fff;border:none;position:relative;overflow:hidden;margin-bottom:2rem;box-shadow:0 20px 60px rgba(45,106,79,0.35)">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(0,0,0,0.06) 42%,rgba(0,0,0,0.22) 100%);pointer-events:none"></div>
 
     <!-- Animated orbs -->
     <div style="position:absolute;top:-80px;right:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(167,243,208,0.18) 0%,transparent 65%);border-radius:50%;animation:float 7s ease-in-out infinite"></div>
@@ -23,10 +24,10 @@
           <i data-lucide="leaf" style="width:2.25rem;height:2.25rem;color:#a7f3d0"></i>
         </div>
         <div>
-          <h1 style="font-family:var(--font-heading);font-size:2.1rem;font-weight:900;letter-spacing:-0.035em;line-height:1.1">
+          <h1 style="font-family:var(--font-heading);font-size:2.1rem;font-weight:900;letter-spacing:-0.035em;line-height:1.1;text-shadow:0 3px 18px rgba(0,0,0,0.45)">
             Bienvenue sur <span style="background:linear-gradient(90deg,#a7f3d0,#6ee7b7,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">GreenBite</span>
           </h1>
-          <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;margin-top:4px">Votre compagnon pour une alimentation durable & intelligente 🌿</p>
+          <p style="color:rgba(236,253,245,0.9);font-size:0.95rem;margin-top:4px;text-shadow:0 2px 12px rgba(0,0,0,0.35)">Votre compagnon pour une alimentation durable & intelligente 🌿</p>
         </div>
       </div>
 
@@ -59,9 +60,18 @@
         require_once BASE_PATH . '/app/controllers/NutritionController.php';
       }
       $nc = new NutritionController();
+      $regimeCache = [];
       foreach ($followedPlans as $fpId => $fpData):
         $fp = $nc->RecupererPlan($fpId);
         if (!$fp) continue;
+        $associatedRegime = null;
+        $associatedRegimeId = (int)($fp['regime_id'] ?? 0);
+        if ($associatedRegimeId > 0) {
+          if (!array_key_exists($associatedRegimeId, $regimeCache)) {
+            $regimeCache[$associatedRegimeId] = $nc->RecupererRegime($associatedRegimeId) ?: null;
+          }
+          $associatedRegime = $regimeCache[$associatedRegimeId];
+        }
         $fpDate = $fpData['date_debut'];
         $today = date('Y-m-d');
         $daysPassed = max(0, (strtotime($today) - strtotime($fpDate)) / 86400);
@@ -75,6 +85,44 @@
         ];
         $fpC = $objConfig[$fp['type_objectif']] ?? $objConfig['maintien'];
   ?>
+  <?php if (!empty($associatedRegime)): ?>
+  <!-- Associated Regime Widget -->
+  <div class="card" style="margin-bottom:0.95rem;padding:0;overflow:hidden;border:2px solid rgba(59,130,246,0.28);box-shadow:0 8px 32px rgba(37,99,235,0.10)">
+    <div style="height:4px;background:linear-gradient(90deg,#2563eb,#60a5fa)"></div>
+    <div style="padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1.25rem;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:1rem;min-width:220px">
+        <div style="display:flex;align-items:center;justify-content:center;width:3.25rem;height:3.25rem;background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:1rem;box-shadow:0 4px 14px rgba(37,99,235,0.15);flex-shrink:0">
+          <i data-lucide="leaf" style="width:1.4rem;height:1.4rem;color:#2563eb"></i>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
+            <span style="font-family:var(--font-heading);font-size:1rem;font-weight:800;color:var(--text-primary)"><?= htmlspecialchars($associatedRegime['nom'] ?? 'Régime associé') ?></span>
+            <span style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.12rem 0.45rem;background:rgba(37,99,235,0.08);color:#2563eb;border:1px solid rgba(37,99,235,0.2);border-radius:999px;font-size:0.62rem;font-weight:700">
+              <i data-lucide="link" style="width:0.55rem;height:0.55rem"></i> Régime lié
+            </span>
+          </div>
+          <div style="margin-top:0.2rem;font-size:0.75rem;color:var(--text-muted)">
+            <?= htmlspecialchars(ucfirst(str_replace('_', ' ', (string)($associatedRegime['objectif'] ?? 'maintien')))) ?>
+            • <?= (int)($associatedRegime['calories_jour'] ?? 0) ?> kcal/jour
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap">
+        <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= (int)$associatedRegimeId ?>"
+           style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.9rem;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border-radius:999px;font-size:0.74rem;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(37,99,235,0.26)">
+          <i data-lucide="eye" style="width:0.75rem;height:0.75rem"></i> Voir régime
+        </a>
+        <button data-confirm="Arrêter le suivi de ce régime ? Le plan lié sera aussi arrêté automatiquement." data-confirm-title="Arrêter le suivi" data-confirm-type="warning" data-confirm-url="<?= BASE_URL ?>/?page=nutrition&action=regime-unfollow&id=<?= (int)$associatedRegimeId ?>" data-confirm-btn="Arrêter"
+           style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.82rem;background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:999px;font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.3s"
+           onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.borderColor='rgba(239,68,68,0.35)'"
+           onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.borderColor='rgba(239,68,68,0.25)'">
+          <i data-lucide="x-circle" style="width:0.75rem;height:0.75rem"></i> Arrêter régime
+        </button>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <!-- Active Plan Widget -->
   <div class="card" style="margin-bottom:1.5rem;padding:0;overflow:hidden;border:2px solid var(--secondary);box-shadow:0 8px 32px rgba(82,183,136,0.12)">
     <div style="height:4px;background:<?= $fpC['grad'] ?>"></div>
@@ -117,12 +165,6 @@
            onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 12px rgba(45,106,79,0.25)'">
           <i data-lucide="eye" style="width:0.85rem;height:0.85rem"></i> Consulter
         </a>
-        <button data-confirm="Arrêter le suivi de ce plan ?" data-confirm-title="Arrêter le suivi" data-confirm-type="warning" data-confirm-url="<?= BASE_URL ?>/?page=nutrition&action=plan-unfollow&id=<?= $fp['id'] ?>" data-confirm-btn="Arrêter"
-           style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.55rem 1rem;background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-full);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.3s"
-           onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.borderColor='rgba(239,68,68,0.35)'"
-           onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.borderColor='rgba(239,68,68,0.2)'">
-          <i data-lucide="x-circle" style="width:0.8rem;height:0.8rem"></i> Arrêter
-        </button>
       </div>
     </div>
   </div>

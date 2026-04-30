@@ -16,10 +16,18 @@ class NutritionController
         }
         $db = Database::getConnexion();
         try {
-            $stmt = $db->query("SHOW COLUMNS FROM plan_nutritionnel LIKE 'regime_id'");
-            $this->hasPlanRegimeColumn = (bool)$stmt->fetch();
+            // Runtime check: if the column exists, use it immediately.
+            $db->query("SELECT regime_id FROM plan_nutritionnel LIMIT 1");
+            $this->hasPlanRegimeColumn = true;
         } catch (Exception $e) {
-            $this->hasPlanRegimeColumn = false;
+            // Schema fallback: auto-create the optional relation column once
+            // when older local databases were initialized without it.
+            try {
+                $db->exec("ALTER TABLE plan_nutritionnel ADD COLUMN regime_id INT NULL");
+                $this->hasPlanRegimeColumn = true;
+            } catch (Exception $inner) {
+                $this->hasPlanRegimeColumn = false;
+            }
         }
         return $this->hasPlanRegimeColumn;
     }
@@ -303,16 +311,17 @@ class NutritionController
     /////..............................Afficher tous les Plans............................../////
     function AfficherPlans()
     {
+        $acceptedStatusExpr = "REPLACE(REPLACE(LOWER(TRIM(p.statut)), ' ', '_'), '-', '_') IN ('accepte','accepted','valide','approuve','approve')";
         if ($this->hasPlanRegimeColumn()) {
             $sql = "SELECT p.*, r.nom AS regime_nom
                     FROM plan_nutritionnel p
                     LEFT JOIN regime_alimentaire r ON r.id = p.regime_id
-                    WHERE p.statut = 'accepte'
+                    WHERE {$acceptedStatusExpr}
                     ORDER BY p.date_debut DESC, p.created_at DESC";
         } else {
             $sql = "SELECT p.*, NULL AS regime_nom
                     FROM plan_nutritionnel p
-                    WHERE p.statut = 'accepte'
+                    WHERE {$acceptedStatusExpr}
                     ORDER BY p.date_debut DESC, p.created_at DESC";
         }
         $db = Database::getConnexion();
@@ -559,6 +568,22 @@ class NutritionController
                 $params['regime_id'] = $plan->getRegimeId();
             }
             $query->execute($params);
+
+            // Safety sync: ensure regime association is persisted even if
+            // column detection logic was stale in this request lifecycle.
+            try {
+                $qReg = $db->prepare("UPDATE plan_nutritionnel SET regime_id = :regime_id WHERE id = :id");
+                $qReg->bindValue(':id', (int)$id, PDO::PARAM_INT);
+                if ($plan->getRegimeId() === null) {
+                    $qReg->bindValue(':regime_id', null, PDO::PARAM_NULL);
+                } else {
+                    $qReg->bindValue(':regime_id', (int)$plan->getRegimeId(), PDO::PARAM_INT);
+                }
+                $qReg->execute();
+                $this->hasPlanRegimeColumn = true;
+            } catch (Exception $inner) {
+                // Ignore when schema doesn't have regime_id
+            }
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
         }
@@ -918,6 +943,22 @@ class NutritionController
     function listPlans()
     {
         $plans = $this->AfficherPlans();
+        $regimeId = isset($_GET['regime_id']) ? (int)$_GET['regime_id'] : 0;
+        $autoFollow = isset($_GET['follow']) && $_GET['follow'] === '1';
+        $regimeFilterActive = false;
+        $selectedRegime = null;
+        if ($regimeId > 0) {
+            $regimeFilterActive = true;
+            $selectedRegime = $this->RecupererRegime($regimeId);
+            $plans = array_values(array_filter($plans, function($p) use ($regimeId) {
+                return (int)($p['regime_id'] ?? 0) === $regimeId;
+            }));
+            if ($autoFollow && empty($plans)) {
+                $_SESSION['error'] = "Aucun plan accepté n'est encore associé à ce régime.";
+                header('Location: ' . BASE_URL . '/?page=nutrition&action=regime-detail&id=' . $regimeId);
+                exit;
+            }
+        }
         $myName = $_SESSION['plan_user'] ?? '';
         $myIds = $_SESSION['my_plan_ids'] ?? [];
         $myPlans = [];
@@ -1152,6 +1193,17 @@ class NutritionController
                 'date_debut' => $dateDebut,
                 'followed_at' => date('Y-m-d H:i:s'),
             ];
+            $linkedRegimeId = (int)($plan['regime_id'] ?? 0);
+            if ($linkedRegimeId > 0) {
+                if (!isset($_SESSION['followed_regimes']) || !is_array($_SESSION['followed_regimes'])) {
+                    $_SESSION['followed_regimes'] = [];
+                }
+                $_SESSION['followed_regimes'][$linkedRegimeId] = [
+                    'date_debut' => $dateDebut,
+                    'followed_at' => date('Y-m-d H:i:s'),
+                    'source_plan_id' => $id,
+                ];
+            }
             $_SESSION['success'] = "Vous suivez maintenant ce plan ! Il commence le " . date('d/m/Y', strtotime($dateDebut)) . ".";
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
             exit;
@@ -1174,6 +1226,21 @@ class NutritionController
         if (isset($_SESSION['followed_plans'][$id])) {
             unset($_SESSION['followed_plans'][$id]);
         }
+        $linkedRegimeId = (int)($plan['regime_id'] ?? 0);
+        if ($linkedRegimeId > 0 && isset($_SESSION['followed_regimes'][$linkedRegimeId])) {
+            $hasAnotherFollowedPlanForRegime = false;
+            $followedPlans = $_SESSION['followed_plans'] ?? [];
+            foreach ($followedPlans as $planId => $planData) {
+                $otherPlan = $this->RecupererPlan((int)$planId);
+                if ($otherPlan && (int)($otherPlan['regime_id'] ?? 0) === $linkedRegimeId) {
+                    $hasAnotherFollowedPlanForRegime = true;
+                    break;
+                }
+            }
+            if (!$hasAnotherFollowedPlanForRegime) {
+                unset($_SESSION['followed_regimes'][$linkedRegimeId]);
+            }
+        }
         $_SESSION['success'] = "Vous ne suivez plus ce plan.";
         // Redirect back to the referring page, or plan detail
         $referer = $_SERVER['HTTP_REFERER'] ?? '';
@@ -1181,6 +1248,47 @@ class NutritionController
             header('Location: ' . BASE_URL . '/');
         } else {
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
+        }
+        exit;
+    }
+
+    /////..............................FRONTOFFICE — Ne plus suivre un Régime (et ses plans liés)............................../////
+    function unfollowRegime()
+    {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $regime = $this->RecupererRegime($id);
+        if (!$regime) {
+            $_SESSION['error'] = "Régime introuvable.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
+            exit;
+        }
+
+        $removedPlans = 0;
+        $followedPlans = $_SESSION['followed_plans'] ?? [];
+        if (is_array($followedPlans)) {
+            foreach ($followedPlans as $planId => $planData) {
+                $linkedPlan = $this->RecupererPlan((int)$planId);
+                if ($linkedPlan && (int)($linkedPlan['regime_id'] ?? 0) === $id) {
+                    unset($_SESSION['followed_plans'][$planId]);
+                    $removedPlans++;
+                }
+            }
+        }
+        if (isset($_SESSION['followed_regimes'][$id])) {
+            unset($_SESSION['followed_regimes'][$id]);
+        }
+
+        if ($removedPlans > 0) {
+            $_SESSION['success'] = "Suivi du régime arrêté, ainsi que {$removedPlans} plan(s) lié(s).";
+        } else {
+            $_SESSION['success'] = "Suivi du régime arrêté.";
+        }
+
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        if (strpos($referer, 'page=home') !== false || (strpos($referer, 'page=') === false && strpos($referer, 'action=') === false)) {
+            header('Location: ' . BASE_URL . '/');
+        } else {
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
         }
         exit;
     }
@@ -1546,11 +1654,17 @@ class NutritionController
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
     }
 
+    function exportPlansPdfBack()
+    {
+        $plans = $this->AfficherPlansBack();
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/plans_pdf.php';
+    }
+
     function addPlanBack()
     {
         $errors = [];
         $repas = $this->AfficherTousRepas();
-        $regimes = $this->AfficherRegimesAcceptes();
+        $regimes = $this->AfficherTousRegimes();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['soumis_par'] = 'Admin';
             $_POST['date_debut'] = date('Y-m-d'); // Default since it's removed from form
@@ -1606,7 +1720,7 @@ class NutritionController
         }
         $errors = [];
         $repas = $this->AfficherTousRepas();
-        $regimes = $this->AfficherRegimesAcceptes();
+        $regimes = $this->AfficherTousRegimes();
         $planRepas = $this->RecupererLiensPlanRepas($id);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['soumis_par'] = $plan['soumis_par'] ?? 'Admin';
@@ -1688,6 +1802,12 @@ class NutritionController
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
         require_once BASE_PATH . '/app/views/backoffice/nutrition/regimes.php';
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
+    }
+
+    function exportRegimesPdfBack()
+    {
+        $regimes = $this->AfficherTousRegimes();
+        require_once BASE_PATH . '/app/views/backoffice/nutrition/regimes_pdf.php';
     }
 
     function acceptRegime()

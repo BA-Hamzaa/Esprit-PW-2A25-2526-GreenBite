@@ -102,6 +102,23 @@
     </div>
   </div>
 
+  <?php if (!empty($regimeFilterActive)): ?>
+    <div style="margin-bottom:1rem;padding:0.8rem 1rem;border-radius:10px;border:1px solid rgba(46,125,79,0.25);background:linear-gradient(135deg,rgba(46,125,79,0.12),rgba(46,125,79,0.05));display:flex;align-items:center;justify-content:space-between;gap:0.8rem;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:0.45rem;color:#1f5135;font-size:0.82rem;font-weight:700">
+        <i data-lucide="filter" style="width:0.85rem;height:0.85rem"></i>
+        <?php if (!empty($selectedRegime['nom'])): ?>
+          Plans associés au régime : <span style="font-weight:800"><?= htmlspecialchars($selectedRegime['nom']) ?></span>
+        <?php else: ?>
+          Plans associés au régime sélectionné
+        <?php endif; ?>
+      </div>
+      <a href="<?= BASE_URL ?>/?page=nutrition&action=regimes"
+         style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.75rem;font-weight:700;color:#2E7D4F;text-decoration:none;border:1px solid rgba(46,125,79,0.3);padding:0.3rem 0.65rem;border-radius:999px;background:#fff">
+        <i data-lucide="arrow-left" style="width:0.75rem;height:0.75rem"></i> Retour aux régimes
+      </a>
+    </div>
+  <?php endif; ?>
+
 <?php if (empty($plans)): ?>
     <!-- Empty State -->
     <div class="card" style="padding:5rem 2rem;text-align:center;background:linear-gradient(135deg,rgba(82,183,136,0.04),rgba(45,106,79,0.02))">

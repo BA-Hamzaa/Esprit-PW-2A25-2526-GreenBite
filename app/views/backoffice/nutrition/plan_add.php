@@ -50,7 +50,7 @@
 
       <div class="form-group col-span-2">
         <label class="form-label" for="duree_jours">Durée (Jours)</label>
-        <input type="number" name="duree_jours" id="duree_jours" class="form-input" value="<?= htmlspecialchars($_POST['duree_jours'] ?? '7') ?>" min="1" max="365" style="max-width:200px">
+        <input type="number" name="duree_jours" id="duree_jours" class="form-input" value="<?= htmlspecialchars($_POST['duree_jours'] ?? '7') ?>" style="max-width:200px">
         <div id="err_duree_jours" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
         <p class="text-xs mt-1" style="color:var(--text-muted)"><i data-lucide="info" style="width:0.7rem;height:0.7rem;display:inline;vertical-align:middle"></i> Entrez la durée pour générer automatiquement le programme journalier ci-dessous.</p>
       </div>

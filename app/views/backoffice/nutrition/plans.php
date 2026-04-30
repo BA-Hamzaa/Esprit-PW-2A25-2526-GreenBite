@@ -66,9 +66,14 @@ foreach ($planCaloriesByObjective as $key => $sumCal) {
     <h1 class="text-2xl font-bold" style="color:var(--text-primary);font-family:var(--font-heading)">Plans Nutritionnels</h1>
     <p class="text-sm" style="color:var(--text-muted)">Gérez les programmes alimentaires des utilisateurs</p>
   </div>
-  <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=plan-add" class="btn btn-primary btn-round">
-    <i data-lucide="plus" style="width:1rem;height:1rem"></i> Nouveau Plan
-  </a>
+  <div class="flex items-center gap-2">
+    <button type="button" id="exportPlansPdfBtn" class="btn" style="background:linear-gradient(135deg,#1f7a4f,#2E7D4F);color:#fff;border:1px solid #1f7a4f;box-shadow:0 4px 12px rgba(31,122,79,0.25)">
+      <i data-lucide="file-down" style="width:1rem;height:1rem"></i> Export PDF
+    </button>
+    <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=plan-add" class="btn btn-primary btn-round">
+      <i data-lucide="plus" style="width:1rem;height:1rem"></i> Nouveau Plan
+    </a>
+  </div>
 </div>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.875rem;margin-bottom:1.5rem">
@@ -218,6 +223,8 @@ foreach ($planCaloriesByObjective as $key => $sumCal) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script>
 (function () {
   if (typeof Chart === 'undefined') return;
@@ -303,6 +310,49 @@ foreach ($planCaloriesByObjective as $key => $sumCal) {
       }
     });
   }
+})();
+
+(function () {
+  const btn = document.getElementById('exportPlansPdfBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert('Bibliothèque PDF indisponible.');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+    doc.setFontSize(16);
+    doc.text('Plans Nutritionnels', 40, 36);
+    doc.setFontSize(10);
+    doc.text('Export généré le <?= date('d/m/Y H:i') ?>', 40, 54);
+
+    const rows = <?= json_encode(array_map(function ($p) {
+      return [
+        (int)($p['id'] ?? 0),
+        (string)($p['nom'] ?? ''),
+        (string)($p['regime_nom'] ?? '—'),
+        (string)($p['type_objectif'] ?? ''),
+        (string)((int)($p['duree_jours'] ?? 0) . ' jours'),
+        (string)((int)($p['objectif_calories'] ?? 0) . ' kcal'),
+        (string)($p['soumis_par'] ?? ''),
+        (string)($p['statut'] ?? ''),
+      ];
+    }, $plans), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    doc.autoTable({
+      startY: 68,
+      head: [['ID', 'Nom', 'Régime lié', 'Objectif', 'Durée', 'Calories', 'Soumis par', 'Statut']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [31, 122, 79] },
+      theme: 'grid'
+    });
+
+    doc.save('plans_nutritionnels.pdf');
+  });
 })();
 </script>
 
