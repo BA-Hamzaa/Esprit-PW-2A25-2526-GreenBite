@@ -1,4 +1,66 @@
 <!-- Vue BackOffice : Liste des Plans Nutritionnels -->
+<?php
+$plans = isset($plans) && is_array($plans) ? $plans : [];
+$statsPlans = ['total'=>0,'en_attente'=>0,'accepte'=>0,'refuse'=>0,'avg_duree'=>0,'avg_cal'=>0];
+$sDur = 0;
+$sCal = 0;
+$normalizePlanStatus = static function ($value) {
+    $raw = strtolower(trim((string)$value));
+    $key = str_replace([' ', '-', '.'], '_', $raw);
+    $aliases = [
+      'en_attente' => 'en_attente',
+      'enattente' => 'en_attente',
+      'attente' => 'en_attente',
+      'pending' => 'en_attente',
+      'accepte' => 'accepte',
+      'accepted' => 'accepte',
+      'valide' => 'accepte',
+      'approve' => 'accepte',
+      'approuve' => 'accepte',
+      'refuse' => 'refuse',
+      'rejected' => 'refuse',
+      'reject' => 'refuse',
+      'rejete' => 'refuse',
+    ];
+    return $aliases[$key] ?? $key;
+};
+foreach ($plans as $__p) {
+    $statsPlans['total']++;
+    $st = $normalizePlanStatus($__p['statut'] ?? 'accepte');
+    if ($st === 'en_attente') { $statsPlans['en_attente']++; }
+    elseif ($st === 'accepte') { $statsPlans['accepte']++; }
+    elseif ($st === 'refuse') { $statsPlans['refuse']++; }
+    $sDur += (int)($__p['duree_jours'] ?? 0);
+    $sCal += (int)($__p['objectif_calories'] ?? 0);
+}
+if ($statsPlans['total'] > 0) {
+    $statsPlans['avg_duree'] = (int)round($sDur / $statsPlans['total']);
+    $statsPlans['avg_cal'] = (int)round($sCal / $statsPlans['total']);
+}
+
+$planStatusChart = [
+  (int)$statsPlans['en_attente'],
+  (int)$statsPlans['accepte'],
+  (int)$statsPlans['refuse'],
+];
+$planObjectives = ['perte_poids' => 0, 'maintien' => 0, 'prise_masse' => 0];
+$planCaloriesByObjective = ['perte_poids' => 0, 'maintien' => 0, 'prise_masse' => 0];
+$planCountByObjective = ['perte_poids' => 0, 'maintien' => 0, 'prise_masse' => 0];
+foreach ($plans as $__p) {
+    $typeObj = $__p['type_objectif'] ?? 'maintien';
+    if (array_key_exists($typeObj, $planObjectives)) {
+        $planObjectives[$typeObj]++;
+        $planCaloriesByObjective[$typeObj] += (int)($__p['objectif_calories'] ?? 0);
+        $planCountByObjective[$typeObj]++;
+    }
+}
+$planCaloriesAvgByObjective = [];
+foreach ($planCaloriesByObjective as $key => $sumCal) {
+    $planCaloriesAvgByObjective[$key] = $planCountByObjective[$key] > 0
+      ? (int)round($sumCal / $planCountByObjective[$key])
+      : 0;
+}
+?>
 <div class="flex items-center justify-between mb-8">
   <div>
     <h1 class="text-2xl font-bold" style="color:var(--text-primary);font-family:var(--font-heading)">Plans Nutritionnels</h1>
@@ -9,6 +71,62 @@
   </a>
 </div>
 
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.875rem;margin-bottom:1.5rem">
+  <div class="card" style="padding:1rem 1.15rem;border:1px solid var(--border);background:var(--surface)">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+      <i data-lucide="clipboard-list" style="width:0.75rem;height:0.75rem;color:var(--primary)"></i> Total
+    </div>
+    <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:var(--text-primary);line-height:1"><?= (int)$statsPlans['total'] ?></div>
+  </div>
+  <div class="card" style="padding:1rem 1.15rem;border:1px solid rgba(245,158,11,0.35);background:linear-gradient(135deg,rgba(245,158,11,0.06),transparent)">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#b45309;margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+      <i data-lucide="clock" style="width:0.75rem;height:0.75rem"></i> En attente
+    </div>
+    <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:#d97706;line-height:1"><?= (int)$statsPlans['en_attente'] ?></div>
+  </div>
+  <div class="card" style="padding:1rem 1.15rem;border:1px solid rgba(34,197,94,0.25);background:linear-gradient(135deg,rgba(34,197,94,0.06),transparent)">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+      <i data-lucide="check-circle-2" style="width:0.75rem;height:0.75rem;color:#22c55e"></i> Acceptés
+    </div>
+    <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:#15803d;line-height:1"><?= (int)$statsPlans['accepte'] ?></div>
+  </div>
+  <div class="card" style="padding:1rem 1.15rem;border:1px solid rgba(239,68,68,0.22);background:linear-gradient(135deg,rgba(239,68,68,0.05),transparent)">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+      <i data-lucide="x-circle" style="width:0.75rem;height:0.75rem;color:#ef4444"></i> Refusés
+    </div>
+    <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:#b91c1c;line-height:1"><?= (int)$statsPlans['refuse'] ?></div>
+  </div>
+  <div class="card" style="padding:1rem 1.15rem;border:1px solid var(--border);background:var(--surface)">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+      <i data-lucide="calendar" style="width:0.75rem;height:0.75rem;color:var(--secondary)"></i> Moy. durée
+    </div>
+    <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:var(--text-primary);line-height:1"><?php if ($statsPlans['total'] > 0): ?><?= (int)$statsPlans['avg_duree'] ?><span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);margin-left:0.15rem">j</span><?php else: ?>—<?php endif; ?></div>
+  </div>
+  <div class="card" style="padding:1rem 1.15rem;border:1px solid var(--border);background:var(--surface)">
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+      <i data-lucide="flame" style="width:0.75rem;height:0.75rem;color:var(--accent-orange)"></i> Moy. calories
+    </div>
+    <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:var(--accent-orange);line-height:1"><?= $statsPlans['total'] > 0 ? number_format($statsPlans['avg_cal'], 0, ',', ' ') : '—' ?></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem">
+  <div class="card" style="padding:1rem 1.1rem;border:1px solid var(--border);background:var(--surface)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <h3 style="font-family:var(--font-heading);font-size:0.9rem;font-weight:800;color:var(--text-primary)">Validation des plans</h3>
+      <span class="badge badge-gray">Statuts</span>
+    </div>
+    <canvas id="plansStatusChart" style="max-height:240px"></canvas>
+  </div>
+  <div class="card" style="padding:1rem 1.1rem;border:1px solid var(--border);background:var(--surface)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <h3 style="font-family:var(--font-heading);font-size:0.9rem;font-weight:800;color:var(--text-primary)">Calories moyennes par objectif</h3>
+      <span class="badge badge-gray">kcal</span>
+    </div>
+    <canvas id="plansCaloriesObjectiveChart" style="max-height:240px"></canvas>
+  </div>
+</div>
+
 <div class="card" style="padding:0;overflow:hidden">
   <div style="overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;text-align:left">
@@ -16,6 +134,7 @@
         <tr style="border-bottom:2px solid var(--border);background:var(--muted)">
           <th style="padding:1rem">ID</th>
           <th style="padding:1rem">Nom</th>
+          <th style="padding:1rem">Régime lié</th>
           <th style="padding:1rem">Objectif</th>
           <th style="padding:1rem">Durée</th>
           <th style="padding:1rem">Calories Cibles</th>
@@ -27,13 +146,14 @@
       <tbody>
         <?php if (empty($plans)): ?>
           <tr>
-            <td colspan="7" style="padding:2rem;text-align:center;color:var(--text-muted)">Aucun plan trouvé.</td>
+            <td colspan="9" style="padding:2rem;text-align:center;color:var(--text-muted)">Aucun plan trouvé.</td>
           </tr>
         <?php else: ?>
           <?php foreach ($plans as $p): ?>
             <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='transparent'">
               <td style="padding:1rem;color:var(--text-muted)">#<?= $p['id'] ?></td>
               <td style="padding:1rem;font-weight:600;color:var(--text-primary)"><?= htmlspecialchars($p['nom']) ?></td>
+              <td style="padding:1rem;color:var(--text-secondary)"><?= !empty($p['regime_nom']) ? htmlspecialchars($p['regime_nom']) : '<span style="color:var(--text-muted)">—</span>' ?></td>
               <td style="padding:1rem">
                 <?php
                   $typeStr = 'Maintien';
@@ -56,7 +176,7 @@
               </td>
               <td style="padding:1rem;color:var(--text-secondary)">
                 <?php
-                  $st   = $p['statut'] ?? 'accepte'; // pour la compatibilité avec les anciens plans
+                  $st = $normalizePlanStatus($p['statut'] ?? 'accepte');
                   $conf = [
                     'en_attente' => ['label'=>'En attente', 'cls'=>'badge-warning'],
                     'accepte'    => ['label'=>'Accepté',    'cls'=>'badge-success'],
@@ -96,6 +216,95 @@
     </table>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const textColor = isDark ? '#cbd5e1' : '#6b7280';
+  const baseOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: textColor,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: { size: 11 }
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: textColor, font: { size: 11 } }, grid: { color: gridColor } },
+      y: { ticks: { color: textColor, font: { size: 11 }, precision: 0 }, grid: { color: gridColor } }
+    }
+  };
+
+  const plansStatusCtx = document.getElementById('plansStatusChart');
+  if (plansStatusCtx) {
+    new Chart(plansStatusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['En attente', 'Acceptés', 'Refusés'],
+        datasets: [{
+          data: <?= json_encode($planStatusChart, JSON_UNESCAPED_UNICODE) ?>,
+          backgroundColor: ['#f59e0b', '#22c55e', '#ef4444'],
+          borderWidth: 0,
+          spacing: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor, usePointStyle: true, padding: 14, font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  const caloriesCtx = document.getElementById('plansCaloriesObjectiveChart');
+  if (caloriesCtx) {
+    new Chart(caloriesCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Perte de poids', 'Maintien', 'Prise de masse'],
+        datasets: [{
+          label: 'kcal moyennes',
+          data: <?= json_encode([
+              $planCaloriesAvgByObjective['perte_poids'],
+              $planCaloriesAvgByObjective['maintien'],
+              $planCaloriesAvgByObjective['prise_masse'],
+            ], JSON_UNESCAPED_UNICODE) ?>,
+          backgroundColor: ['rgba(239,68,68,0.75)', 'rgba(59,130,246,0.75)', 'rgba(139,92,246,0.75)'],
+          borderRadius: 10,
+          borderSkipped: false,
+          maxBarThickness: 48
+        }]
+      },
+      options: {
+        ...baseOptions,
+        plugins: {
+          ...baseOptions.plugins,
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return (ctx.parsed.y || 0) + ' kcal'; }
+            }
+          }
+        }
+      }
+    });
+  }
+})();
+</script>
 
 <!-- Modals for Validation -->
 <!-- ===== REFUSE MODAL ===== -->

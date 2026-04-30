@@ -7,25 +7,63 @@ require_once BASE_PATH . '/app/models/RegimeAlimentaire.php';
 
 class NutritionController
 {
+    private $hasPlanRegimeColumn = null;
+
+    private function hasPlanRegimeColumn()
+    {
+        if ($this->hasPlanRegimeColumn !== null) {
+            return $this->hasPlanRegimeColumn;
+        }
+        $db = Database::getConnexion();
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM plan_nutritionnel LIKE 'regime_id'");
+            $this->hasPlanRegimeColumn = (bool)$stmt->fetch();
+        } catch (Exception $e) {
+            $this->hasPlanRegimeColumn = false;
+        }
+        return $this->hasPlanRegimeColumn;
+    }
 
     //==========================================================================
     // CRUD — REPAS
     //==========================================================================
 
     /////..............................Afficher Repas du Jour (Front)............................../////
-    function AfficherRepasJour()
+    /** Repas pour une date précise Y-m-d — le front liste par jour, pas toute la table (contrairement au back). */
+    function AfficherRepasPourDate(string $dateYmd)
     {
-        $sql = "SELECT * FROM repas WHERE date_repas = CURDATE()
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateYmd)) {
+            return [];
+        }
+        $sql = "SELECT * FROM repas WHERE date_repas = :d
                 ORDER BY FIELD(type_repas, 'petit_dejeuner', 'dejeuner', 'collation', 'diner')";
         $db = Database::getConnexion();
         try {
-            $liste = $db->query($sql)->fetchAll();
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(':d', $dateYmd);
+            $stmt->execute();
+            $liste = $stmt->fetchAll();
             foreach ($liste as &$r) {
                 $r['aliments'] = $this->AfficherAlimentsRepas($r['id']);
             }
             return $liste;
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    function AfficherRepasJour()
+    {
+        return $this->AfficherRepasPourDate(date('Y-m-d'));
+    }
+
+    function CompterRepasTotaux()
+    {
+        $db = Database::getConnexion();
+        try {
+            return (int) $db->query('SELECT COUNT(*) FROM repas')->fetchColumn();
+        } catch (Exception $e) {
+            return 0;
         }
     }
 
@@ -265,7 +303,18 @@ class NutritionController
     /////..............................Afficher tous les Plans............................../////
     function AfficherPlans()
     {
-        $sql = "SELECT * FROM plan_nutritionnel WHERE statut = 'accepte' ORDER BY date_debut DESC, created_at DESC";
+        if ($this->hasPlanRegimeColumn()) {
+            $sql = "SELECT p.*, r.nom AS regime_nom
+                    FROM plan_nutritionnel p
+                    LEFT JOIN regime_alimentaire r ON r.id = p.regime_id
+                    WHERE p.statut = 'accepte'
+                    ORDER BY p.date_debut DESC, p.created_at DESC";
+        } else {
+            $sql = "SELECT p.*, NULL AS regime_nom
+                    FROM plan_nutritionnel p
+                    WHERE p.statut = 'accepte'
+                    ORDER BY p.date_debut DESC, p.created_at DESC";
+        }
         $db = Database::getConnexion();
         try {
             $plans = $db->query($sql)->fetchAll();
@@ -293,7 +342,18 @@ class NutritionController
     /////..............................Afficher Plans d'un Client (par nom)............................../////
     function AfficherPlansClient($soumis_par)
     {
-        $sql = "SELECT * FROM plan_nutritionnel WHERE soumis_par = :soumis_par ORDER BY created_at DESC";
+        if ($this->hasPlanRegimeColumn()) {
+            $sql = "SELECT p.*, r.nom AS regime_nom
+                    FROM plan_nutritionnel p
+                    LEFT JOIN regime_alimentaire r ON r.id = p.regime_id
+                    WHERE p.soumis_par = :soumis_par
+                    ORDER BY p.created_at DESC";
+        } else {
+            $sql = "SELECT p.*, NULL AS regime_nom
+                    FROM plan_nutritionnel p
+                    WHERE p.soumis_par = :soumis_par
+                    ORDER BY p.created_at DESC";
+        }
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -315,7 +375,16 @@ class NutritionController
     /////..............................Afficher Plans (Back)............................../////
     function AfficherPlansBack()
     {
-        $sql = "SELECT * FROM plan_nutritionnel ORDER BY created_at DESC";
+        if ($this->hasPlanRegimeColumn()) {
+            $sql = "SELECT p.*, r.nom AS regime_nom
+                    FROM plan_nutritionnel p
+                    LEFT JOIN regime_alimentaire r ON r.id = p.regime_id
+                    ORDER BY p.created_at DESC";
+        } else {
+            $sql = "SELECT p.*, NULL AS regime_nom
+                    FROM plan_nutritionnel p
+                    ORDER BY p.created_at DESC";
+        }
         $db = Database::getConnexion();
         try {
             return $db->query($sql)->fetchAll();
@@ -327,7 +396,16 @@ class NutritionController
     /////..............................Récupérer un Plan par ID............................../////
     function RecupererPlan($id)
     {
-        $sql = "SELECT * FROM plan_nutritionnel WHERE id = :id";
+        if ($this->hasPlanRegimeColumn()) {
+            $sql = "SELECT p.*, r.nom AS regime_nom
+                    FROM plan_nutritionnel p
+                    LEFT JOIN regime_alimentaire r ON r.id = p.regime_id
+                    WHERE p.id = :id";
+        } else {
+            $sql = "SELECT p.*, NULL AS regime_nom
+                    FROM plan_nutritionnel p
+                    WHERE p.id = :id";
+        }
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -375,12 +453,17 @@ class NutritionController
     /////..............................Ajouter Plan............................../////
     function AjouterPlan(PlanNutritionnel $plan)
     {
-        $sql = "INSERT INTO plan_nutritionnel (nom, description, objectif_calories, duree_jours, type_objectif, date_debut, soumis_par, statut, commentaire_admin, programme_activites)
-                VALUES (:nom, :description, :objectif_calories, :duree_jours, :type_objectif, :date_debut, :soumis_par, :statut, :commentaire_admin, :programme_activites)";
+        if ($this->hasPlanRegimeColumn()) {
+            $sql = "INSERT INTO plan_nutritionnel (nom, description, objectif_calories, duree_jours, type_objectif, date_debut, soumis_par, statut, commentaire_admin, programme_activites, regime_id)
+                    VALUES (:nom, :description, :objectif_calories, :duree_jours, :type_objectif, :date_debut, :soumis_par, :statut, :commentaire_admin, :programme_activites, :regime_id)";
+        } else {
+            $sql = "INSERT INTO plan_nutritionnel (nom, description, objectif_calories, duree_jours, type_objectif, date_debut, soumis_par, statut, commentaire_admin, programme_activites)
+                    VALUES (:nom, :description, :objectif_calories, :duree_jours, :type_objectif, :date_debut, :soumis_par, :statut, :commentaire_admin, :programme_activites)";
+        }
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
-            $query->execute([
+            $params = [
                 'nom' => $plan->getNom(),
                 'description' => $plan->getDescription(),
                 'objectif_calories' => $plan->getObjectifCalories(),
@@ -391,7 +474,11 @@ class NutritionController
                 'statut' => $plan->getStatut(),
                 'commentaire_admin' => $plan->getCommentaireAdmin(),
                 'programme_activites' => $plan->getProgrammeActivites(),
-            ]);
+            ];
+            if ($this->hasPlanRegimeColumn()) {
+                $params['regime_id'] = $plan->getRegimeId();
+            }
+            $query->execute($params);
             return $db->lastInsertId();
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
@@ -428,21 +515,36 @@ class NutritionController
     /////..............................Modifier Plan............................../////
     function ModifierPlan(PlanNutritionnel $plan, $id)
     {
-        $sql = "UPDATE plan_nutritionnel SET
-                    nom               = :nom,
-                    description       = :description,
-                    objectif_calories = :objectif_calories,
-                    duree_jours       = :duree_jours,
-                    type_objectif     = :type_objectif,
-                    date_debut        = :date_debut,
-                    statut            = :statut,
-                    commentaire_admin = NULL,
-                    programme_activites = :programme_activites
-                WHERE id = :id";
+        if ($this->hasPlanRegimeColumn()) {
+            $sql = "UPDATE plan_nutritionnel SET
+                        nom               = :nom,
+                        description       = :description,
+                        objectif_calories = :objectif_calories,
+                        duree_jours       = :duree_jours,
+                        type_objectif     = :type_objectif,
+                        date_debut        = :date_debut,
+                        statut            = :statut,
+                        commentaire_admin = NULL,
+                        programme_activites = :programme_activites,
+                        regime_id          = :regime_id
+                    WHERE id = :id";
+        } else {
+            $sql = "UPDATE plan_nutritionnel SET
+                        nom               = :nom,
+                        description       = :description,
+                        objectif_calories = :objectif_calories,
+                        duree_jours       = :duree_jours,
+                        type_objectif     = :type_objectif,
+                        date_debut        = :date_debut,
+                        statut            = :statut,
+                        commentaire_admin = NULL,
+                        programme_activites = :programme_activites
+                    WHERE id = :id";
+        }
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
-            $query->execute([
+            $params = [
                 'nom' => $plan->getNom(),
                 'description' => $plan->getDescription(),
                 'objectif_calories' => $plan->getObjectifCalories(),
@@ -452,7 +554,11 @@ class NutritionController
                 'statut' => $plan->getStatut(),
                 'programme_activites' => $plan->getProgrammeActivites(),
                 'id' => $id,
-            ]);
+            ];
+            if ($this->hasPlanRegimeColumn()) {
+                $params['regime_id'] = $plan->getRegimeId();
+            }
+            $query->execute($params);
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
         }
@@ -461,11 +567,20 @@ class NutritionController
     /////..............................Modifier Statut Plan (Back)............................../////
     function ModifierStatutPlan($id, $statut, $commentaire = null)
     {
+        $normalized = strtolower(trim((string)$statut));
+        $normalized = str_replace([' ', '-', '.'], '_', $normalized);
+        if (in_array($normalized, ['attente', 'pending'], true)) {
+            $normalized = 'en_attente';
+        } elseif (in_array($normalized, ['accepted', 'approuve', 'valide', 'approve'], true)) {
+            $normalized = 'accepte';
+        } elseif (in_array($normalized, ['rejected', 'reject', 'rejete'], true)) {
+            $normalized = 'refuse';
+        }
         $sql = "UPDATE plan_nutritionnel SET statut = :statut, commentaire_admin = :commentaire WHERE id = :id";
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
-            $query->execute(['statut' => $statut, 'commentaire' => $commentaire, 'id' => $id]);
+            $query->execute(['statut' => $normalized, 'commentaire' => $commentaire, 'id' => $id]);
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
         }
@@ -531,7 +646,9 @@ class NutritionController
     /////..............................Compter Régimes en Attente............................../////
     function CompterRegimesEnAttente()
     {
-        $sql = "SELECT COUNT(*) FROM regime_alimentaire WHERE statut = 'en_attente'";
+        $sql = "SELECT COUNT(*)
+                FROM regime_alimentaire
+                WHERE REPLACE(REPLACE(LOWER(TRIM(statut)), ' ', '_'), '-', '_') = 'en_attente'";
         $db = Database::getConnexion();
         try {
             return $db->query($sql)->fetchColumn();
@@ -700,6 +817,9 @@ class NutritionController
         if (empty($post['type_objectif'] ?? '') || !in_array($post['type_objectif'], $typesValides)) {
             $errors[] = "Le type d'objectif est invalide.";
         }
+        if (!empty($post['regime_id']) && (!is_numeric($post['regime_id']) || (int)$post['regime_id'] <= 0)) {
+            $errors[] = "Le régime sélectionné est invalide.";
+        }
         return $errors;
     }
 
@@ -738,7 +858,13 @@ class NutritionController
     /////..............................FRONTOFFICE — Liste Repas............................../////
     function listFront()
     {
-        $repas = $this->AfficherRepasJour();
+        $repasDate = date('Y-m-d');
+        if (!empty($_GET['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date'])) {
+            $repasDate = $_GET['date'];
+        }
+        $repas = $this->AfficherRepasPourDate($repasDate);
+        $nbRepasTotaux = $this->CompterRepasTotaux();
+
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/frontoffice/nutrition/list.php';
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
@@ -810,7 +936,7 @@ class NutritionController
         }
         $filtered = [];
         foreach ($myPlans as $p) {
-            if ($p['statut'] === 'en_attente' || $p['statut'] === 'refuse') {
+            if (($p['statut'] ?? '') === 'en_attente') {
                 $filtered[] = $p;
             }
         }
@@ -830,6 +956,11 @@ class NutritionController
         $plan = $this->RecupererPlan($id);
         if (!$plan) {
             $_SESSION['error'] = "Plan introuvable.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
+        if (($plan['statut'] ?? '') !== 'accepte') {
+            $_SESSION['error'] = "Ce plan n'est pas disponible.";
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
             exit;
         }
@@ -853,6 +984,7 @@ class NutritionController
     {
         $errors = [];
         $repas = $this->AfficherTousRepas();
+        $regimes = $this->AfficherRegimesAcceptes();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->ValiderPlan($_POST);
             if (empty($errors)) {
@@ -873,6 +1005,7 @@ class NutritionController
                     $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
                 }
                 $plan->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+                $plan->setRegimeId(!empty($_POST['regime_id']) ? (int)$_POST['regime_id'] : null);
                 $planId = $this->AjouterPlan($plan);
                 if (!empty($_POST['repas_ids'])) {
                     foreach ($_POST['repas_ids'] as $i => $repasId) {
@@ -918,6 +1051,7 @@ class NutritionController
         }
         $errors = [];
         $repas = $this->AfficherTousRepas();
+        $regimes = $this->AfficherRegimesAcceptes();
         $planRepas = $this->RecupererLiensPlanRepas($id);
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -942,6 +1076,7 @@ class NutritionController
                     $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
                 }
                 $p->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+                $p->setRegimeId(!empty($_POST['regime_id']) ? (int)$_POST['regime_id'] : null);
                 
                 $this->ModifierPlan($p, $id);
                 $this->SupprimerRepasPlan($id);
@@ -997,6 +1132,11 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
             exit;
         }
+        if (($plan['statut'] ?? '') !== 'accepte') {
+            $_SESSION['error'] = "Ce plan n'est pas disponible pour le suivi.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dateDebut = $_POST['date_debut'] ?? '';
             if (empty($dateDebut) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateDebut)) {
@@ -1025,6 +1165,12 @@ class NutritionController
     function unfollowPlan()
     {
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $plan = $this->RecupererPlan($id);
+        if (!$plan || ($plan['statut'] ?? '') !== 'accepte') {
+            $_SESSION['error'] = "Ce plan n'est pas disponible.";
+            header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
+            exit;
+        }
         if (isset($_SESSION['followed_plans'][$id])) {
             unset($_SESSION['followed_plans'][$id]);
         }
@@ -1404,6 +1550,7 @@ class NutritionController
     {
         $errors = [];
         $repas = $this->AfficherTousRepas();
+        $regimes = $this->AfficherRegimesAcceptes();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['soumis_par'] = 'Admin';
             $_POST['date_debut'] = date('Y-m-d'); // Default since it's removed from form
@@ -1427,6 +1574,7 @@ class NutritionController
                     $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
                 }
                 $plan->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+                $plan->setRegimeId(!empty($_POST['regime_id']) ? (int)$_POST['regime_id'] : null);
 
                 $planId = $this->AjouterPlan($plan);
                 if (!empty($_POST['repas_ids'])) {
@@ -1458,6 +1606,7 @@ class NutritionController
         }
         $errors = [];
         $repas = $this->AfficherTousRepas();
+        $regimes = $this->AfficherRegimesAcceptes();
         $planRepas = $this->RecupererLiensPlanRepas($id);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['soumis_par'] = $plan['soumis_par'] ?? 'Admin';
@@ -1480,6 +1629,7 @@ class NutritionController
                     $activites[$j] = trim($_POST['activite_jour_' . $j] ?? '');
                 }
                 $p->setProgrammeActivites(json_encode($activites, JSON_UNESCAPED_UNICODE));
+                $p->setRegimeId(!empty($_POST['regime_id']) ? (int)$_POST['regime_id'] : null);
 
                 $this->ModifierPlan($p, $id);
                 $this->SupprimerRepasPlan($id);

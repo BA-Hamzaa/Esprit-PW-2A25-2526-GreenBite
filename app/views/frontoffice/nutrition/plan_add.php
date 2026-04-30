@@ -34,12 +34,6 @@
         <div id="err_nom" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
       </div>
 
-      <div class="form-group mb-6">
-        <label class="form-label" for="description"><i data-lucide="align-left" style="width:0.875rem;height:0.875rem"></i> Description générale</label>
-        <textarea name="description" id="description" class="form-textarea" placeholder="Décrivez votre objectif global..."><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
-        <div id="err_description" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
-      </div>
-
       <!-- Champ temporaire : Votre nom (sera remplacé par la session utilisateur) -->
       <div class="form-group mb-6">
         <label class="form-label" for="soumis_par"><i data-lucide="user" style="width:0.875rem;height:0.875rem"></i> Votre nom</label>
@@ -70,6 +64,18 @@
           <div id="err_objectif_calories" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
         </div>
       </div>
+      <div class="form-group mb-4">
+        <label class="form-label" for="regime_id"><i data-lucide="link" style="width:0.875rem;height:0.875rem"></i> Régime associé (optionnel)</label>
+        <select name="regime_id" id="regime_id" class="form-input">
+          <option value="">-- Aucun régime --</option>
+          <?php foreach (($regimes ?? []) as $rg): ?>
+            <option value="<?= (int)$rg['id'] ?>" <?= (string)($rg['id']) === (string)($_POST['regime_id'] ?? '') ? 'selected' : '' ?>>
+              <?= htmlspecialchars($rg['nom']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <p class="text-xs mt-1" style="color:var(--text-muted)">Lier ce plan à un régime validé pour garder la cohérence des recommandations.</p>
+      </div>
 
       <div class="form-group mb-2">
         <label class="form-label" for="duree_jours"><i data-lucide="clock" style="width:0.875rem;height:0.875rem"></i> Durée (en jours)</label>
@@ -90,6 +96,12 @@
           <i data-lucide="calendar" style="width:1.5rem;height:1.5rem;display:block;margin:0 auto 0.5rem;opacity:0.4"></i>
           Entrez la durée du plan ci-dessus pour générer le programme jour par jour.
         </div>
+      </div>
+
+      <div class="form-group mb-2">
+        <label class="form-label" for="description"><i data-lucide="align-left" style="width:0.875rem;height:0.875rem"></i> Description générale</label>
+        <textarea name="description" id="description" class="form-textarea" placeholder="Décrivez votre objectif global..."><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+        <div id="err_description" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
       </div>
 
       <!-- ===== Submit ===== -->
@@ -114,6 +126,17 @@ const activityPlaceholders = [
   'Ex: Journée libre — respecter les repas du plan',
 ];
 
+const sportOptions = [
+  { value: '', label: '-- Choisir une activité --' },
+  { value: 'marche', label: 'Marche' },
+  { value: 'course', label: 'Course à pied' },
+  { value: 'velo', label: 'Vélo' },
+  { value: 'musculation', label: 'Musculation' },
+  { value: 'natation', label: 'Natation' },
+  { value: 'yoga', label: 'Yoga / Mobilité' },
+  { value: 'autre', label: 'Autre' }
+];
+
 function mealRowHtml(jour) {
   return `<div class="meal-row" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem">
     <select name="repas_ids[]" class="form-input" style="font-size:0.82rem;flex:1" onchange="updateActivityRequired(${jour})">
@@ -121,6 +144,27 @@ function mealRowHtml(jour) {
     </select>
     <input type="hidden" name="jours[]" value="${jour}">
     <button type="button" onclick="this.closest('.meal-row').remove();updateActivityRequired(${jour})" title="Supprimer" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:0.5rem;color:#ef4444;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(239,68,68,0.16)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+      <i data-lucide="x" style="width:0.8rem;height:0.8rem"></i>
+    </button>
+  </div>`;
+}
+
+function sportRowHtml(jour, selected = '', details = '') {
+  const opts = sportOptions.map(opt =>
+    `<option value="${opt.value}" ${selected === opt.value ? 'selected' : ''}>${opt.label}</option>`
+  ).join('');
+  const escapedDetails = String(details || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  return `<div class="sport-row" style="display:grid;grid-template-columns:170px 1fr auto;gap:0.5rem;margin-bottom:0.45rem;align-items:center">
+    <select class="form-input sport-type" style="font-size:0.8rem" onchange="syncActivityField(${jour});validateSportsDay(${jour})">
+      ${opts}
+    </select>
+    <input type="text" class="form-input sport-details" value="${escapedDetails}" placeholder="Ex: 30 min + intensité modérée + étirements 10 min" style="font-size:0.8rem" oninput="syncActivityField(${jour});validateSportsDay(${jour})" />
+    <button type="button" onclick="this.closest('.sport-row').remove();syncActivityField(${jour});validateSportsDay(${jour})" title="Supprimer" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:0.5rem;color:#ef4444;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(239,68,68,0.16)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
       <i data-lucide="x" style="width:0.8rem;height:0.8rem"></i>
     </button>
   </div>`;
@@ -161,23 +205,23 @@ function buildDayCard(jour, duree) {
       <div>
         <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
           <i data-lucide="activity" style="width:0.75rem;height:0.75rem;color:#f59e0b"></i>
-          Activité / Instructions du jour
+          Activités sportives du jour
           <span class="act-required-star" style="color:#ef4444;margin-left:2px;display:none">*</span>
           <span class="act-optional-hint" style="margin-left:auto;font-size:0.65rem;color:var(--text-muted);font-weight:400">Optionnel si aucun repas sélectionné</span>
         </label>
-        <textarea
-          name="activite_jour_${jour}"
-          id="activite_jour_${jour}"
-          rows="2"
-          placeholder="${placeholder}"
-          style="width:100%;padding:0.65rem 0.875rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.82rem;background:var(--surface);color:var(--foreground);resize:vertical;outline:none;transition:all 0.3s;font-family:inherit"
-          onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-          onblur="validateActivity(this)"
-          oninput="clearActivityError(this)"
-        ></textarea>
+        <div id="sports-day-${jour}"></div>
+        <button type="button"
+          onclick="addSportToDay(${jour})"
+          style="margin-top:0.35rem;display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;background:rgba(245,158,11,0.08);border:1px dashed rgba(245,158,11,0.4);border-radius:0.5rem;color:#b45309;font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.2s"
+          onmouseover="this.style.background='rgba(245,158,11,0.16)'"
+          onmouseout="this.style.background='rgba(245,158,11,0.08)'">
+          <i data-lucide="plus" style="width:0.75rem;height:0.75rem"></i> Ajouter une activité sportive
+        </button>
+        <textarea name="activite_jour_${jour}" id="activite_jour_${jour}" style="display:none"></textarea>
+        <div style="margin-top:0.25rem;font-size:0.7rem;color:var(--text-muted)">${placeholder}</div>
         <div class="act-error" style="color:#ef4444;font-size:0.72rem;margin-top:0.2rem;display:none">
           <i data-lucide="alert-circle" style="width:0.65rem;height:0.65rem;display:inline;vertical-align:middle;margin-right:0.2rem"></i>
-          Ce champ est obligatoire (minimum 5 caractères).
+          Ajoutez au moins une activité valide (type + détails min. 5 caractères).
         </div>
       </div>
     </div>
@@ -191,6 +235,17 @@ function addMealToDay(jour) {
   div.innerHTML = mealRowHtml(jour);
   list.appendChild(div.firstElementChild);
   updateActivityRequired(jour);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function addSportToDay(jour, selected = '', details = '') {
+  const list = document.getElementById('sports-day-' + jour);
+  if (!list) return;
+  const div = document.createElement('div');
+  div.innerHTML = sportRowHtml(jour, selected, details);
+  list.appendChild(div.firstElementChild);
+  syncActivityField(jour);
+  validateSportsDay(jour);
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
@@ -227,65 +282,97 @@ function dayHasMeal(jour) {
   return false;
 }
 
+function dayHasValidSport(jour) {
+  const list = document.getElementById('sports-day-' + jour);
+  if (!list) return false;
+  const rows = list.querySelectorAll('.sport-row');
+  for (let row of rows) {
+    const type = row.querySelector('.sport-type');
+    const details = row.querySelector('.sport-details');
+    if (type && details && type.value && details.value.trim().length >= 5) return true;
+  }
+  return false;
+}
+
+function syncActivityField(jour) {
+  const hidden = document.getElementById('activite_jour_' + jour);
+  const list = document.getElementById('sports-day-' + jour);
+  if (!hidden || !list) return;
+  const rows = list.querySelectorAll('.sport-row');
+  const lines = [];
+  rows.forEach(row => {
+    const typeSel = row.querySelector('.sport-type');
+    const detailInput = row.querySelector('.sport-details');
+    const typeLabel = typeSel && typeSel.value ? (typeSel.options[typeSel.selectedIndex]?.text || typeSel.value) : '';
+    const detail = detailInput ? detailInput.value.trim() : '';
+    if (typeLabel || detail) lines.push([typeLabel, detail].filter(Boolean).join(': '));
+  });
+  hidden.value = lines.join(' | ');
+}
+
 // Update activity field required state based on meal selection
 function updateActivityRequired(jour) {
   const hasMeal = dayHasMeal(jour);
-  const card = document.getElementById('activite_jour_' + jour);
-  if (!card) return;
-  const label = card.closest('div');
+  const hidden = document.getElementById('activite_jour_' + jour);
+  if (!hidden) return;
+  const label = hidden.closest('div');
   const star = label ? label.querySelector('.act-required-star') : null;
   const hint = label ? label.querySelector('.act-optional-hint') : null;
   if (star) star.style.display = hasMeal ? 'inline' : 'none';
   if (hint) hint.style.display = hasMeal ? 'none' : 'inline';
-  // Clear error if no meal
-  if (!hasMeal) {
-    card.style.borderColor = 'var(--border)';
-    card.style.boxShadow = 'none';
-    const errEl = card.nextElementSibling;
-    if (errEl) errEl.style.display = 'none';
-  }
+  validateSportsDay(jour);
 }
 
-function validateActivity(el) {
-  const errEl = el.nextElementSibling;
-  // Extract jour from field name: activite_jour_N
-  const match = el.name.match(/(\d+)$/);
-  if (!match) return true;
-  const jour = parseInt(match[1]);
-  // Only required if a meal is selected
+function validateSportsDay(jour) {
+  const wrapper = document.getElementById('sports-day-' + jour);
+  if (!wrapper) return true;
+  const parent = wrapper.parentElement;
+  const errEl = parent ? parent.querySelector('.act-error') : null;
   if (!dayHasMeal(jour)) {
-    el.style.borderColor = 'var(--border)';
-    el.style.boxShadow = 'none';
     if (errEl) errEl.style.display = 'none';
     return true;
   }
-  if (el.value.trim().length < 5) {
-    el.style.borderColor = '#ef4444';
-    el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.10)';
-    if (errEl) { errEl.style.display = 'block'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
-    return false;
-  }
-  el.style.borderColor = 'var(--secondary)';
-  el.style.boxShadow = '0 0 0 3px rgba(82,183,136,0.12)';
-  if (errEl) errEl.style.display = 'none';
-  return true;
+  const ok = dayHasValidSport(jour);
+  if (errEl) errEl.style.display = ok ? 'none' : 'block';
+  if (!ok && typeof lucide !== 'undefined') lucide.createIcons();
+  return ok;
+}
+
+function validateActivity(el) {
+  const match = el && el.name ? el.name.match(/(\d+)$/) : null;
+  if (!match) return true;
+  const jour = parseInt(match[1], 10);
+  syncActivityField(jour);
+  return validateSportsDay(jour);
 }
 
 function clearActivityError(el) {
-  const errEl = el.nextElementSibling;
-  const match = el.name ? el.name.match(/(\d+)$/) : null;
-  const jour = match ? parseInt(match[1]) : null;
-  if (jour && !dayHasMeal(jour)) {
-    el.style.borderColor = 'var(--border)';
-    el.style.boxShadow = 'none';
-    if (errEl) errEl.style.display = 'none';
+  const match = el && el.name ? el.name.match(/(\d+)$/) : null;
+  if (!match) return;
+  const jour = parseInt(match[1], 10);
+  syncActivityField(jour);
+  validateSportsDay(jour);
+}
+
+function hydrateSportsFromText(jour, text) {
+  if (!text || !text.trim()) return;
+  const chunks = text.split('|').map(s => s.trim()).filter(Boolean);
+  if (!chunks.length) {
+    addSportToDay(jour, 'autre', text.trim());
     return;
   }
-  if (el.value.trim().length >= 5) {
-    el.style.borderColor = 'var(--secondary)';
-    el.style.boxShadow = '0 0 0 3px rgba(82,183,136,0.12)';
-    if (errEl) errEl.style.display = 'none';
-  }
+  chunks.forEach(chunk => {
+    const sepIdx = chunk.indexOf(':');
+    let typeCandidate = '';
+    let details = chunk;
+    if (sepIdx !== -1) {
+      typeCandidate = chunk.slice(0, sepIdx).trim().toLowerCase();
+      details = chunk.slice(sepIdx + 1).trim();
+    }
+    const matched = sportOptions.find(opt => opt.value && opt.label.toLowerCase() === typeCandidate);
+    addSportToDay(jour, matched ? matched.value : 'autre', details);
+  });
+  syncActivityField(jour);
 }
 
 // Trigger day generation on duration change
@@ -300,15 +387,16 @@ document.getElementById('duree_jours').addEventListener('input', function() {
 <?php if (!empty($_POST['duree_jours'])): ?>
 window.addEventListener('DOMContentLoaded', function() {
   generateDays(<?= (int)$_POST['duree_jours'] ?>);
-  // Restore activity values
   <?php
     $dureePost = (int)($_POST['duree_jours'] ?? 0);
     for ($j = 1; $j <= $dureePost; $j++):
       $val = addslashes(htmlspecialchars($_POST['activite_jour_' . $j] ?? ''));
   ?>
     (function() {
-      var el = document.getElementById('activite_jour_<?= $j ?>');
-      if (el) el.value = '<?= $val ?>';
+      var hidden = document.getElementById('activite_jour_<?= $j ?>');
+      if (hidden) hidden.value = '<?= $val ?>';
+      hydrateSportsFromText(<?= $j ?>, '<?= $val ?>');
+      updateActivityRequired(<?= $j ?>);
     })();
   <?php endfor; ?>
 });
@@ -336,6 +424,34 @@ document.getElementById('soumis_par').addEventListener('input', function() {
   checkLengthRealTime(this, 'err_soumis_par', 'Votre nom doit faire au moins 3 caractères.');
 });
 
+function toggleFieldError(errorId, message, shouldShow) {
+  const err = document.getElementById(errorId);
+  if (!err) return;
+  if (shouldShow) {
+    err.innerText = message;
+    err.style.display = 'block';
+  } else {
+    err.style.display = 'none';
+  }
+}
+
+function validateTypeObjectifRealtime() {
+  const val = document.getElementById('type_objectif').value;
+  toggleFieldError('err_type_objectif', 'Veuillez choisir un type d\'objectif.', !val);
+}
+
+function validateCaloriesRealtime() {
+  const raw = document.getElementById('objectif_calories').value.trim();
+  const n = parseInt(raw, 10);
+  toggleFieldError('err_objectif_calories', 'L\'objectif calorique doit être un nombre positif.', !raw || Number.isNaN(n) || n <= 0);
+}
+
+function validateDureeRealtime() {
+  const raw = document.getElementById('duree_jours').value.trim();
+  const n = parseInt(raw, 10);
+  toggleFieldError('err_duree_jours', 'La durée doit être d\'au moins 1 jour.', !raw || Number.isNaN(n) || n <= 0);
+}
+
 function forcePositiveNumber(el) {
   el.addEventListener('input', function() {
     this.value = this.value.replace(/[^0-9]/g, '');
@@ -343,6 +459,14 @@ function forcePositiveNumber(el) {
 }
 forcePositiveNumber(document.getElementById('objectif_calories'));
 forcePositiveNumber(document.getElementById('duree_jours'));
+
+// Dynamic validation: hide errors as soon as values become valid
+document.getElementById('type_objectif').addEventListener('change', validateTypeObjectifRealtime);
+document.getElementById('type_objectif').addEventListener('input', validateTypeObjectifRealtime);
+document.getElementById('objectif_calories').addEventListener('input', validateCaloriesRealtime);
+document.getElementById('objectif_calories').addEventListener('blur', validateCaloriesRealtime);
+document.getElementById('duree_jours').addEventListener('input', validateDureeRealtime);
+document.getElementById('duree_jours').addEventListener('blur', validateDureeRealtime);
 
 // Form submit validation
 document.getElementById('planForm').addEventListener('submit', function(e) {
@@ -386,13 +510,11 @@ document.getElementById('planForm').addEventListener('submit', function(e) {
   const duree = parseInt(document.getElementById('duree_jours').value) || 0;
   if (duree <= 0) { showError('err_duree_jours', 'La durée doit être d\'au moins 1 jour.'); }
 
-  // Validate activity textareas — only required if that day has a meal selected
-  document.querySelectorAll('textarea[name^="activite_jour_"]').forEach(function(ta) {
-    if (!validateActivity(ta)) hasError = true;
-  });
-
-  // At least one day must have something (meal or activity) — not block if all are empty
-  // (plan can be a pure meal plan with no activities)
+  // Validate sport activities — required only if that day has at least one meal selected
+  for (let j = 1; j <= Math.max(0, duree); j++) {
+    syncActivityField(j);
+    if (!validateSportsDay(j)) hasError = true;
+  }
 
   if (hasError) {
     e.preventDefault();

@@ -900,6 +900,39 @@ p { line-height: 1.7; }
   box-shadow: 4px 0 30px rgba(0,0,0,0.2) !important;
 }
 
+/* Front sidebar — readable contrast (section titles + links) */
+.front-sidebar-zone-label {
+  display: inline-block;
+  margin-top: 0.125rem;
+  color: rgba(236, 253, 245, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.front-sidebar .sidebar-section-label {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.front-sidebar.admin-sidebar .sidebar-nav-item {
+  color: rgba(255, 255, 255, 0.88);
+}
+.front-sidebar.admin-sidebar .sidebar-nav-item i[data-lucide] {
+  opacity: 0.95;
+}
+
+.front-sidebar .admin-dark-toggle {
+  color: rgba(255, 255, 255, 0.88);
+}
+.front-sidebar .admin-dark-toggle:hover {
+  color: #ffffff;
+}
+
 /* ============================================
    Page Layout
    ============================================ */

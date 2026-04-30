@@ -6,7 +6,7 @@ class Database {
 
     private function __construct() {
         $host = 'localhost';
-        $dbname = 'nutrigreen';
+        $dbname = 'greenbite';
         $user = 'root';
         $pass = '';
 

@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-define('OR_KEY', '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');
+define('OR_KEY', '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');
 define('OR_URL', 'https://openrouter.ai/api/v1/chat/completions');
 
 // ── Diagnostic endpoints ──────────────────────────────────────────────────────

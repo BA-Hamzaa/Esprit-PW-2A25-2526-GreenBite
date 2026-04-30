@@ -18,6 +18,11 @@
       <div>
         <div class="flex items-center gap-3 mb-2">
           <span style="padding:0.25rem 0.75rem;background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);border-radius:var(--radius-full);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em"><?= str_replace('_', ' ', $plan['type_objectif']) ?></span>
+          <?php if (!empty($plan['regime_nom'])): ?>
+            <span style="padding:0.25rem 0.75rem;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);border-radius:var(--radius-full);font-size:0.75rem;font-weight:600">
+              Régime: <?= htmlspecialchars($plan['regime_nom']) ?>
+            </span>
+          <?php endif; ?>
           <?php if ($isFollowing): ?>
             <span style="padding:0.25rem 0.75rem;background:rgba(16,185,129,0.3);backdrop-filter:blur(10px);border-radius:var(--radius-full);font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:0.3rem">
               <i data-lucide="check-circle" style="width:0.75rem;height:0.75rem"></i> Suivi actif
@@ -88,13 +93,30 @@
     <h2 class="text-xl font-bold" style="color:var(--text-primary)"><i data-lucide="calendar-days" style="width:1.25rem;height:1.25rem;display:inline-block;color:var(--primary)"></i> Programme Journalier</h2>
   </div>
 
-  <?php if (empty($repasByDay)): ?>
+  <?php
+    $allActivites = [];
+    if (!empty($plan['programme_activites'])) {
+      $allActivites = json_decode($plan['programme_activites'], true) ?? [];
+    }
+
+    $daysWithData = [];
+    foreach ($repasByDay as $jourKey => $list) {
+      if (!empty($list)) $daysWithData[(int)$jourKey] = true;
+    }
+    foreach ($allActivites as $jourKey => $actTxt) {
+      if (!empty(trim((string)$actTxt))) $daysWithData[(int)$jourKey] = true;
+    }
+    $daysToRender = array_keys($daysWithData);
+    sort($daysToRender);
+  ?>
+
+  <?php if (empty($daysToRender)): ?>
     <div class="card text-center py-8">
-      <p style="color:var(--text-muted)">Aucun repas n'a été associé à ce plan pour le moment.</p>
+      <p style="color:var(--text-muted)">Aucun contenu journalier (repas/activité) n'a été défini pour ce plan.</p>
     </div>
   <?php else: ?>
     <div class="space-y-6">
-      <?php for ($jour = 1; $jour <= $plan['duree_jours']; $jour++): ?>
+      <?php foreach ($daysToRender as $jour): ?>
         <div class="card" style="padding:1.5rem">
           <div class="flex items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--border)">
             <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:var(--primary);color:white;border-radius:50%;font-weight:bold">J<?= $jour ?></div>
@@ -110,10 +132,7 @@
           <?php
             // Show activity for this day if it exists
             $activitesDuJour = [];
-            if (!empty($plan['programme_activites'])) {
-              $allActivites = json_decode($plan['programme_activites'], true) ?? [];
-              $activitesDuJour = $allActivites[$jour] ?? ($allActivites[(string)$jour] ?? '');
-            }
+            $activitesDuJour = $allActivites[$jour] ?? ($allActivites[(string)$jour] ?? '');
           ?>
           <?php if (!empty($activitesDuJour)): ?>
             <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.875rem 1rem;background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(252,211,77,0.04));border:1px solid rgba(245,158,11,0.18);border-radius:var(--radius-xl);margin-bottom:1rem">
@@ -166,9 +185,19 @@
             </div>
           <?php endif; ?>
         </div>
-      <?php endfor; ?>
+      <?php endforeach; ?>
     </div>
   <?php endif; ?>
+
+  <div class="card mt-6" style="padding:1.1rem 1.25rem;border:1px solid var(--border);background:linear-gradient(135deg,rgba(82,183,136,0.04),rgba(45,106,79,0.03))">
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;font-weight:700;color:var(--text-primary);margin-bottom:0.45rem">
+      <i data-lucide="file-text" style="width:0.9rem;height:0.9rem;color:var(--secondary)"></i>
+      Description générale du plan
+    </div>
+    <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
+      <?= nl2br(htmlspecialchars($plan['description'] ?? 'Aucune description fournie.')) ?>
+    </p>
+  </div>
 </div>
 
 <!-- ===== Follow Plan Modal ===== -->

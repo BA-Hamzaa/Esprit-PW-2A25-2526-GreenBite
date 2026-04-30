@@ -14,6 +14,7 @@ class PlanNutritionnel
     private $soumis_par = null;
     private $commentaire_admin = null;
     private $programme_activites = null;
+    private $regime_id = null;
 
     function __construct($nom, $objectif_calories, $duree_jours, $type_objectif, $date_debut, $description = '', $soumis_par = 'Utilisateur', $statut = 'en_attente', $commentaire_admin = null)
     {
@@ -79,6 +80,10 @@ class PlanNutritionnel
     {
         return $this->programme_activites;
     }
+    function getRegimeId()
+    {
+        return $this->regime_id;
+    }
 
     // ==================== SETTERS ====================
 
@@ -121,6 +126,10 @@ class PlanNutritionnel
     function setProgrammeActivites(?string $programme_activites)
     {
         $this->programme_activites = $programme_activites;
+    }
+    function setRegimeId(?int $regime_id)
+    {
+        $this->regime_id = $regime_id;
     }
 }
 ?>

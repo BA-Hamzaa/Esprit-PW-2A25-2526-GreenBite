@@ -49,6 +49,18 @@
         <label class="form-label" for="duree_jours">Durée (Jours)</label>
         <input type="number" name="duree_jours" id="duree_jours" class="form-input" value="<?= htmlspecialchars($_POST['duree_jours'] ?? $plan['duree_jours']) ?>" style="max-width:200px">
       </div>
+      <div class="form-group col-span-2">
+        <?php $selRegimeId = $_POST['regime_id'] ?? ($plan['regime_id'] ?? ''); ?>
+        <label class="form-label" for="regime_id">Régime associé (optionnel)</label>
+        <select name="regime_id" id="regime_id" class="form-input">
+          <option value="">-- Aucun régime --</option>
+          <?php foreach (($regimes ?? []) as $rg): ?>
+            <option value="<?= (int)$rg['id'] ?>" <?= (string)($rg['id']) === (string)$selRegimeId ? 'selected' : '' ?>>
+              <?= htmlspecialchars($rg['nom']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
     </div>
 
     <h2 class="font-bold text-lg mb-4 mt-8" style="color:var(--text-primary);border-bottom:2px solid var(--border);padding-bottom:0.5rem">Programme Journalier</h2>
