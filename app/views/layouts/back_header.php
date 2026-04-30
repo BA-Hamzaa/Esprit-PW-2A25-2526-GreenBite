@@ -197,8 +197,8 @@ body {
         <div class="sidebar-section-label">Social</div>
         <ul class="space-y-1 mb-5">
           <li>
-            <a href="<?= BASE_URL ?>/?page=admin-community" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-community') ? 'active' : '' ?>">
-              <i data-lucide="message-circle"></i><span>Communauté & Blog</span>
+            <a href="<?= BASE_URL ?>/?page=admin-article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-article') ? 'active' : '' ?>">
+              <i data-lucide="newspaper"></i><span>Communauté & Blog</span>
             </a>
           </li>
         </ul>
@@ -245,4 +245,3 @@ body {
           <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
       </div>
-
