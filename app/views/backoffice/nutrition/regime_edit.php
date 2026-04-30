@@ -7,6 +7,7 @@
 <style>
 .regime-field-error{display:none;align-items:center;gap:.35rem;margin-top:.35rem;font-size:.75rem;font-weight:600;color:#ef4444;animation:fadeUp .2s ease}
 .regime-field-error.visible{display:flex}
+.regime-input-invalid{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.12) !important}
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
@@ -46,7 +47,7 @@
       <input type="text" name="nom" id="beNom"
              value="<?= htmlspecialchars($_POST['nom'] ?? $regime['nom']) ?>"
              style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-             onfocus="clearFieldError('beNom')" oninput="clearFieldError('beNom')">
+             onfocus="clearFieldError('beNom')" oninput="validateNom()" onblur="validateNom()">
       <div class="regime-field-error" id="err-beNom">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -61,7 +62,7 @@
         <?php $selObj = $_POST['objectif'] ?? $regime['objectif']; ?>
         <select name="objectif" id="beObjectif"
                 style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;cursor:pointer"
-                onchange="clearFieldError('beObjectif')">
+                onchange="validateObjectif()">
           <option value="perte_poids"    <?= $selObj === 'perte_poids'    ? 'selected' : '' ?>>Perte de poids</option>
           <option value="maintien"       <?= $selObj === 'maintien'       ? 'selected' : '' ?>>Maintien du poids</option>
           <option value="prise_masse"    <?= $selObj === 'prise_masse'    ? 'selected' : '' ?>>Prise de masse</option>
@@ -78,7 +79,7 @@
         <input type="number" name="duree_semaines" id="beDuree" 
                value="<?= htmlspecialchars($_POST['duree_semaines'] ?? $regime['duree_semaines']) ?>"
                style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-               onfocus="clearFieldError('beDuree')" oninput="clearFieldError('beDuree')">
+               onfocus="clearFieldError('beDuree')" oninput="validateDuree()" onblur="validateDuree()">
         <div class="regime-field-error" id="err-beDuree">
           <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
         </div>
@@ -93,7 +94,7 @@
       <input type="number" name="calories_jour" id="beCalories" 
              value="<?= htmlspecialchars($_POST['calories_jour'] ?? $regime['calories_jour']) ?>"
              style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none"
-             onfocus="clearFieldError('beCalories')" oninput="clearFieldError('beCalories')">
+             onfocus="clearFieldError('beCalories')" oninput="validateCalories()" onblur="validateCalories()">
       <div class="regime-field-error" id="err-beCalories">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -106,7 +107,7 @@
       </label>
       <textarea name="description" id="beDesc" rows="4"
                 style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"
-                oninput="validateDesc()"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
+                oninput="validateDesc()" onblur="validateDesc()"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
       <div class="regime-field-error" id="err-beDesc">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -119,7 +120,7 @@
       </label>
       <textarea name="restrictions" id="beRestrictions" rows="2"
                 style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"
-                oninput="validateRestr()"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
+                oninput="validateRestr()" onblur="validateRestr()"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
       <div class="regime-field-error" id="err-beRestrictions">
         <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
       </div>
@@ -150,8 +151,7 @@ function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
   if (!field || !errBox) return;
-  field.style.borderColor = '#ef4444';
-  field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
+  field.classList.add('regime-input-invalid');
   errBox.querySelector('span').textContent = message;
   errBox.classList.add('visible');
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -160,8 +160,7 @@ function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
   if (!field || !errBox) return;
-  field.style.borderColor = '';
-  field.style.boxShadow   = '';
+  field.classList.remove('regime-input-invalid');
   errBox.classList.remove('visible');
 }
 
@@ -178,6 +177,36 @@ function validateRestr() {
   if (val.length < 3) return showFieldError('beRestrictions', 'Les restrictions doivent contenir au moins 3 caractères.');
   clearFieldError('beRestrictions'); return true;
 }
+function validateNom() {
+  const v = document.getElementById('beNom').value.trim();
+  if (!v) return showFieldError('beNom', 'Le nom est obligatoire.');
+  if (v.length < 3) return showFieldError('beNom', 'Au moins 3 caractères.');
+  clearFieldError('beNom'); return true;
+}
+function validateObjectif() {
+  const v = document.getElementById('beObjectif').value;
+  if (!v) return showFieldError('beObjectif', 'Veuillez choisir un objectif.');
+  clearFieldError('beObjectif'); return true;
+}
+function validateDuree() {
+  const v = parseInt(document.getElementById('beDuree').value);
+  if (isNaN(v)) return showFieldError('beDuree', 'La durée est obligatoire.');
+  if (v < 1 || v > 52) return showFieldError('beDuree', 'Entre 1 et 52 semaines.');
+  clearFieldError('beDuree'); return true;
+}
+function validateCalories() {
+  const v = parseInt(document.getElementById('beCalories').value);
+  if (isNaN(v)) return showFieldError('beCalories', "L'apport calorique est obligatoire.");
+  if (v < 500 || v > 6000) return showFieldError('beCalories', 'Entre 500 et 6 000 kcal.');
+  clearFieldError('beCalories'); return true;
+}
+
+document.getElementById('beNom').addEventListener('input', validateNom);
+document.getElementById('beObjectif').addEventListener('change', validateObjectif);
+document.getElementById('beDuree').addEventListener('input', validateDuree);
+document.getElementById('beCalories').addEventListener('input', validateCalories);
+document.getElementById('beDesc').addEventListener('input', validateDesc);
+document.getElementById('beRestrictions').addEventListener('input', validateRestr);
 
 document.getElementById('backRegimeEditForm').addEventListener('submit', function(e) {
   let firstErr = null, hasError = false;

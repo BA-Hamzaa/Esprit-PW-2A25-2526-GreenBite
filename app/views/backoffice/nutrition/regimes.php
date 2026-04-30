@@ -70,6 +70,9 @@ $regimeObjectiveLabels = [
         <p style="font-size:0.78rem;color:var(--text-muted);margin-top:2px"><?= count($regimes) ?> régime<?= count($regimes) !== 1 ? 's' : '' ?> au total</p>
       </div>
     </div>
+    <button type="button" id="exportRegimesPdfBtn" class="btn" style="background:linear-gradient(135deg,#1f7a4f,#2E7D4F);color:#fff;border:1px solid #1f7a4f;box-shadow:0 4px 12px rgba(31,122,79,0.25)">
+      <i data-lucide="file-down" style="width:1rem;height:1rem"></i> Export PDF
+    </button>
   </div>
 
   <!-- Statistiques -->
@@ -249,6 +252,8 @@ $regimeObjectiveLabels = [
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script>
 (function () {
   if (typeof Chart === 'undefined') return;
@@ -319,6 +324,48 @@ $regimeObjectiveLabels = [
       }
     });
   }
+})();
+
+(function () {
+  const btn = document.getElementById('exportRegimesPdfBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert('Bibliothèque PDF indisponible.');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+    doc.setFontSize(16);
+    doc.text('Régimes Alimentaires', 40, 36);
+    doc.setFontSize(10);
+    doc.text('Export généré le <?= date('d/m/Y H:i') ?>', 40, 54);
+
+    const rows = <?= json_encode(array_map(function ($r) {
+      return [
+        (int)($r['id'] ?? 0),
+        (string)($r['nom'] ?? ''),
+        (string)($r['objectif'] ?? ''),
+        (string)((int)($r['duree_semaines'] ?? 0) . ' semaines'),
+        (string)number_format((int)($r['calories_jour'] ?? 0)) . ' kcal',
+        (string)($r['soumis_par'] ?? ''),
+        (string)($r['statut'] ?? ''),
+      ];
+    }, $regimes), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    doc.autoTable({
+      startY: 68,
+      head: [['ID', 'Nom', 'Objectif', 'Durée', 'Calories/j', 'Soumis par', 'Statut']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [31, 122, 79] },
+      theme: 'grid'
+    });
+
+    doc.save('regimes_alimentaires.pdf');
+  });
 })();
 </script>
 

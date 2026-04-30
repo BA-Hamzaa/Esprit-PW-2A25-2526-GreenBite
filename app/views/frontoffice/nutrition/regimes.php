@@ -23,7 +23,7 @@ $objectifColors = [
 ];
 ?>
 
-<div class="regimes-page-wrap" style="padding:2rem;position:relative;background:#f3f4f6">
+<div class="regimes-page-wrap" style="padding:2rem;position:relative;background:#f5f6f8">
 
   <!-- Page Header -->
   <div class="flex items-center justify-between mb-6">
@@ -136,11 +136,11 @@ $objectifColors = [
   }
   .regime-card {
     position:relative;
-    background:var(--card);
-    border-radius:1.375rem;
+    background:#fff;
+    border-radius:8px;
     overflow:hidden;
-    border:1px solid #e5e7eb;
-    transition:transform 0.32s cubic-bezier(.22,1,.36,1), box-shadow 0.32s ease;
+    border:1.5px solid var(--border);
+    transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     display:flex;
     flex-direction:column;
     text-decoration:none;
@@ -148,9 +148,9 @@ $objectifColors = [
     animation: regimeCardIn 0.45s ease both;
   }
   .regime-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 14px 30px rgba(0,0,0,0.10);
-    border-color: #d1d5db;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+    border-color:#d5d9e2;
   }
   .regime-card:hover .regime-accent-bar::after {
     opacity:1;
@@ -172,61 +172,60 @@ $objectifColors = [
   }
   @keyframes shimmer{to{transform:translateX(200%)}}
   .regime-stat-box {
-    background:var(--muted);
-    border-radius:0.875rem;
-    padding:0.7rem 0.875rem;
+    background:#f4efe6;
+    border-radius:8px;
+    padding:0.65rem 0.8rem;
     text-align:center;
-    transition:background 0.25s;
+    border:1px solid #eee6d8;
   }
-  .regime-week-value { color:#0f172a; }
+  .regime-week-value { color:var(--text-primary); }
   .regime-kcal-value { color:#DD6B20; }
-  .regime-card:hover .regime-stat-box {
-    background:#f5f5f4;
-  }
   .regime-cta-strip {
-    border-top:1px solid var(--border);
-    padding:0.7rem 1.25rem;
+    border-top:1px solid #eceff3;
+    padding:0.75rem 1.25rem;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    background:#fafaf9;
-    transition:background 0.25s;
+    background:#fcfcfd;
+    transition:background 0.2s;
   }
   .regime-card:hover .regime-cta-strip {
-    background:#f5f5f4;
+    background:#f7f9fc;
   }
   .regime-arrow {
-    width:1.75rem;
-    height:1.75rem;
-    border-radius:50%;
-    background:var(--border);
+    width:2.1rem;
+    height:2.1rem;
+    border-radius:var(--radius-full);
+    color:#fff;
+    border:none;
+    cursor:pointer;
     display:inline-flex;
     align-items:center;
     justify-content:center;
     transition:all 0.25s;
     flex-shrink:0;
+    box-shadow:0 3px 10px rgba(0,0,0,0.12);
   }
   .regime-card:hover .regime-arrow {
-    background:linear-gradient(135deg,var(--primary),var(--secondary));
     transform:translateX(3px);
-    box-shadow:0 4px 12px rgba(45,106,79,0.3);
+    box-shadow:0 6px 16px rgba(0,0,0,0.2);
   }
-  .regime-card:hover .regime-arrow svg {
-    stroke:#fff;
+  .regime-arrow svg{
+    stroke:#fff !important;
   }
   .regime-filters {
     display:flex;
     align-items:center;
-    gap:0.55rem;
+    gap:0.5rem;
     flex-wrap:wrap;
-    margin-bottom:1.25rem;
+    margin-bottom:1rem;
   }
   .regime-filter-btn {
-    border:1px solid #d1d5db;
+    border:1px solid #d6dbe3;
     background:#fff;
-    color:#374151;
-    border-radius:999px;
-    padding:0.4rem 0.85rem;
+    color:#4b5563;
+    border-radius:8px;
+    padding:0.35rem 0.75rem;
     font-size:0.72rem;
     font-weight:700;
     cursor:pointer;
@@ -234,10 +233,9 @@ $objectifColors = [
   }
   .regime-filter-btn:hover { border-color:#9ca3af; }
   .regime-filter-btn.active {
-    background:linear-gradient(135deg,#2D6A4F,#52B788);
-    border-color:transparent;
+    background:#2E7D4F;
+    border-color:#2E7D4F;
     color:#fff;
-    box-shadow:0 5px 14px rgba(45,106,79,0.25);
   }
   .regimes-hero{
     border-radius:8px;
@@ -328,7 +326,7 @@ $objectifColors = [
     </div>
 
     <!-- Regime Cards Grid -->
-    <div id="regime-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.4rem;margin-top:0.5rem">
+    <div id="regime-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:2rem;margin-top:0.5rem">
       <?php foreach ($regimes as $idx => $regime):
         $obj    = $regime['objectif'];
         $lbl    = $objectifLabels[$obj]  ?? $obj;
@@ -347,7 +345,7 @@ $objectifColors = [
                style="background:linear-gradient(90deg,<?= $colors['from'] ?>,<?= $colors['to'] ?>)"></div>
 
           <!-- Card Body -->
-          <div style="padding:1.625rem 1.5rem;flex:1;display:flex;flex-direction:column;gap:1.125rem">
+          <div style="padding:1rem;flex:1;display:flex;flex-direction:column;gap:0.85rem">
 
             <!-- Header: icon + title + badge -->
             <div style="display:flex;align-items:flex-start;gap:1rem">
@@ -355,8 +353,8 @@ $objectifColors = [
                 <i data-lucide="<?= $ico ?>" style="width:1.375rem;height:1.375rem;color:<?= $colors['from'] ?>"></i>
               </div>
               <div style="flex:1;min-width:0">
-                <h3 style="font-family:var(--font-heading);font-weight:800;color:var(--text-primary);font-size:1.05rem;line-height:1.3;margin-bottom:0.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($regime['nom']) ?></h3>
-                <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:<?= $colors['from'] ?>;background:<?= $colors['bg'] ?>;padding:0.2rem 0.6rem;border-radius:999px;border:1px solid <?= $colors['from'] ?>33">
+                <h3 style="font-family:var(--font-heading);font-weight:600;color:var(--text-primary);font-size:1.02rem;line-height:1.3;margin-bottom:0.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($regime['nom']) ?></h3>
+                <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:<?= $colors['from'] ?>;background:<?= $colors['bg'] ?>;padding:0.2rem 0.6rem;border-radius:8px;border:1px solid <?= $colors['from'] ?>33">
                   <i data-lucide="<?= $ico ?>" style="width:0.6rem;height:0.6rem"></i>
                   <?= $lbl ?>
                 </span>
@@ -365,7 +363,7 @@ $objectifColors = [
 
             <!-- Description -->
             <?php if (!empty($regime['description'])): ?>
-              <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.65;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden"><?= htmlspecialchars(mb_substr($regime['description'], 0, 160)) ?><?= mb_strlen($regime['description']) > 160 ? '…' : '' ?></p>
+              <p style="font-size:0.82rem;font-weight:400;color:var(--text-secondary);line-height:1.65;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"><?= htmlspecialchars(mb_substr($regime['description'], 0, 120)) ?><?= mb_strlen($regime['description']) > 120 ? '…' : '' ?></p>
             <?php else: ?>
               <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.65;font-style:italic">Aucune description disponible.</p>
             <?php endif; ?>
@@ -373,11 +371,17 @@ $objectifColors = [
             <!-- Stats Row -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
               <div class="regime-stat-box">
-                <div class="regime-week-value" style="font-family:var(--font-heading);font-size:1.5rem;font-weight:900;line-height:1"><?= (int)$regime['duree_semaines'] ?></div>
+                <div style="font-size:0.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;justify-content:center;gap:0.3rem;margin-bottom:0.25rem">
+                  <i data-lucide="calendar" style="width:0.65rem;height:0.65rem"></i> Durée
+                </div>
+                <div class="regime-week-value" style="font-family:var(--font-heading);font-size:1.3rem;font-weight:500;line-height:1"><?= (int)$regime['duree_semaines'] ?></div>
                 <div style="font-size:0.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-top:0.2rem">Semaines</div>
               </div>
               <div class="regime-stat-box">
-                <div class="regime-kcal-value" style="font-family:var(--font-heading);font-size:1.5rem;font-weight:900;line-height:1"><?= number_format((int)$regime['calories_jour']) ?></div>
+                <div style="font-size:0.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;justify-content:center;gap:0.3rem;margin-bottom:0.25rem">
+                  <i data-lucide="flame" style="width:0.65rem;height:0.65rem"></i> Objectif
+                </div>
+                <div class="regime-kcal-value" style="font-family:var(--font-heading);font-size:1.3rem;font-weight:500;line-height:1"><?= number_format((int)$regime['calories_jour']) ?></div>
                 <div style="font-size:0.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-top:0.2rem">kcal / jour</div>
               </div>
             </div>
@@ -390,7 +394,7 @@ $objectifColors = [
             <!-- Restrictions -->
             <div style="display:flex;align-items:center;gap:0.45rem;background:<?= $colors['bg'] ?>;border:1px solid <?= $colors['from'] ?>22;border-radius:999px;padding:0.35rem 0.7rem;max-width:max-content">
               <i data-lucide="leaf" style="width:0.8rem;height:0.8rem;color:<?= $colors['from'] ?>"></i>
-              <span style="font-size:0.72rem;color:var(--text-secondary);line-height:1.4"><?= htmlspecialchars(mb_substr(($regime['restrictions'] ?? 'fddFAfDDF'), 0, 24)) ?></span>
+              <span style="font-size:0.72rem;color:var(--text-secondary);line-height:1.4"><?= htmlspecialchars(mb_substr(($regime['restrictions'] ?? 'Aucune restriction'), 0, 24)) ?></span>
             </div>
 
           </div>
@@ -406,7 +410,7 @@ $objectifColors = [
                 <div style="font-size:0.62rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($regime['created_at'])) ?></div>
               </div>
             </div>
-            <div class="regime-arrow">
+            <div class="regime-arrow" style="background:linear-gradient(135deg,<?= $colors['from'] ?>,<?= $colors['to'] ?>)">
               <svg style="width:0.8rem;height:0.8rem;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke 0.25s" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
