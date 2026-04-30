@@ -114,22 +114,26 @@
   });
   document.getElementById('signupForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const inputs = this.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
-    const labels = ["Le prénom", "Le nom", "L'adresse email", "Le mot de passe", "La confirmation du mot de passe"];
+    const allInputs = this.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+    const prenom = allInputs[0], nom = allInputs[1], email = allInputs[2];
+    const pwd = allInputs[3], confirm = allInputs[4];
     let error = null;
-    
-    for (let i = 0; i < inputs.length; i++) {
-        if (!inputs[i].value.trim()) {
-            error = labels[i] + " est obligatoire.";
-            break;
-        }
-    }
-    
+
+    if (!prenom.value.trim())        error = "Le prénom est obligatoire.";
+    else if (prenom.value.trim().length < 2) error = "Le prénom doit contenir au moins 2 caractères.";
+    else if (!nom.value.trim())      error = "Le nom est obligatoire.";
+    else if (nom.value.trim().length < 2)    error = "Le nom doit contenir au moins 2 caractères.";
+    else if (!email.value.trim())    error = "L'adresse email est obligatoire.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) error = "L'adresse email n'est pas valide.";
+    else if (!pwd.value)             error = "Le mot de passe est obligatoire.";
+    else if (pwd.value.length < 8)   error = "Le mot de passe doit contenir au moins 8 caractères.";
+    else if (!confirm.value)         error = "Veuillez confirmer votre mot de passe.";
+    else if (pwd.value !== confirm.value) error = "Les mots de passe ne correspondent pas.";
+
     const terms = this.querySelector('input[type="checkbox"]');
-    if (!error && terms && !terms.checked) {
+    if (!error && terms && !terms.checked)
         error = "Vous devez accepter les conditions d'utilisation.";
-    }
-    
+
     if (error) {
         showToast('error', error);
     } else {

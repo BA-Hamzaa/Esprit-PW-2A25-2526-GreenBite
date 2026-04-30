@@ -15,6 +15,41 @@ $statutConfig = [
     'accepte'    => ['label'=>'Accepté',    'color'=>'#22c55e', 'bg'=>'rgba(34,197,94,0.1)',  'icon'=>'check-circle-2'],
     'refuse'     => ['label'=>'Refusé',     'color'=>'#ef4444', 'bg'=>'rgba(239,68,68,0.1)',  'icon'=>'x-circle'],
 ];
+
+$regimes = isset($regimes) && is_array($regimes) ? $regimes : [];
+$statsRegimes = ['total'=>0,'en_attente'=>0,'accepte'=>0,'refuse'=>0,'avg_kcal'=>0];
+$sKcal = 0;
+foreach ($regimes as $__r) {
+    $statsRegimes['total']++;
+    $sRaw = strtolower(trim((string)($__r['statut'] ?? 'en_attente')));
+    $s = str_replace([' ', '-'], '_', $sRaw);
+    if ($s === 'en_attente') { $statsRegimes['en_attente']++; }
+    elseif ($s === 'accepte') { $statsRegimes['accepte']++; }
+    elseif ($s === 'refuse') { $statsRegimes['refuse']++; }
+    $sKcal += (int)($__r['calories_jour'] ?? 0);
+}
+if ($statsRegimes['total'] > 0) {
+    $statsRegimes['avg_kcal'] = (int)round($sKcal / $statsRegimes['total']);
+}
+
+$regimeStatusChart = [
+    (int)$statsRegimes['en_attente'],
+    (int)$statsRegimes['accepte'],
+    (int)$statsRegimes['refuse'],
+];
+$regimeObjectiveCounts = ['perte_poids' => 0, 'maintien' => 0, 'prise_masse' => 0, 'sante_generale' => 0];
+foreach ($regimes as $__r) {
+    $obj = $__r['objectif'] ?? '';
+    if (array_key_exists($obj, $regimeObjectiveCounts)) {
+        $regimeObjectiveCounts[$obj]++;
+    }
+}
+$regimeObjectiveLabels = [
+    'perte_poids' => 'Perte poids',
+    'maintien' => 'Maintien',
+    'prise_masse' => 'Prise masse',
+    'sante_generale' => 'Santé',
+];
 ?>
 
 <div style="padding:2rem">
@@ -34,6 +69,57 @@ $statutConfig = [
         </h1>
         <p style="font-size:0.78rem;color:var(--text-muted);margin-top:2px"><?= count($regimes) ?> régime<?= count($regimes) !== 1 ? 's' : '' ?> au total</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.875rem;margin-bottom:1.5rem">
+    <div class="card" style="padding:1rem 1.15rem;border:1px solid var(--border);background:var(--surface)">
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+        <i data-lucide="layers" style="width:0.75rem;height:0.75rem;color:var(--primary)"></i> Total
+      </div>
+      <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:var(--text-primary);line-height:1"><?= (int)$statsRegimes['total'] ?></div>
+    </div>
+    <div class="card" style="padding:1rem 1.15rem;border:1px solid rgba(245,158,11,0.35);background:linear-gradient(135deg,rgba(245,158,11,0.06),transparent)">
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#b45309;margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+        <i data-lucide="clock" style="width:0.75rem;height:0.75rem"></i> À modérer
+      </div>
+      <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:#d97706;line-height:1"><?= (int)$statsRegimes['en_attente'] ?></div>
+    </div>
+    <div class="card" style="padding:1rem 1.15rem;border:1px solid rgba(34,197,94,0.25);background:linear-gradient(135deg,rgba(34,197,94,0.06),transparent)">
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+        <i data-lucide="check-circle-2" style="width:0.75rem;height:0.75rem;color:#22c55e"></i> Acceptés
+      </div>
+      <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:#15803d;line-height:1"><?= (int)$statsRegimes['accepte'] ?></div>
+    </div>
+    <div class="card" style="padding:1rem 1.15rem;border:1px solid rgba(239,68,68,0.22);background:linear-gradient(135deg,rgba(239,68,68,0.05),transparent)">
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+        <i data-lucide="x-circle" style="width:0.75rem;height:0.75rem;color:#ef4444"></i> Refusés
+      </div>
+      <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:#b91c1c;line-height:1"><?= (int)$statsRegimes['refuse'] ?></div>
+    </div>
+    <div class="card" style="padding:1rem 1.15rem;border:1px solid var(--border);background:var(--surface)">
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem">
+        <i data-lucide="flame" style="width:0.75rem;height:0.75rem;color:var(--accent-orange)"></i> Moy. kcal/j
+      </div>
+      <div style="font-family:var(--font-heading);font-size:1.65rem;font-weight:800;color:var(--accent-orange);line-height:1"><?= $statsRegimes['total'] > 0 ? number_format($statsRegimes['avg_kcal'], 0, ',', ' ') : '—' ?></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem">
+    <div class="card" style="padding:1rem 1.1rem;border:1px solid var(--border);background:var(--surface)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <h3 style="font-family:var(--font-heading);font-size:0.9rem;font-weight:800;color:var(--text-primary)">Répartition des statuts</h3>
+        <span class="badge badge-gray">Régimes</span>
+      </div>
+      <canvas id="regimesStatusChart" style="max-height:240px"></canvas>
+    </div>
+    <div class="card" style="padding:1rem 1.1rem;border:1px solid var(--border);background:var(--surface)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <h3 style="font-family:var(--font-heading);font-size:0.9rem;font-weight:800;color:var(--text-primary)">Objectifs nutritionnels</h3>
+        <span class="badge badge-gray">Distribution</span>
+      </div>
+      <canvas id="regimesObjectiveChart" style="max-height:240px"></canvas>
     </div>
   </div>
 
@@ -62,7 +148,9 @@ $statutConfig = [
         </thead>
         <tbody>
           <?php foreach ($regimes as $r):
-            $st = $statutConfig[$r['statut']] ?? $statutConfig['en_attente'];
+            $stRaw = strtolower(trim((string)($r['statut'] ?? 'en_attente')));
+            $stKey = str_replace([' ', '-'], '_', $stRaw);
+            $st = $statutConfig[$stKey] ?? $statutConfig['en_attente'];
             $objLabel = $objectifLabels[$r['objectif']] ?? $r['objectif'];
           ?>
           <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='rgba(82,183,136,0.03)'" onmouseout="this.style.background=''">
@@ -108,14 +196,14 @@ $statutConfig = [
                 <i data-lucide="<?= $st['icon'] ?>" style="width:0.75rem;height:0.75rem"></i>
                 <?= $st['label'] ?>
               </span>
-              <?php if ($r['statut'] === 'refuse' && !empty($r['commentaire_admin'])): ?>
+              <?php if ($stKey === 'refuse' && !empty($r['commentaire_admin'])): ?>
                 <div style="margin-top:4px;font-size:0.65rem;color:var(--text-muted);font-style:italic;max-width:130px;margin-left:auto;margin-right:auto">"<?= htmlspecialchars(mb_substr($r['commentaire_admin'], 0, 50)) ?>"</div>
               <?php endif; ?>
             </td>
             <!-- Actions -->
             <td style="padding:1rem 1.25rem;text-align:right">
               <div style="display:flex;gap:0.4rem;justify-content:flex-end;align-items:center;flex-wrap:wrap">
-                <?php if ($r['statut'] === 'accepte'): ?>
+                <?php if ($stKey === 'accepte'): ?>
                   <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=regime-edit-back&id=<?= $r['id'] ?>"
                      style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"
                      onmouseover="this.style.background='rgba(59,130,246,0.18)';this.style.transform='translateY(-1px)'"
@@ -123,7 +211,7 @@ $statutConfig = [
                     <i data-lucide="edit" style="width:0.75rem;height:0.75rem"></i> Modifier
                   </a>
                 <?php endif; ?>
-                 <?php if ($r['statut'] === 'en_attente' || $r['statut'] === 'refuse'): ?>
+                 <?php if ($stKey === 'en_attente' || $stKey === 'refuse'): ?>
                    <button type="button"
                       onclick="openAcceptConfirm('<?= BASE_URL ?>/?page=admin-nutrition&action=regime-accept&id=<?= $r['id'] ?>', '<?= addslashes(htmlspecialchars($r['nom'])) ?>')"
                       style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap"
@@ -133,7 +221,7 @@ $statutConfig = [
                    </button>
                  <?php endif; ?>
 
-                <?php if ($r['statut'] === 'en_attente' || $r['statut'] === 'accepte'): ?>
+                <?php if ($stKey === 'en_attente' || $stKey === 'accepte'): ?>
                   <button onclick="openRefuseModal(<?= $r['id'] ?>, '<?= addslashes(htmlspecialchars($r['nom'])) ?>')"
                           style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap"
                           onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.3)'"
@@ -159,6 +247,80 @@ $statutConfig = [
 
   <?php endif; ?>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const textColor = isDark ? '#cbd5e1' : '#6b7280';
+  const baseOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: textColor,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: { size: 11 }
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: textColor, font: { size: 11 } }, grid: { color: gridColor } },
+      y: { ticks: { color: textColor, font: { size: 11 }, precision: 0 }, grid: { color: gridColor } }
+    }
+  };
+
+  const statusCtx = document.getElementById('regimesStatusChart');
+  if (statusCtx) {
+    new Chart(statusCtx, {
+      type: 'bar',
+      data: {
+        labels: ['En attente', 'Acceptés', 'Refusés'],
+        datasets: [{
+          data: <?= json_encode($regimeStatusChart, JSON_UNESCAPED_UNICODE) ?>,
+          backgroundColor: ['rgba(245,158,11,0.75)', 'rgba(34,197,94,0.75)', 'rgba(239,68,68,0.75)'],
+          borderRadius: 10,
+          borderSkipped: false,
+          maxBarThickness: 48
+        }]
+      },
+      options: { ...baseOptions, plugins: { ...baseOptions.plugins, legend: { display: false } } }
+    });
+  }
+
+  const objectiveCtx = document.getElementById('regimesObjectiveChart');
+  if (objectiveCtx) {
+    new Chart(objectiveCtx, {
+      type: 'doughnut',
+      data: {
+        labels: <?= json_encode(array_values($regimeObjectiveLabels), JSON_UNESCAPED_UNICODE) ?>,
+        datasets: [{
+          data: <?= json_encode(array_values($regimeObjectiveCounts), JSON_UNESCAPED_UNICODE) ?>,
+          backgroundColor: ['#ef4444', '#3b82f6', '#8b5cf6', '#10b981'],
+          borderWidth: 0,
+          spacing: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor, usePointStyle: true, padding: 14, font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+})();
+</script>
 
 <!-- ===== REFUSE MODAL ===== -->
 <div id="refuseModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);align-items:center;justify-content:center">

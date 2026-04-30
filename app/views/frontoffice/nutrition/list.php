@@ -1,8 +1,15 @@
 <!-- Vue FrontOffice : Liste des repas du jour -->
+<?php
+$repasDate = isset($repasDate) ? $repasDate : date('Y-m-d');
+$nbRepasTotaux = isset($nbRepasTotaux) ? (int) $nbRepasTotaux : 0;
+$todayYmd = date('Y-m-d');
+$isRepasDateToday = ($repasDate === $todayYmd);
+$repasDateFr = date('d/m/Y', strtotime($repasDate));
+?>
 <div style="padding:2rem;position:relative">
 
   <!-- Page Header -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
     <div class="flex items-center gap-4">
       <div style="display:inline-flex;align-items:center;justify-content:center;width:3.25rem;height:3.25rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border-radius:1rem;box-shadow:0 6px 18px rgba(45,106,79,0.18);transition:all 0.3s" onmouseover="this.style.transform='rotate(-5deg) scale(1.1)'" onmouseout="this.style.transform='none'">
         <i data-lucide="utensils-crossed" style="width:1.625rem;height:1.625rem;color:var(--primary)"></i>
@@ -12,9 +19,18 @@
           <span style="display:block;width:4px;height:1.5rem;background:linear-gradient(180deg,var(--primary),var(--secondary));border-radius:2px"></span>
           Mon Suivi Nutritionnel
         </h1>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:0.35rem">
-          <i data-lucide="calendar" style="width:0.75rem;height:0.75rem"></i>
-          Repas du <?= date('d/m/Y') ?>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:0.35rem">
+            <i data-lucide="calendar" style="width:0.75rem;height:0.75rem"></i>
+            Repas du <?= htmlspecialchars($repasDateFr) ?>
+          </span>
+          <form method="get" action="<?= htmlspecialchars(BASE_URL) ?>/" style="display:inline-flex;align-items:center;gap:0.35rem;margin:0">
+            <input type="hidden" name="page" value="nutrition">
+            <input id="repas-filter-date" type="date" name="date" value="<?= htmlspecialchars($repasDate) ?>" title="Choisir une date" aria-label="Choisir une date" class="form-control" style="font-size:0.75rem;padding:0.25rem 0.5rem;max-width:11rem;border-radius:var(--radius-lg)" onchange="this.form.submit()">
+          </form>
+          <?php if (!$isRepasDateToday): ?>
+            <a href="<?= htmlspecialchars(BASE_URL) ?>/?page=nutrition" style="font-size:0.75rem;color:var(--primary);font-weight:600">Aujourd’hui</a>
+          <?php endif; ?>
         </p>
       </div>
     </div>
@@ -29,7 +45,10 @@
       <div style="display:inline-flex;align-items:center;justify-content:center;width:5.5rem;height:5.5rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border-radius:50%;margin-bottom:1.5rem;box-shadow:0 8px 24px rgba(45,106,79,0.12);animation:float 3s ease-in-out infinite">
         <i data-lucide="utensils-crossed" style="width:2.75rem;height:2.75rem;color:var(--primary)"></i>
       </div>
-      <h3 style="font-family:var(--font-heading);font-size:1.375rem;font-weight:800;color:var(--primary);margin-bottom:0.625rem">Aucun repas aujourd'hui</h3>
+      <h3 style="font-family:var(--font-heading);font-size:1.375rem;font-weight:800;color:var(--primary);margin-bottom:0.625rem"><?= $isRepasDateToday ? "Aucun repas aujourd'hui" : 'Aucun repas pour cette date' ?></h3>
+      <?php if ($nbRepasTotaux > 0): ?>
+        <p style="color:var(--text-secondary);margin-bottom:0.75rem;max-width:26rem;margin-left:auto;margin-right:auto;line-height:1.65">Le bureau affiche tous les repas ; ici on filtre <strong>par jour</strong>. Des repas existent en base pour d’autres dates : choisis une date ci-dessus.</p>
+      <?php endif; ?>
       <p style="color:var(--text-secondary);margin-bottom:2rem;max-width:22rem;margin-left:auto;margin-right:auto;line-height:1.65">Commencez à suivre votre alimentation pour atteindre vos objectifs nutritionnels ! 🌿</p>
       <a href="<?= BASE_URL ?>/?page=nutrition&action=add" class="btn btn-primary" style="border-radius:var(--radius-full)">
         <i data-lucide="plus" style="width:0.875rem;height:0.875rem"></i> Ajouter mon premier repas

@@ -28,10 +28,10 @@
           <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.75rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
             <i data-lucide="leaf" style="width:1.35rem;height:1.35rem;color:#a7f3d0"></i>
           </div>
-          <span style="margin-left:0.75rem;font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;text-shadow:0 2px 4px rgba(0,0,0,0.1)">GreenBite</span>
+          <span style="margin-left:0.75rem;font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.02em;text-shadow:0 2px 4px rgba(0,0,0,0.1)">GreenBite</span>
         </a>
 
-        <span style="color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.15em;font-size:0.58rem;font-weight:700">Espace Utilisateur</span>
+        <span class="front-sidebar-zone-label">Espace Utilisateur</span>
       </div>
 
       <!-- Navigation -->
@@ -58,11 +58,6 @@
           <li>
             <a href="<?= BASE_URL ?>/?page=nutrition&action=plans" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'plan') !== false) ? 'active' : '' ?>">
               <i data-lucide="clipboard-list"></i><span>Plans</span>
-            </a>
-          </li>
-          <li>
-            <a href="<?= BASE_URL ?>/?page=nutrition&action=add" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && isset($_GET['action']) && $_GET['action'] === 'add') ? 'active' : '' ?>">
-              <i data-lucide="plus-circle"></i><span>Ajouter Repas</span>
             </a>
           </li>
           <li>

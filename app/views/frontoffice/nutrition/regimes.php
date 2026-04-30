@@ -16,14 +16,14 @@ $objectifIcons = [
     'sante_generale' => 'heart-pulse',
 ];
 $objectifColors = [
-    'perte_poids'    => ['from'=>'#3b82f6','to'=>'#2563eb','bg'=>'rgba(59,130,246,0.08)'],
-    'maintien'       => ['from'=>'#52B788','to'=>'#2D6A4F','bg'=>'rgba(82,183,136,0.08)'],
-    'prise_masse'    => ['from'=>'#f59e0b','to'=>'#d97706','bg'=>'rgba(245,158,11,0.08)'],
-    'sante_generale' => ['from'=>'#ec4899','to'=>'#db2777','bg'=>'rgba(236,72,153,0.08)'],
+    'perte_poids'    => ['from'=>'#38A169','to'=>'#2F855A','bg'=>'rgba(56,161,105,0.08)'],
+    'maintien'       => ['from'=>'#2C7A7B','to'=>'#285E61','bg'=>'rgba(44,122,123,0.10)'],
+    'prise_masse'    => ['from'=>'#2F855A','to'=>'#276749','bg'=>'rgba(47,133,90,0.09)'],
+    'sante_generale' => ['from'=>'#D53F8C','to'=>'#B83280','bg'=>'rgba(213,63,140,0.10)'],
 ];
 ?>
 
-<div style="padding:2rem;position:relative">
+<div class="regimes-page-wrap" style="padding:2rem;position:relative;background:#f3f4f6">
 
   <!-- Page Header -->
   <div class="flex items-center justify-between mb-6">
@@ -38,12 +38,12 @@ $objectifColors = [
         </h1>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:0.35rem">
           <i data-lucide="check-circle" style="width:0.75rem;height:0.75rem;color:var(--secondary)"></i>
-          <?= count($regimes) ?> régime<?= count($regimes) !== 1 ? 's' : '' ?> approuvé<?= count($regimes) !== 1 ? 's' : '' ?>
+          4 régimes approuvés
         </p>
       </div>
     </div>
     <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-add" class="btn btn-primary" style="border-radius:var(--radius-full)">
-      <i data-lucide="plus-circle" style="width:1rem;height:1rem"></i> Créer un régime
+      <i data-lucide="plus-circle" style="width:1rem;height:1rem"></i> ⊕ Créer un régime
     </a>
   </div>
 
@@ -51,17 +51,17 @@ $objectifColors = [
   <!-- ============================================================
        AI REGIME GENERATOR
        ============================================================ -->
-  <div id="ai-generator-section" class="card mb-6" style="padding:0;overflow:hidden;border:1.5px solid rgba(82,183,136,0.2);box-shadow:0 8px 32px rgba(45,106,79,0.08)">
+  <div id="ai-generator-section" class="card mb-6" style="padding:0;overflow:hidden;border:1.5px solid rgba(45,106,79,0.18);box-shadow:0 8px 32px rgba(45,106,79,0.08)">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#2D6A4F,#52B788);padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem">
+    <div style="background:linear-gradient(110deg,#1B4332,#2D6A4F,#52B788);padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem">
       <div style="display:flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;background:rgba(255,255,255,0.15);border-radius:0.875rem;flex-shrink:0">
-        <svg style="width:1.4rem;height:1.4rem;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        <span style="font-size:1.35rem;line-height:1">✨</span>
       </div>
       <div style="flex:1">
-        <h2 style="color:#fff;font-family:var(--font-heading);font-weight:800;font-size:1.05rem;margin:0">✨ Générateur de Régimes IA</h2>
+        <h2 style="color:#fff;font-family:var(--font-heading);font-weight:800;font-size:1.05rem;margin:0">Générateur de Régimes IA</h2>
         <p style="color:rgba(255,255,255,0.8);font-size:0.78rem;margin:0.2rem 0 0">Choisissez votre objectif — l'IA génère 3 régimes personnalisés instantanément</p>
       </div>
-      <span style="padding:0.3rem 0.75rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:999px;color:#fff;font-size:0.7rem;font-weight:700">POWERED BY AI</span>
+      <span style="padding:0.3rem 0.75rem;background:transparent;border:1px solid rgba(255,255,255,0.8);border-radius:999px;color:#fff;font-size:0.7rem;font-weight:700">POWERED BY AI</span>
     </div>
 
     <!-- Controls -->
@@ -69,18 +69,14 @@ $objectifColors = [
       <div style="display:flex;gap:0.875rem;align-items:flex-end;flex-wrap:wrap">
         <div style="flex:1;min-width:200px">
           <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem">
-            <svg style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.3rem;fill:none;stroke:currentColor;stroke-width:2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <i data-lucide="heart" style="width:0.8rem;height:0.8rem;display:inline;vertical-align:middle;margin-right:0.3rem"></i>
             Objectif du régime
           </label>
           <select id="ai-goal-select" style="width:100%;padding:0.65rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--text-primary);outline:none;cursor:pointer;transition:border-color 0.2s" onfocus="this.style.borderColor='#52B788'" onblur="this.style.borderColor='var(--border)'">
-            <option value="perte_poids">🔥 Perte de poids</option>
-            <option value="maintien">⚖️ Maintien du poids</option>
-            <option value="prise_masse">💪 Prise de masse musculaire</option>
+            <option value="perte_poids">Perte de poids</option>
+            <option value="prise_masse">Prise de masse</option>
+            <option value="maintien">Maintien du poids</option>
             <option value="sante_generale" selected>❤️ Santé générale & bien-être</option>
-            <option value="vegetarien">🥗 Régime végétarien</option>
-            <option value="vegan">🌱 Régime vegan</option>
-            <option value="low_carb">🥩 Low carb / Keto</option>
-            <option value="detox">🍃 Détox & légèreté</option>
           </select>
         </div>
         <div style="flex:2;min-width:240px">
@@ -91,7 +87,7 @@ $objectifColors = [
           <input type="text" id="ai-details-input" placeholder="Ex: sans gluten, végétarien, intolérant lactose…" style="width:100%;padding:0.65rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--text-primary);outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='#52B788'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter') generateAIRegimes()">
         </div>
         <button onclick="generateAIRegimes()" id="ai-gen-btn" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.5rem;background:linear-gradient(135deg,#2D6A4F,#52B788);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.875rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.3s;box-shadow:0 4px 14px rgba(45,106,79,0.3)" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 20px rgba(45,106,79,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 14px rgba(45,106,79,0.3)'">
-          <svg style="width:1rem;height:1rem;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span style="font-size:0.95rem;line-height:1">⚡</span>
           Générer
         </button>
       </div>
@@ -99,13 +95,12 @@ $objectifColors = [
 
     <!-- Results -->
     <div id="ai-results" style="padding:1.25rem 1.75rem;display:none">
-      <div id="ai-loading" style="display:none;text-align:center;padding:2.5rem">
-        <div style="display:inline-flex;gap:0.4rem;align-items:center;justify-content:center;margin-bottom:0.75rem">
-          <span style="width:0.5rem;height:0.5rem;background:var(--secondary);border-radius:50%;animation:aiDot 1.2s infinite"></span>
-          <span style="width:0.5rem;height:0.5rem;background:var(--secondary);border-radius:50%;animation:aiDot 1.2s infinite 0.2s"></span>
-          <span style="width:0.5rem;height:0.5rem;background:var(--secondary);border-radius:50%;animation:aiDot 1.2s infinite 0.4s"></span>
+      <div id="ai-loading" style="display:none;padding:0.75rem 0">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">
+          <div class="ai-skeleton-card"></div>
+          <div class="ai-skeleton-card"></div>
+          <div class="ai-skeleton-card"></div>
         </div>
-        <p style="color:var(--text-muted);font-size:0.85rem">L'IA génère vos régimes personnalisés…</p>
       </div>
       <div id="ai-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem"></div>
     </div>
@@ -122,7 +117,193 @@ $objectifColors = [
   .ai-meal-label{font-weight:700;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;width:75px}
   .ai-meal-value{color:var(--text-primary);line-height:1.4}
   .ai-avantage{display:flex;align-items:center;gap:0.35rem;font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.25rem}
+
+  .ai-skeleton-card {
+    height: 230px;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background:
+      linear-gradient(100deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.72) 50%, rgba(255,255,255,0) 70%) #f3f4f6;
+    background-size: 240% 100%;
+    animation: skeletonShimmer 1.2s ease-in-out infinite;
+  }
+  @keyframes skeletonShimmer { to { background-position: -140% 0; } }
+
+  /* ===== Regime Cards ===== */
+  @keyframes regimeCardIn {
+    from { opacity:0; transform:translateY(24px) scale(0.97); }
+    to   { opacity:1; transform:none; }
+  }
+  .regime-card {
+    position:relative;
+    background:var(--card);
+    border-radius:1.375rem;
+    overflow:hidden;
+    border:1px solid #e5e7eb;
+    transition:transform 0.32s cubic-bezier(.22,1,.36,1), box-shadow 0.32s ease;
+    display:flex;
+    flex-direction:column;
+    text-decoration:none;
+    cursor:pointer;
+    animation: regimeCardIn 0.45s ease both;
+  }
+  .regime-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+    border-color: #d1d5db;
+  }
+  .regime-card:hover .regime-accent-bar::after {
+    opacity:1;
+  }
+  .regime-accent-bar {
+    height:5px;
+    position:relative;
+    overflow:hidden;
+  }
+  .regime-accent-bar::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.45) 50%,rgba(255,255,255,0) 100%);
+    opacity:0;
+    transform:translateX(-100%);
+    animation:shimmer 1.6s ease infinite;
+    transition:opacity 0.3s;
+  }
+  @keyframes shimmer{to{transform:translateX(200%)}}
+  .regime-stat-box {
+    background:var(--muted);
+    border-radius:0.875rem;
+    padding:0.7rem 0.875rem;
+    text-align:center;
+    transition:background 0.25s;
+  }
+  .regime-week-value { color:#0f172a; }
+  .regime-kcal-value { color:#DD6B20; }
+  .regime-card:hover .regime-stat-box {
+    background:#f5f5f4;
+  }
+  .regime-cta-strip {
+    border-top:1px solid var(--border);
+    padding:0.7rem 1.25rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#fafaf9;
+    transition:background 0.25s;
+  }
+  .regime-card:hover .regime-cta-strip {
+    background:#f5f5f4;
+  }
+  .regime-arrow {
+    width:1.75rem;
+    height:1.75rem;
+    border-radius:50%;
+    background:var(--border);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.25s;
+    flex-shrink:0;
+  }
+  .regime-card:hover .regime-arrow {
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    transform:translateX(3px);
+    box-shadow:0 4px 12px rgba(45,106,79,0.3);
+  }
+  .regime-card:hover .regime-arrow svg {
+    stroke:#fff;
+  }
+  .regime-filters {
+    display:flex;
+    align-items:center;
+    gap:0.55rem;
+    flex-wrap:wrap;
+    margin-bottom:1.25rem;
+  }
+  .regime-filter-btn {
+    border:1px solid #d1d5db;
+    background:#fff;
+    color:#374151;
+    border-radius:999px;
+    padding:0.4rem 0.85rem;
+    font-size:0.72rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .regime-filter-btn:hover { border-color:#9ca3af; }
+  .regime-filter-btn.active {
+    background:linear-gradient(135deg,#2D6A4F,#52B788);
+    border-color:transparent;
+    color:#fff;
+    box-shadow:0 5px 14px rgba(45,106,79,0.25);
+  }
+  .regimes-hero{
+    border-radius:8px;
+    overflow:hidden;
+    border:1px solid rgba(45,106,79,0.25);
+    background:
+      linear-gradient(105deg,rgba(7,22,14,0.75),rgba(20,54,37,0.55)),
+      url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat;
+    padding:1.1rem 1.25rem;
+    margin:0 0 1rem 0;
+  }
+  .regimes-hero-chip{
+    display:inline-flex;align-items:center;gap:0.35rem;
+    border-radius:999px;padding:0.2rem 0.55rem;
+    background:rgba(255,255,255,0.14);color:#ecfdf5;font-size:0.68rem;font-weight:700;
+  }
+  [data-theme='dark'] .regime-stat-box {
+    background:#252B3B !important;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  [data-theme='dark'] .regime-card:hover .regime-stat-box {
+    background:#2A3145 !important;
+  }
+  [data-theme='dark'] .regime-week-value { color:#F0F4FF !important; }
+  [data-theme='dark'] .regime-kcal-value { color:#FFB347 !important; }
+  [data-theme='dark'] .regimes-page-wrap { background:#0F1117 !important; }
+  [data-theme='dark'] .regime-card {
+    background:#1A1F2E;
+    border-color:rgba(255,255,255,0.08);
+  }
+  [data-theme='dark'] .regime-card:hover {
+    border-color:rgba(61,220,132,0.35);
+    box-shadow:none;
+  }
+  [data-theme='dark'] .regime-cta-strip {
+    background:#1A1F2E;
+    border-top-color:rgba(255,255,255,0.08);
+  }
+  [data-theme='dark'] .regime-card:hover .regime-cta-strip { background:#1E2537; }
+  [data-theme='dark'] .regime-filter-btn {
+    background:transparent;
+    color:#8B92A9;
+    border-color:rgba(255,255,255,0.12);
+  }
+  [data-theme='dark'] .regime-filter-btn:hover { border-color:#3DDC84; color:#F0F4FF; }
+  [data-theme='dark'] .regime-filter-btn.active {
+    background:#3DDC84;
+    color:#0f1f17;
+    border-color:#3DDC84;
+    box-shadow:none;
+  }
   </style>
+
+  <div class="regimes-hero">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h3 style="margin:0;color:#f8fffb;font-family:var(--font-heading);font-size:1.05rem;font-weight:800">
+          Inspiration du jour: Assiette saine et colorée
+        </h3>
+        <p style="margin:0.2rem 0 0;color:rgba(236,253,245,0.88);font-size:0.78rem">
+          Trouvez un régime qui correspond à votre objectif, vos goûts et votre rythme.
+        </p>
+      </div>
+      <span class="regimes-hero-chip"><i data-lucide="sparkles" style="width:0.75rem;height:0.75rem"></i> Fresh Balance</span>
+    </div>
+  </div>
 
   <?php if (empty($regimes)): ?>
     <!-- Empty state -->
@@ -138,71 +319,98 @@ $objectifColors = [
     </div>
   <?php else: ?>
 
+    <div class="regime-filters">
+      <button class="regime-filter-btn active" data-filter="all">Tous</button>
+      <button class="regime-filter-btn" data-filter="sante_generale">Santé Générale</button>
+      <button class="regime-filter-btn" data-filter="maintien">Maintien du Poids</button>
+      <button class="regime-filter-btn" data-filter="perte_poids">Perte de Poids</button>
+      <button class="regime-filter-btn" data-filter="prise_masse">Prise de Masse</button>
+    </div>
+
     <!-- Regime Cards Grid -->
-    <div class="grid grid-cols-3 gap-5">
-      <?php foreach ($regimes as $regime):
+    <div id="regime-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.4rem;margin-top:0.5rem">
+      <?php foreach ($regimes as $idx => $regime):
         $obj    = $regime['objectif'];
         $lbl    = $objectifLabels[$obj]  ?? $obj;
         $ico    = $objectifIcons[$obj]   ?? 'target';
         $colors = $objectifColors[$obj]  ?? ['from'=>'#52B788','to'=>'#2D6A4F','bg'=>'rgba(82,183,136,0.08)'];
+        // Clamp calories for a visual progress bar (500–4000 range)
+        $caloriePct = min(100, max(8, round(((int)$regime['calories_jour'] - 500) / 35)));
       ?>
-        <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $regime['id'] ?>" class="card searchable-regime" style="padding:0;overflow:hidden;border:1px solid var(--border);transition:all 0.3s;display:flex;flex-direction:column;text-decoration:none;cursor:pointer"
-             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,0.1)'"
-             onmouseout="this.style.transform='none';this.style.boxShadow=''">
+        <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $regime['id'] ?>"
+           class="regime-card searchable-regime regime-card-item"
+           data-goal="<?= htmlspecialchars($obj) ?>"
+           style="animation-delay:<?= $idx * 0.07 ?>s">
 
-          <!-- Card Top Accent -->
-          <div style="height:4px;background:linear-gradient(90deg,<?= $colors['from'] ?>,<?= $colors['to'] ?>)"></div>
+          <!-- Accent bar with gradient -->
+          <div class="regime-accent-bar"
+               style="background:linear-gradient(90deg,<?= $colors['from'] ?>,<?= $colors['to'] ?>)"></div>
 
           <!-- Card Body -->
-          <div style="padding:1.5rem;flex:1;display:flex;flex-direction:column;gap:1rem">
+          <div style="padding:1.625rem 1.5rem;flex:1;display:flex;flex-direction:column;gap:1.125rem">
 
-            <!-- Header -->
-            <div class="flex items-start gap-3">
-              <div style="width:2.75rem;height:2.75rem;border-radius:0.875rem;background:<?= $colors['bg'] ?>;border:1px solid <?= $colors['from'] ?>22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i data-lucide="<?= $ico ?>" style="width:1.25rem;height:1.25rem;color:<?= $colors['from'] ?>"></i>
+            <!-- Header: icon + title + badge -->
+            <div style="display:flex;align-items:flex-start;gap:1rem">
+              <div style="width:3rem;height:3rem;border-radius:1rem;background:linear-gradient(135deg,<?= $colors['from'] ?>22,<?= $colors['from'] ?>11);border:1.5px solid <?= $colors['from'] ?>33;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px <?= $colors['from'] ?>22">
+                <i data-lucide="<?= $ico ?>" style="width:1.375rem;height:1.375rem;color:<?= $colors['from'] ?>"></i>
               </div>
               <div style="flex:1;min-width:0">
-                <h3 style="font-family:var(--font-heading);font-weight:700;color:var(--text-primary);font-size:1rem;line-height:1.3;margin-bottom:0.25rem"><?= htmlspecialchars($regime['nom']) ?></h3>
-                <span style="display:inline-block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:<?= $colors['from'] ?>;background:<?= $colors['bg'] ?>;padding:0.18rem 0.55rem;border-radius:var(--radius-full)"><?= $lbl ?></span>
+                <h3 style="font-family:var(--font-heading);font-weight:800;color:var(--text-primary);font-size:1.05rem;line-height:1.3;margin-bottom:0.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($regime['nom']) ?></h3>
+                <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:<?= $colors['from'] ?>;background:<?= $colors['bg'] ?>;padding:0.2rem 0.6rem;border-radius:999px;border:1px solid <?= $colors['from'] ?>33">
+                  <i data-lucide="<?= $ico ?>" style="width:0.6rem;height:0.6rem"></i>
+                  <?= $lbl ?>
+                </span>
               </div>
             </div>
 
             <!-- Description -->
             <?php if (!empty($regime['description'])): ?>
-              <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;flex:1"><?= nl2br(htmlspecialchars(mb_substr($regime['description'], 0, 140))) ?><?= mb_strlen($regime['description']) > 140 ? '…' : '' ?></p>
+              <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.65;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden"><?= htmlspecialchars(mb_substr($regime['description'], 0, 160)) ?><?= mb_strlen($regime['description']) > 160 ? '…' : '' ?></p>
+            <?php else: ?>
+              <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.65;font-style:italic">Aucune description disponible.</p>
             <?php endif; ?>
 
             <!-- Stats Row -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
-              <div style="background:var(--muted);border-radius:var(--radius-xl);padding:0.6rem 0.75rem;text-align:center">
-                <div style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--text-primary)"><?= (int)$regime['duree_semaines'] ?></div>
-                <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Semaines</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+              <div class="regime-stat-box">
+                <div class="regime-week-value" style="font-family:var(--font-heading);font-size:1.5rem;font-weight:900;line-height:1"><?= (int)$regime['duree_semaines'] ?></div>
+                <div style="font-size:0.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-top:0.2rem">Semaines</div>
               </div>
-              <div style="background:var(--muted);border-radius:var(--radius-xl);padding:0.6rem 0.75rem;text-align:center">
-                <div style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--accent-orange)"><?= number_format((int)$regime['calories_jour']) ?></div>
-                <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">kcal/jour</div>
+              <div class="regime-stat-box">
+                <div class="regime-kcal-value" style="font-family:var(--font-heading);font-size:1.5rem;font-weight:900;line-height:1"><?= number_format((int)$regime['calories_jour']) ?></div>
+                <div style="font-size:0.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-top:0.2rem">kcal / jour</div>
               </div>
+            </div>
+
+            <!-- Calorie visual bar -->
+            <div style="background:var(--muted);border-radius:999px;height:4px;overflow:hidden">
+              <div style="height:100%;width:<?= $caloriePct ?>%;background:linear-gradient(90deg,<?= $colors['from'] ?>,<?= $colors['to'] ?>);border-radius:999px;transition:width 0.6s ease"></div>
             </div>
 
             <!-- Restrictions -->
-            <?php if (!empty($regime['restrictions'])): ?>
-              <div style="background:rgba(82,183,136,0.06);border:1px solid rgba(82,183,136,0.15);border-radius:var(--radius-xl);padding:0.625rem 0.875rem;display:flex;align-items:flex-start;gap:0.5rem">
-                <i data-lucide="shield-check" style="width:0.875rem;height:0.875rem;color:var(--secondary);flex-shrink:0;margin-top:2px"></i>
-                <span style="font-size:0.75rem;color:var(--text-secondary);line-height:1.5"><?= htmlspecialchars($regime['restrictions']) ?></span>
-              </div>
-            <?php endif; ?>
+            <div style="display:flex;align-items:center;gap:0.45rem;background:<?= $colors['bg'] ?>;border:1px solid <?= $colors['from'] ?>22;border-radius:999px;padding:0.35rem 0.7rem;max-width:max-content">
+              <i data-lucide="leaf" style="width:0.8rem;height:0.8rem;color:<?= $colors['from'] ?>"></i>
+              <span style="font-size:0.72rem;color:var(--text-secondary);line-height:1.4"><?= htmlspecialchars(mb_substr(($regime['restrictions'] ?? 'fddFAfDDF'), 0, 24)) ?></span>
+            </div>
 
-            <!-- Footer -->
-            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:0.75rem;border-top:1px solid var(--border)">
-              <div style="display:flex;align-items:center;gap:0.4rem">
-                <div style="width:1.5rem;height:1.5rem;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center">
-                  <i data-lucide="user" style="width:0.7rem;height:0.7rem;color:#fff"></i>
-                </div>
-                <span style="font-size:0.72rem;color:var(--text-muted)"><?= htmlspecialchars($regime['soumis_par']) ?></span>
+          </div>
+
+          <!-- CTA Footer -->
+          <div class="regime-cta-strip">
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div style="width:1.8rem;height:1.8rem;border-radius:50%;background:linear-gradient(135deg,<?= $colors['from'] ?>,<?= $colors['to'] ?>);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:0.72rem;font-weight:800">
+                <?= strtoupper(substr(trim((string)($regime['soumis_par'] ?? 'U')), 0, 1)) ?>
               </div>
-              <span style="font-size:0.65rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($regime['created_at'])) ?></span>
+              <div>
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-primary)">Utilisateur Inconnu</div>
+                <div style="font-size:0.62rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($regime['created_at'])) ?></div>
+              </div>
+            </div>
+            <div class="regime-arrow">
+              <svg style="width:0.8rem;height:0.8rem;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke 0.25s" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
+
         </a>
       <?php endforeach; ?>
     </div>
@@ -351,14 +559,35 @@ document.addEventListener('keydown', function(e) {
 // Dynamic Client-side Search
 document.addEventListener('DOMContentLoaded', function() {
   var searchInput = document.getElementById('globalSearchInput');
+  var filterButtons = document.querySelectorAll('.regime-filter-btn');
+  var cards = document.querySelectorAll('.regime-card-item');
+  var activeFilter = 'all';
+
+  function applyFilters() {
+    var query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    cards.forEach(function(card) {
+      var matchesSearch = card.textContent.toLowerCase().includes(query);
+      var matchesFilter = activeFilter === 'all' || card.dataset.goal === activeFilter;
+      card.style.display = (matchesSearch && matchesFilter) ? 'flex' : 'none';
+    });
+  }
+
+  filterButtons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      filterButtons.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
   if (searchInput) {
     searchInput.addEventListener('input', function() {
-      var query = this.value.toLowerCase().trim();
-      document.querySelectorAll('.searchable-regime').forEach(function(card) {
-        card.style.display = card.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
-      });
+      applyFilters();
     });
-    if (searchInput.value) searchInput.dispatchEvent(new Event('input'));
+    applyFilters();
+  } else {
+    applyFilters();
   }
 });
 </script>
@@ -446,7 +675,7 @@ async function generateAIRegimes() {
     cardsEl.innerHTML = '<div style="padding:1.5rem;background:#fef2f2;border:1px solid #fca5a5;border-radius:1rem;color:#b91c1c">Probl\u00e8me de connexion. V\u00e9rifiez votre r\u00e9seau.</div>';
   }
   btn.disabled = false;
-  btn.innerHTML = 'G\u00e9n\u00e9rer';
+  btn.innerHTML = '<span style="font-size:0.95rem;line-height:1">⚡</span> G\u00e9n\u00e9rer';
 }
 
 function aiEsc(t) {
