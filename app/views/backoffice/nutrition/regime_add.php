@@ -199,12 +199,16 @@ function validateCalories() {
 }
 function validateDesc() {
   clearFieldError('baDesc');
-  if (!document.getElementById('baDesc').value.trim()) return showFieldError('baDesc', 'La description est obligatoire.');
+  const val = document.getElementById('baDesc').value.trim();
+  if (!val) return showFieldError('baDesc', 'La description est obligatoire.');
+  if (val.length < 3) return showFieldError('baDesc', 'La description doit contenir au moins 3 caractères.');
   return true;
 }
 function validateRestr() {
   clearFieldError('baRestrictions');
-  if (!document.getElementById('baRestrictions').value.trim()) return showFieldError('baRestrictions', 'Les restrictions sont obligatoires.');
+  const val = document.getElementById('baRestrictions').value.trim();
+  if (!val) return showFieldError('baRestrictions', 'Les restrictions sont obligatoires.');
+  if (val.length < 3) return showFieldError('baRestrictions', 'Les restrictions doivent contenir au moins 3 caractères.');
   return true;
 }
 function validateAuteur() {

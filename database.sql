@@ -1,9 +1,9 @@
 -- =============================================
--- NutriGreen — Base de données MySQL
+-- GreenBite — Base de données MySQL
 -- =============================================
 
-CREATE DATABASE IF NOT EXISTS nutrigreen CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE nutrigreen;
+CREATE DATABASE IF NOT EXISTS greenbite CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE greenbite;
 
 -- =============================================
 -- MODULE 1 : SUIVI NUTRITIONNEL
@@ -234,6 +234,7 @@ CREATE TABLE plan_nutritionnel (
     objectif_calories INT DEFAULT 2000,
     duree_jours INT DEFAULT 7,
     type_objectif ENUM('perte_poids','maintien','prise_masse') DEFAULT 'maintien',
+    regime_id INT NULL,
     date_debut DATE NOT NULL,
     soumis_par VARCHAR(150) DEFAULT NULL,
     statut ENUM('en_attente','accepte','refuse') DEFAULT 'en_attente',
@@ -282,6 +283,10 @@ CREATE TABLE IF NOT EXISTS regime_alimentaire (
     commentaire_admin TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Relation Plan -> Régime (migration)
+-- ALTER TABLE plan_nutritionnel ADD COLUMN regime_id INT NULL AFTER type_objectif;
+-- ALTER TABLE plan_nutritionnel ADD CONSTRAINT fk_plan_regime FOREIGN KEY (regime_id) REFERENCES regime_alimentaire(id) ON DELETE SET NULL;
 
 -- =============================================
 -- MODULE 3 BIS : COMMENTAIRES RECETTES

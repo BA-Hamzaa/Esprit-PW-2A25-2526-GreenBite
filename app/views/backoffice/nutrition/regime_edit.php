@@ -101,24 +101,28 @@
 
     <!-- Description -->
     <div>
-      <label style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
-        Description <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+      <label for="beDesc" style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
+        Description <span style="color:#ef4444">*</span>
       </label>
-      <textarea name="description" rows="4"
+      <textarea name="description" id="beDesc" rows="4"
                 style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"
-                onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-                onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
+                oninput="validateDesc()"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
+      <div class="regime-field-error" id="err-beDesc">
+        <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
+      </div>
     </div>
 
     <!-- Restrictions -->
     <div>
-      <label style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
-        Restrictions <span style="font-weight:400;color:var(--text-muted)">(facultatif)</span>
+      <label for="beRestrictions" style="display:block;font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem">
+        Restrictions <span style="color:#ef4444">*</span>
       </label>
-      <textarea name="restrictions" rows="2"
+      <textarea name="restrictions" id="beRestrictions" rows="2"
                 style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:.875rem;background:var(--surface);color:var(--foreground);transition:all .3s;outline:none;resize:vertical"
-                onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-                onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
+                oninput="validateRestr()"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
+      <div class="regime-field-error" id="err-beRestrictions">
+        <i data-lucide="alert-circle" style="width:.75rem;height:.75rem;flex-shrink:0"></i><span></span>
+      </div>
     </div>
 
     <!-- Soumis par (info only) -->
@@ -161,18 +165,36 @@ function clearFieldError(fieldId) {
   errBox.classList.remove('visible');
 }
 
+/* ===== Real-time Validation ===== */
+function validateDesc() {
+  const val = document.getElementById('beDesc').value.trim();
+  if (!val) return showFieldError('beDesc', 'La description est obligatoire.');
+  if (val.length < 3) return showFieldError('beDesc', 'La description doit contenir au moins 3 caractères.');
+  clearFieldError('beDesc'); return true;
+}
+function validateRestr() {
+  const val = document.getElementById('beRestrictions').value.trim();
+  if (!val) return showFieldError('beRestrictions', 'Les restrictions sont obligatoires.');
+  if (val.length < 3) return showFieldError('beRestrictions', 'Les restrictions doivent contenir au moins 3 caractères.');
+  clearFieldError('beRestrictions'); return true;
+}
+
 document.getElementById('backRegimeEditForm').addEventListener('submit', function(e) {
   let firstErr = null, hasError = false;
 
   const rules = [
-    { id:'beNom',      val:() => document.getElementById('beNom').value.trim(),
-      check: v => !v ? 'Le nom est obligatoire.' : v.length < 3 ? 'Au moins 3 caractères.' : null },
-    { id:'beObjectif', val:() => document.getElementById('beObjectif').value,
+    { id:'beNom',           val:() => document.getElementById('beNom').value.trim(),
+      check: v => !v ? 'Le nom est obligatoire.' : v.length < 3 ? 'Au moins 3 caract\u00e8res.' : null },
+    { id:'beObjectif',      val:() => document.getElementById('beObjectif').value,
       check: v => !v ? "Veuillez choisir un objectif." : null },
-    { id:'beDuree',    val:() => parseInt(document.getElementById('beDuree').value),
-      check: v => isNaN(v) ? 'La durée est obligatoire.' : v < 1 || v > 52 ? 'Entre 1 et 52 semaines.' : null },
-    { id:'beCalories', val:() => parseInt(document.getElementById('beCalories').value),
-      check: v => isNaN(v) ? "L'apport calorique est obligatoire." : v < 500 || v > 6000 ? 'Entre 500 et 6 000 kcal.' : null },
+    { id:'beDuree',         val:() => parseInt(document.getElementById('beDuree').value),
+      check: v => isNaN(v) ? 'La dur\u00e9e est obligatoire.' : v < 1 || v > 52 ? 'Entre 1 et 52 semaines.' : null },
+    { id:'beCalories',      val:() => parseInt(document.getElementById('beCalories').value),
+      check: v => isNaN(v) ? "L'apport calorique est obligatoire." : v < 500 || v > 6000 ? 'Entre 500 et 6\u202f000 kcal.' : null },
+    { id:'beDesc',          val:() => document.getElementById('beDesc').value.trim(),
+      check: v => !v ? 'La description est obligatoire.' : v.length < 3 ? 'La description doit contenir au moins 3 caract\u00e8res.' : null },
+    { id:'beRestrictions',  val:() => document.getElementById('beRestrictions').value.trim(),
+      check: v => !v ? 'Les restrictions sont obligatoires.' : v.length < 3 ? 'Les restrictions doivent contenir au moins 3 caract\u00e8res.' : null },
   ];
 
   rules.forEach(r => {

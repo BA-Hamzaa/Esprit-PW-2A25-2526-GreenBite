@@ -54,6 +54,17 @@
         <div id="err_duree_jours" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
         <p class="text-xs mt-1" style="color:var(--text-muted)"><i data-lucide="info" style="width:0.7rem;height:0.7rem;display:inline;vertical-align:middle"></i> Entrez la durée pour générer automatiquement le programme journalier ci-dessous.</p>
       </div>
+      <div class="form-group col-span-2">
+        <label class="form-label" for="regime_id">Régime associé (optionnel)</label>
+        <select name="regime_id" id="regime_id" class="form-input">
+          <option value="">-- Aucun régime --</option>
+          <?php foreach (($regimes ?? []) as $rg): ?>
+            <option value="<?= (int)$rg['id'] ?>" <?= (string)($rg['id']) === (string)($_POST['regime_id'] ?? '') ? 'selected' : '' ?>>
+              <?= htmlspecialchars($rg['nom']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
     </div>
 
     <!-- ===== Section Programme Journalier (dynamique) ===== -->

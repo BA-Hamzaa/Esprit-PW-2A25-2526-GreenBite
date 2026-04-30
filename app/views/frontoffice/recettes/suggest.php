@@ -215,12 +215,22 @@ document.getElementById('add-ingredient-btn').addEventListener('click', function
 // Client-side validation
 document.getElementById('suggestForm').addEventListener('submit', function(e) {
   const errors = [];
-  if (!document.getElementById('soumis_par').value.trim())
+
+  const soumisPar = document.getElementById('soumis_par').value.trim();
+  if (!soumisPar)
     errors.push("Votre nom est obligatoire.");
-  if (!document.getElementById('titre').value.trim())
+  else if (soumisPar.length < 3)
+    errors.push("Votre nom doit contenir au moins 3 caractères.");
+
+  const titre = document.getElementById('titre').value.trim();
+  if (!titre)
     errors.push("Le titre est obligatoire.");
+  else if (titre.length < 3)
+    errors.push("Le titre doit contenir au moins 3 caractères.");
+
   if (document.getElementById('instructions').value.trim().length < 20)
     errors.push("Les instructions doivent contenir au moins 20 caractères.");
+
   const temps = document.getElementById('temps_preparation').value;
   if (!temps || parseInt(temps) <= 0)
     errors.push("Le temps de préparation doit être un nombre positif.");
@@ -239,6 +249,28 @@ document.getElementById('suggestForm').addEventListener('submit', function(e) {
   if (errors.length > 0) {
     e.preventDefault();
     showToast('error', errors[0]);
+  }
+});
+
+// Real-time validation for soumis_par and titre
+document.getElementById('soumis_par').addEventListener('input', function() {
+  const val = this.value.trim();
+  if (val.length > 0 && val.length < 3) {
+    this.style.borderColor = '#ef4444';
+    this.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
+  } else {
+    this.style.borderColor = '';
+    this.style.boxShadow = '';
+  }
+});
+document.getElementById('titre').addEventListener('input', function() {
+  const val = this.value.trim();
+  if (val.length > 0 && val.length < 3) {
+    this.style.borderColor = '#ef4444';
+    this.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
+  } else {
+    this.style.borderColor = '';
+    this.style.boxShadow = '';
   }
 });
 </script>

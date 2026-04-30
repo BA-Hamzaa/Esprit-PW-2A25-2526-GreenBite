@@ -150,8 +150,7 @@ $objectifLabels = [
       </label>
       <textarea name="description" id="reDesc" rows="4"
                 style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;resize:vertical"
-                onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-                onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
+                oninput="validateDesc()"><?= htmlspecialchars($_POST['description'] ?? $regime['description']) ?></textarea>
       <div class="regime-field-error" id="err-reDesc">
         <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
         <span></span>
@@ -166,8 +165,7 @@ $objectifLabels = [
       </label>
       <textarea name="restrictions" id="reRestrictions" rows="2"
                 style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-xl);font-size:0.875rem;background:var(--surface);color:var(--foreground);transition:all 0.3s;outline:none;resize:vertical"
-                onfocus="this.style.borderColor='var(--secondary)';this.style.boxShadow='0 0 0 3px rgba(82,183,136,0.12)'"
-                onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
+                oninput="validateRestr()"><?= htmlspecialchars($_POST['restrictions'] ?? $regime['restrictions']) ?></textarea>
       <div class="regime-field-error" id="err-reRestrictions">
         <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
         <span></span>
@@ -258,13 +256,17 @@ function validateCalories() {
 
 function validateDesc() {
   clearFieldError('reDesc');
-  if (!document.getElementById('reDesc').value.trim()) return showFieldError('reDesc', 'La description est obligatoire.');
+  const val = document.getElementById('reDesc').value.trim();
+  if (!val) return showFieldError('reDesc', 'La description est obligatoire.');
+  if (val.length < 3) return showFieldError('reDesc', 'La description doit contenir au moins 3 caractères.');
   return true;
 }
 
 function validateRestr() {
   clearFieldError('reRestrictions');
-  if (!document.getElementById('reRestrictions').value.trim()) return showFieldError('reRestrictions', 'Les restrictions sont obligatoires.');
+  const val = document.getElementById('reRestrictions').value.trim();
+  if (!val) return showFieldError('reRestrictions', 'Les restrictions sont obligatoires.');
+  if (val.length < 3) return showFieldError('reRestrictions', 'Les restrictions doivent contenir au moins 3 caractères.');
   return true;
 }
 
