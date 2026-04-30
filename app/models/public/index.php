@@ -98,6 +98,7 @@ switch ($page) {
             case 'plan-edit':      $controller->editPlan(); break;
             case 'plan-follow':    $controller->followPlan(); break;
             case 'plan-unfollow':  $controller->unfollowPlan(); break;
+            case 'regime-unfollow':$controller->unfollowRegime(); break;
             case 'plan-delete':    $controller->deletePlan(); break;
             // Régimes front
             case 'regimes':         $controller->listRegimes(); break;
@@ -129,6 +130,7 @@ switch ($page) {
             case 'plan-delete':     $controller->deletePlanBack(); break;
             case 'plan-accept':     $controller->acceptPlan(); break;
             case 'plan-refuse':     $controller->refusePlan(); break;
+            case 'plan-export-pdf': $controller->exportPlansPdfBack(); break;
             // Régimes
             case 'regimes':         $controller->listRegimesBack(); break;
             case 'regime-accept':   $controller->acceptRegime(); break;
@@ -136,6 +138,7 @@ switch ($page) {
             case 'regime-delete':   $controller->deleteRegimeBack(); break;
             case 'regime-add-back': $controller->addRegimeBack(); break;
             case 'regime-edit-back':$controller->editRegimeBack(); break;
+            case 'regime-export-pdf': $controller->exportRegimesPdfBack(); break;
             default:                $controller->listBack(); break;
         }
         break;

@@ -7,6 +7,7 @@
 <style>
 .regime-field-error{display:none;align-items:center;gap:.35rem;margin-top:.35rem;font-size:.75rem;font-weight:600;color:#ef4444;animation:fadeUp .2s ease}
 .regime-field-error.visible{display:flex}
+.regime-input-invalid{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.12) !important}
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
@@ -151,8 +152,7 @@ function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
   if (!field || !errBox) return false;
-  field.style.borderColor = '#ef4444';
-  field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
+  field.classList.add('regime-input-invalid');
   errBox.querySelector('span').textContent = message;
   errBox.classList.add('visible');
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -162,8 +162,7 @@ function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   const errBox = document.getElementById('err-' + fieldId);
   if (!field || !errBox) return true;
-  field.style.borderColor = '';
-  field.style.boxShadow   = '';
+  field.classList.remove('regime-input-invalid');
   errBox.classList.remove('visible');
   return true;
 }
