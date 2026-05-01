@@ -31,13 +31,48 @@ class ArticleController
         }
     }
 
-    function listArticlesBack()
+    function listArticlesBack($statut = '', $sort = 'date_desc', $keyword = '')
     {
+        $where  = [];
+        $params = [];
+
+        if ($statut !== '' && in_array($statut, ['publie', 'en_attente', 'brouillon'])) {
+            $where[]          = "a.statut = :statut";
+            $params['statut'] = $statut;
+        }
+        if ($keyword !== '') {
+            $where[]      = "(a.titre LIKE :kw OR a.auteur LIKE :kw)";
+            $params['kw'] = '%' . $keyword . '%';
+        }
+
+        $whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+        $orderSQL = match($sort) {
+            'commentaires_desc' => 'ORDER BY nb_commentaires DESC',
+            'commentaires_asc'  => 'ORDER BY nb_commentaires ASC',
+            'date_asc'          => 'ORDER BY a.date_publication ASC',
+            default             => 'ORDER BY a.date_publication DESC',
+        };
+
         $sql = "SELECT a.*,
                        (SELECT COUNT(*) FROM commentaire c WHERE c.article_id = a.id) AS nb_commentaires
                 FROM article a
-                ORDER BY a.date_publication DESC";
+                $whereSQL
+                $orderSQL";
         $db = Database::getConnexion();
+        try {
+            $q = $db->prepare($sql);
+            $q->execute($params);
+            return $q->fetchAll();
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    function getAllArticlesBack()
+    {
+        // Used only for counting per statut — always returns all articles
+        $sql = "SELECT statut FROM article";
+        $db  = Database::getConnexion();
         try {
             return $db->query($sql)->fetchAll();
         } catch (Exception $e) {
@@ -247,13 +282,20 @@ class ArticleController
 
     function listFront()
     {
-        // Vider la session "Mes activités" quand on arrive sur le blog
         unset($_SESSION['mes_activites_auteur'], $_SESSION['mes_activites_pin']);
 
-        $keyword  = trim($_GET['q'] ?? '');
-        $articles = $keyword !== ''
+        $keyword = trim($_GET['q'] ?? '');
+        $page    = max(1, (int)($_GET['p'] ?? 1));
+        $perPage = 6;
+
+        $allArticles = $keyword !== ''
             ? $this->rechercherArticles($keyword)
             : $this->listArticlesPublies();
+
+        $total      = count($allArticles);
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page       = min($page, $totalPages);
+        $articles   = array_slice($allArticles, ($page - 1) * $perPage, $perPage);
 
         require_once BASE_PATH . '/app/views/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/front/article/list.php';
@@ -430,7 +472,16 @@ class ArticleController
 
     function listBack()
     {
-        $articles = $this->listArticlesBack();
+        $statut   = trim($_GET['statut'] ?? '');
+        $sort     = trim($_GET['sort']   ?? 'date_desc');
+        $keyword  = trim($_GET['q']      ?? '');
+
+        // Filtered articles for display
+        $articles = $this->listArticlesBack($statut, $sort, $keyword);
+
+        // All articles for accurate tab counts (unaffected by filters)
+        $allForCounts = $this->getAllArticlesBack();
+
         require_once BASE_PATH . '/app/views/layouts/back_header.php';
         require_once BASE_PATH . '/app/views/back/article/list.php';
         require_once BASE_PATH . '/app/views/layouts/back_footer.php';
@@ -531,8 +582,14 @@ class ArticleController
             header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
             exit;
         }
-        $this->publishArticle($id);
-        $_SESSION['success'] = "Article publié avec succès.";
+        // Only publish if confirmed via POST
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
+            $this->publishArticle($id);
+            $_SESSION['success'] = "Article publié avec succès.";
+            header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
+            exit;
+        }
+        // If not confirmed, just redirect back without publishing
         header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
         exit;
     }
@@ -771,15 +828,15 @@ class ArticleController
             $_POST['statut'] = 'en_attente';
             $errors = $this->validerArticleFront($_POST);
             if (empty($errors)) {
-                $pin = trim($_POST['pin']);
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
-                    $pin,
+                    trim($_POST['pin']),
                     trim($_POST['role_utilisateur'] ?? 'Passionné de cuisine'),
                     'en_attente'
                 );
+                $pin = trim($_POST['pin']);
                 $this->addArticleWithPin($a, $pin);
                 $_SESSION['success'] = "Article soumis ! 🎉 Votre PIN est <strong>" . htmlspecialchars($pin) . "</strong> — gardez-le précieusement pour retrouver vos articles.";
                 header('Location: ' . BASE_URL . '/?page=article&action=list');
@@ -839,7 +896,7 @@ class ArticleController
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
-                    $article['auteur'],
+                    $article['auteur'], // keep original author
                     null,
                     trim($_POST['role_utilisateur'] ?? $article['role_utilisateur']),
                     'en_attente'

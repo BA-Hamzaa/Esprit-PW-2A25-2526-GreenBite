@@ -17,8 +17,11 @@
           Blog GreenBite 🌿
         </h1>
         <p style="font-size:0.85rem;color:var(--text-muted);margin:4px 0 0 0">
-          <?= count($articles) ?> article(s)
+          <?= isset($total) ? $total : count($articles) ?> article(s)
           <?= $keyword ? ' • Résultat pour "<strong>' . htmlspecialchars($keyword) . '</strong>"' : ' • Découvrez, partagez, inspirez !' ?>
+          <?php if (!empty($totalPages) && $totalPages > 1): ?>
+            &nbsp;• Page <?= $page ?>/<?= $totalPages ?>
+          <?php endif; ?>
         </p>
       </div>
     </div>
@@ -186,6 +189,50 @@
       <?php endforeach; ?>
 
     </div>
+
+    <!-- PAGINATION -->
+    <?php if (!empty($totalPages) && $totalPages > 1): ?>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.4rem;margin-top:2.5rem;flex-wrap:wrap">
+        <?php
+          $baseUrl = BASE_URL . '/?page=article&action=list';
+          if ($keyword) $baseUrl .= '&q=' . urlencode($keyword);
+        ?>
+
+        <!-- Previous -->
+        <?php if ($page > 1): ?>
+          <a href="<?= $baseUrl ?>&p=<?= $page - 1 ?>"
+             style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.5rem 1rem;border-radius:var(--radius-full);font-size:0.82rem;font-weight:600;text-decoration:none;background:var(--surface);border:1.5px solid var(--border);color:var(--text-secondary);transition:all 0.2s"
+             onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
+            ← Précédent
+          </a>
+        <?php endif; ?>
+
+        <!-- Page numbers -->
+        <?php for ($i = 1; $i <= $totalPages; $i++):
+          $isCurrentPage = $i === $page;
+        ?>
+          <a href="<?= $baseUrl ?>&p=<?= $i ?>"
+             style="display:inline-flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:var(--radius-full);font-size:0.82rem;font-weight:700;text-decoration:none;transition:all 0.2s;
+                    background:<?= $isCurrentPage ? 'var(--primary)' : 'var(--surface)' ?>;
+                    color:<?= $isCurrentPage ? '#fff' : 'var(--text-secondary)' ?>;
+                    border:1.5px solid <?= $isCurrentPage ? 'var(--primary)' : 'var(--border)' ?>">
+            <?= $i ?>
+          </a>
+        <?php endfor; ?>
+
+        <!-- Next -->
+        <?php if ($page < $totalPages): ?>
+          <a href="<?= $baseUrl ?>&p=<?= $page + 1 ?>"
+             style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.5rem 1rem;border-radius:var(--radius-full);font-size:0.82rem;font-weight:600;text-decoration:none;background:var(--surface);border:1.5px solid var(--border);color:var(--text-secondary);transition:all 0.2s"
+             onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
+            Suivant →
+          </a>
+        <?php endif; ?>
+
+      </div>
+    <?php endif; ?>
 
   <?php endif; ?>
 

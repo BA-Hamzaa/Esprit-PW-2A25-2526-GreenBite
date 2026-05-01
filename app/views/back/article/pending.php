@@ -15,13 +15,27 @@
       </div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
-      <a href="<?= BASE_URL ?>/?page=admin-article&action=list" class="btn" style="border-radius:var(--radius-full);background:rgba(45,106,79,0.06);border:1px solid rgba(45,106,79,0.15);color:var(--primary)">
-        <i data-lucide="list" style="width:1rem;height:1rem"></i> Tous
-      </a>
       <a href="<?= BASE_URL ?>/?page=admin-article&action=add" class="btn btn-primary" style="border-radius:var(--radius-full)">
         <i data-lucide="plus-circle" style="width:1rem;height:1rem"></i> Ajouter
       </a>
     </div>
+  </div>
+
+  <!-- TAB NAVIGATION -->
+  <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.25rem">
+    <a href="<?= BASE_URL ?>/?page=admin-article&action=list"
+       style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.7rem 1.25rem;font-size:0.85rem;font-weight:600;text-decoration:none;border-bottom:2.5px solid transparent;margin-bottom:-2px;color:var(--text-muted)">
+      <i data-lucide="newspaper" style="width:0.9rem;height:0.9rem"></i> Articles
+    </a>
+    <a href="<?= BASE_URL ?>/?page=admin-article&action=pending"
+       style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.7rem 1.25rem;font-size:0.85rem;font-weight:700;text-decoration:none;border-bottom:2.5px solid #d97706;margin-bottom:-2px;color:#d97706">
+      <i data-lucide="clock" style="width:0.9rem;height:0.9rem"></i> En attente
+      <span style="font-size:0.7rem;padding:0.1rem 0.45rem;border-radius:9999px;background:rgba(217,119,6,0.12);color:#d97706;font-weight:700"><?= count($articles) ?></span>
+    </a>
+    <a href="<?= BASE_URL ?>/?page=admin-comment&action=list"
+       style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.7rem 1.25rem;font-size:0.85rem;font-weight:600;text-decoration:none;border-bottom:2.5px solid transparent;margin-bottom:-2px;color:var(--text-muted)">
+      <i data-lucide="messages-square" style="width:0.9rem;height:0.9rem"></i> Commentaires
+    </a>
   </div>
 
   <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border)">
