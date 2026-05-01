@@ -460,6 +460,7 @@ class ArticleController
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
+                    null,
                     $role,
                     $_POST['statut'] ?? 'brouillon'
                 );
@@ -497,6 +498,7 @@ class ArticleController
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
+                    null,
                     $role,
                     $_POST['statut'] ?? 'brouillon'
                 );
@@ -769,14 +771,15 @@ class ArticleController
             $_POST['statut'] = 'en_attente';
             $errors = $this->validerArticleFront($_POST);
             if (empty($errors)) {
+                $pin = trim($_POST['pin']);
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
+                    $pin,
                     trim($_POST['role_utilisateur'] ?? 'Passionné de cuisine'),
                     'en_attente'
                 );
-                $pin = trim($_POST['pin']);
                 $this->addArticleWithPin($a, $pin);
                 $_SESSION['success'] = "Article soumis ! 🎉 Votre PIN est <strong>" . htmlspecialchars($pin) . "</strong> — gardez-le précieusement pour retrouver vos articles.";
                 header('Location: ' . BASE_URL . '/?page=article&action=list');
@@ -836,7 +839,8 @@ class ArticleController
                 $a = new Article(
                     trim($_POST['titre']),
                     trim($_POST['contenu']),
-                    $article['auteur'], // keep original author
+                    $article['auteur'],
+                    null,
                     trim($_POST['role_utilisateur'] ?? $article['role_utilisateur']),
                     'en_attente'
                 );
