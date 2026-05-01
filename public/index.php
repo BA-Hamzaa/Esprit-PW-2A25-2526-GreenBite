@@ -195,18 +195,26 @@ switch ($page) {
         }
         break;
 
-    // ---- MODULE BLOG / ARTICLES (Front) ----
+       // ---- MODULE BLOG / ARTICLES (Front) ----
     case 'article':
         $controller = new ArticleController();
         switch ($action) {
-            case 'list':        $controller->listFront();       break;
-            case 'add':         $controller->addFront();        break;
-            case 'detail':      $controller->detailFront();     break;
-            case 'comment-add': $controller->addCommentFront(); break;
-            default:            $controller->listFront();       break;
+            case 'list':                $controller->listFront();              break;
+            case 'add':                 $controller->addFront();               break;
+            case 'detail':              $controller->detailFront();            break;
+            case 'comment-add':         $controller->addCommentFront();        break;
+            case 'comment-edit':        $controller->editCommentFront();       break;  // ✅ NOUVEAU
+            case 'comment-delete':      $controller->deleteCommentFront();     break;  // ✅ NOUVEAU
+            case 'comment-report':      $controller->reportCommentFront();     break;  // ✅ NOUVEAU
+            case 'mes-activites':       $controller->mesActivitesFront();      break;
+            case 'mes-activites':       $controller->mesActivitesFront();      break;
+            case 'edit-mes-commentaires':      $controller->editMesCommentairesFront();      break;
+            case 'delete-mes-commentaires':    $controller->deleteMesCommentairesFront();    break;
+            case 'edit-mes-articles':   $controller->editMesArticlesFront();   break;
+            case 'delete-mes-articles': $controller->deleteMesArticlesFront(); break;
+            default:                    $controller->listFront();              break;
         }
         break;
-
     // ---- MODULE BLOG / ARTICLES (Back) ----
     case 'admin-article':
         $controller = new ArticleController();
@@ -225,13 +233,13 @@ switch ($page) {
     case 'admin-comment':
         $controller = new CommentController();
         switch ($action) {
-            case 'list':     $controller->listBack();     break;
-            case 'validate': $controller->validateBack(); break;
-            case 'delete':   $controller->deleteBack();   break;
-            default:         $controller->listBack();     break;
+            case 'list':              $controller->listBack();                break;
+            case 'delete':            $controller->deleteBack();              break;
+            case 'ignorer':           $controller->ignorerBack();             break;
+            case 'supprimer-bannir':  $controller->supprimerEtBannirBack();  break;
+            default:                  $controller->listBack();                break;
         }
         break;
-
     // ---- 404 ----
     default:
         http_response_code(404);

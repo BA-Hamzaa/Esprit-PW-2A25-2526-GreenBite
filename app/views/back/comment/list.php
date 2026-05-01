@@ -14,14 +14,14 @@
         </p>
       </div>
     </div>
-    <a href="<?= BASE_URL ?>/?page=admin-article&action=list" class="btn" style="border-radius:var(--radius-xl);background:rgba(45,106,79,0.06);border:1px solid rgba(45,106,79,0.15);color:var(--primary)">
+    <a href="<?= BASE_URL ?>/?page=admin-article&action=list" class="btn" style="border-radius:var(--radius-full);background:rgba(45,106,79,0.06);border:1px solid rgba(45,106,79,0.15);color:var(--primary)">
       <i data-lucide="arrow-left" style="width:1rem;height:1rem"></i> Articles
     </a>
   </div>
 
   <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border)">
-    <div class="table-container">
-      <table class="table">
+    <div style="overflow-x:auto;">
+      <table class="table" style="width:100%;border-collapse:collapse;">
         <thead>
           <tr>
             <th>#</th>
@@ -46,35 +46,53 @@
           <?php else: ?>
             <?php foreach ($commentaires as $c): ?>
               <?php
-                $statut = $c['statut'] ?? 'en_attente';
-                $badgeClass = ($statut === 'valide') ? 'badge-success' : 'badge-warning';
+                $statut = $c['statut'] ?? 'valide';
+                $isSignale = ($statut === 'signale');
+                if ($isSignale) {
+                    $badgeClass = 'badge-coral';
+                    $statutLabel = '🚩 Signalé';
+                } else {
+                    $badgeClass = 'badge-success';
+                    $statutLabel = '✅ Validé';
+                }
                 $excerpt = trim($c['contenu'] ?? '');
                 if (mb_strlen($excerpt) > 90) $excerpt = mb_substr($excerpt, 0, 90) . '...';
+                $commentId = (int)$c['id'];
+                $articleId = (int)$c['article_id'];
               ?>
-              <tr>
-                <td><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= (int)$c['id'] ?></span></td>
-                <td style="max-width:240px">
+              <tr style="<?= $isSignale ? 'background:#fef2f2;' : '' ?>">
+                <td><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= $commentId ?></span></td>
+                <td style="max-width:200px">
                   <span style="color:var(--text-primary);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">
                     <?= htmlspecialchars($c['article_titre'] ?? '') ?>
                   </span>
                 </td>
-                <td><?= htmlspecialchars($c['pseudo'] ?? '') ?></td>
-                <td style="max-width:360px;color:var(--text-secondary)"><?= htmlspecialchars($excerpt) ?></td>
-                <td><span class="badge <?= $badgeClass ?>" style="font-size:0.65rem"><?= htmlspecialchars($statut) ?></span></td>
-                <td><?= htmlspecialchars($c['date_commentaire'] ?? '') ?></td>
+                <td style="font-weight:600"><?= htmlspecialchars($c['pseudo'] ?? '') ?></td>
+                <td style="max-width:320px;color:var(--text-secondary);font-size:0.85rem"><?= htmlspecialchars($excerpt) ?></td>
+                <td><span class="badge <?= $badgeClass ?>" style="font-size:0.68rem"><?= $statutLabel ?></span></td>
+                <td style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($c['date_commentaire'] ?? '') ?></td>
                 <td>
-                  <div style="display:flex;gap:0.375rem;align-items:center;flex-wrap:wrap">
-                    <?php if (($c['statut'] ?? '') !== 'valide'): ?>
-                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=validate&id=<?= (int)$c['id'] ?>" class="icon-btn" title="Valider" style="background:rgba(82,183,136,0.08);border-color:rgba(82,183,136,0.18);color:var(--primary)">
+                  <div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap">
+                    <!-- Voir le commentaire (même fenêtre) -->
+                    <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= $articleId ?>#comment-<?= $commentId ?>" class="icon-btn" title="Voir le commentaire" style="background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.15);color:#3b82f6;text-decoration:none;">
+                      <i data-lucide="eye" style="width:0.85rem;height:0.85rem"></i>
+                    </a>
+
+                    <?php if ($isSignale): ?>
+                      <!-- Ignorer le signalement -->
+                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=ignorer&id=<?= $commentId ?>" class="icon-btn" title="Ignorer le signalement" style="background:rgba(82,183,136,0.08);border-color:rgba(82,183,136,0.18);color:var(--primary);text-decoration:none;" onclick="return confirm('Ignorer le signalement ? Le commentaire redeviendra normal.')">
                         <i data-lucide="check-circle-2" style="width:0.85rem;height:0.85rem"></i>
                       </a>
+                      <!-- Supprimer & Bannir (nouveau bouton avec JS propre) -->
+                      <button onclick="confirmBan(<?= $commentId ?>)" class="icon-btn" title="Supprimer & Bannir" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;">
+                        <i data-lucide="ban" style="width:0.85rem;height:0.85rem"></i>
+                      </button>
+                    <?php else: ?>
+                      <!-- Supprimer (simple) -->
+                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=delete&id=<?= $commentId ?>" class="icon-btn" title="Supprimer" style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15);color:#ef4444;text-decoration:none;" onclick="return confirm('Supprimer ce commentaire ?')">
+                        <i data-lucide="trash-2" style="width:0.85rem;height:0.85rem"></i>
+                      </a>
                     <?php endif; ?>
-                    <a href="<?= BASE_URL ?>/?page=admin-comment&action=delete&id=<?= (int)$c['id'] ?>" class="icon-btn" title="Supprimer" style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15);color:#ef4444" onclick="return confirm('Supprimer ce commentaire ?')">
-                      <i data-lucide="trash-2" style="width:0.85rem;height:0.85rem"></i>
-                    </a>
-                    <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= (int)$c['article_id'] ?>" class="icon-btn" title="Voir l'article" style="background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.15);color:#3b82f6">
-                      <i data-lucide="external-link" style="width:0.85rem;height:0.85rem"></i>
-                    </a>
                   </div>
                 </td>
               </tr>
@@ -86,3 +104,10 @@
   </div>
 </div>
 
+<script>
+function confirmBan(id) {
+    if (confirm("ATTENTION : Supprimer ce commentaire et BANNIR cet utilisateur ?")) {
+        window.location.href = "<?= BASE_URL ?>/?page=admin-comment&action=supprimer-bannir&id=" + id;
+    }
+}
+</script>

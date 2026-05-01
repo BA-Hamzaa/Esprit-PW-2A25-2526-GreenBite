@@ -82,6 +82,22 @@ $roles = [
         </div>
       </div>
 
+      <!-- PIN FIELD -->
+      <div style="margin-bottom:1.5rem">
+        <label class="label" style="font-size:0.85rem;font-weight:700;margin-bottom:0.5rem">
+          🔑 Créez un code PIN (4 chiffres) <span style="color:#ef4444">*</span>
+        </label>
+        <input type="text" class="input" name="pin" id="vArticlePin"
+               value="<?= htmlspecialchars($_POST['pin'] ?? '') ?>"
+               placeholder="Ex: 1234"
+               maxlength="4"
+               style="font-size:0.95rem;padding:0.75rem 1rem;max-width:200px" />
+        <div id="vArticlePinErr" style="margin-top:6px;font-size:0.75rem;color:#dc2626;display:none"></div>
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">
+          Retenez ce code — il vous permettra de retrouver vos articles plus tard. 🔐
+        </p>
+      </div>
+
       <!-- ROW 2: Role selector (NEW!) -->
       <div style="margin-bottom:1.5rem">
         <label class="label" style="font-size:0.85rem;font-weight:700;margin-bottom:0.5rem">
@@ -138,43 +154,47 @@ Astuce : Un bon article fait au moins 20 caractères 😄"
 function validateVisitorArticleForm() {
   const titre = document.getElementById('vArticleTitre');
   const auteur = document.getElementById('vArticleAuteur');
+  const pin = document.getElementById('vArticlePin');
   const role = document.getElementById('vArticleRole');
   const contenu = document.getElementById('vArticleContenu');
   const titreErr = document.getElementById('vArticleTitreErr');
   const auteurErr = document.getElementById('vArticleAuteurErr');
+  const pinErr = document.getElementById('vArticlePinErr');
   const roleErr = document.getElementById('vArticleRoleErr');
   const contenuErr = document.getElementById('vArticleContenuErr');
 
   let ok = true;
   titreErr.style.display = 'none';
   auteurErr.style.display = 'none';
+  pinErr.style.display = 'none';
   roleErr.style.display = 'none';
   contenuErr.style.display = 'none';
 
   const t = (titre.value || '').trim();
   const a = (auteur.value || '').trim();
+  const p = (pin.value || '').trim();
   const r = role.value || '';
   const c = (contenu.value || '').trim();
 
   if (t.length < 3) {
     titreErr.textContent = "Le titre doit contenir au moins 3 caractères.";
-    titreErr.style.display = 'block';
-    ok = false;
+    titreErr.style.display = 'block'; ok = false;
   }
   if (a.length < 1) {
     auteurErr.textContent = "Veuillez entrer votre nom.";
-    auteurErr.style.display = 'block';
-    ok = false;
+    auteurErr.style.display = 'block'; ok = false;
+  }
+  if (!/^\d{4}$/.test(p)) {
+    pinErr.textContent = "Le PIN doit contenir exactement 4 chiffres.";
+    pinErr.style.display = 'block'; ok = false;
   }
   if (!r) {
     roleErr.textContent = "Veuillez sélectionner votre profil.";
-    roleErr.style.display = 'block';
-    ok = false;
+    roleErr.style.display = 'block'; ok = false;
   }
   if (c.length < 20) {
     contenuErr.textContent = "Le contenu doit contenir au moins 20 caractères.";
-    contenuErr.style.display = 'block';
-    ok = false;
+    contenuErr.style.display = 'block'; ok = false;
   }
   return ok;
 }

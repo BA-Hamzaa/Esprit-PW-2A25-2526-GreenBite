@@ -23,11 +23,18 @@
       </div>
     </div>
 
-    <a href="<?= BASE_URL ?>/?page=article&action=add"
-       class="btn btn-primary"
-       style="padding:0.7rem 1.6rem;font-size:0.9rem;">
-       ✍️ Écrire un article
-    </a>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      <a href="<?= BASE_URL ?>/?page=article&action=mes-activites"
+         class="btn"
+         style="padding:0.7rem 1.4rem;font-size:0.9rem;border-radius:var(--radius-full);background:rgba(45,106,79,0.07);border:1px solid rgba(45,106,79,0.18);color:var(--primary)">
+         📂 Mes activités
+      </a>
+      <a href="<?= BASE_URL ?>/?page=article&action=add"
+         class="btn btn-primary"
+         style="padding:0.7rem 1.6rem;font-size:0.9rem;">
+         ✍️ Écrire un article
+      </a>
+    </div>
   </div>
 
   <!-- SEARCH -->
@@ -87,7 +94,7 @@
     <div class="grid grid-cols-2 gap-5">
 
       <?php foreach ($articles as $index => $a):
-        // Alternate card accent colors for visual variety
+        $articleId = (int)$a['id'];
         $accents = [
             ['bg' => '#ecfdf5', 'border' => '#a7f3d0', 'icon' => '🌱'],
             ['bg' => '#fef3c7', 'border' => '#fde68a', 'icon' => '🍋'],
@@ -98,7 +105,6 @@
         ];
         $accent = $accents[$index % count($accents)];
 
-        // Role badge color
         $role = $a['role_utilisateur'] ?? '';
         $roleColor = '#6b7280';
         if (strpos($role, 'Chef') !== false) $roleColor = '#e76f51';
@@ -111,61 +117,72 @@
         elseif (strpos($role, 'Éco') !== false) $roleColor = '#14b8a6';
         elseif (strpos($role, 'Passionné') !== false) $roleColor = '#f97316';
       ?>
-        <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= (int)$a['id'] ?>"
-           class="card"
-           style="padding:1.8rem;text-decoration:none;display:block;
+        <div class="card"
+           style="padding:1.8rem;display:block;
                   border-left:5px solid <?= $accent['border'] ?>;
                   background:linear-gradient(135deg, var(--card) 0%, <?= $accent['bg'] ?> 100%);">
 
-          <!-- ICON + TITLE -->
-          <div style="display:flex;align-items:flex-start;gap:1rem;">
-            <span style="font-size:2rem;flex-shrink:0;line-height:1"><?= $accent['icon'] ?></span>
-            <div style="flex:1">
-              <h3 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1.3">
-                <?= htmlspecialchars($a['titre']) ?>
-              </h3>
+          <!-- CLICKABLE ZONE -->
+          <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= $articleId ?>"
+             style="text-decoration:none;display:block;">
 
-              <!-- META LINE 1: Auteur + Date -->
-              <div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
-                <span style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem">
-                  <i data-lucide="user" style="width:0.8rem;height:0.8rem"></i>
-                  <?= htmlspecialchars($a['auteur']) ?>
-                </span>
-                <span style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem">
-                  <i data-lucide="calendar" style="width:0.8rem;height:0.8rem"></i>
-                  <?= date('d M Y', strtotime($a['date_publication'])) ?>
-                </span>
-              </div>
+            <!-- ICON + TITLE -->
+            <div style="display:flex;align-items:flex-start;gap:1rem;">
+              <span style="font-size:2rem;flex-shrink:0;line-height:1"><?= $accent['icon'] ?></span>
+              <div style="flex:1">
+                <h3 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1.3">
+                  <?= htmlspecialchars($a['titre']) ?>
+                </h3>
 
-              <!-- META LINE 2: Role badge (NEW!) -->
-              <?php if (!empty($role)): ?>
-                <div style="margin-top:0.4rem">
-                  <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.7rem;font-weight:600;color:<?= $roleColor ?>;background:<?= $roleColor ?>10;padding:0.2rem 0.6rem;border-radius:var(--radius-full);border:1px solid <?= $roleColor ?>30">
-                    🏷️ <?= htmlspecialchars($role) ?>
+                <div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+                  <span style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem">
+                    <i data-lucide="user" style="width:0.8rem;height:0.8rem"></i>
+                    <?= htmlspecialchars($a['auteur']) ?>
+                  </span>
+                  <span style="font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem">
+                    <i data-lucide="calendar" style="width:0.8rem;height:0.8rem"></i>
+                    <?= date('d M Y', strtotime($a['date_publication'])) ?>
                   </span>
                 </div>
-              <?php endif; ?>
+
+                <?php if (!empty($role)): ?>
+                  <div style="margin-top:0.4rem">
+                    <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.7rem;font-weight:600;color:<?= $roleColor ?>;background:<?= $roleColor ?>10;padding:0.2rem 0.6rem;border-radius:var(--radius-full);border:1px solid <?= $roleColor ?>30">
+                      🏷️ <?= htmlspecialchars($role) ?>
+                    </span>
+                  </div>
+                <?php endif; ?>
+              </div>
             </div>
+
+            <!-- CONTENT PREVIEW -->
+            <p style="margin-top:1.2rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.7">
+              <?php
+                $excerpt = trim(strip_tags($a['contenu']));
+                if (mb_strlen($excerpt) > 160) $excerpt = mb_substr($excerpt, 0, 160) . '...';
+                echo htmlspecialchars($excerpt);
+              ?>
+            </p>
+
+            <!-- READ MORE -->
+            <div style="margin-top:1.2rem;display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:0.82rem;color:var(--primary);font-weight:700;display:flex;align-items:center;gap:0.3rem">
+                Lire l'article <i data-lucide="arrow-right" style="width:0.9rem;height:0.9rem"></i>
+              </span>
+              <span class="badge badge-success" style="font-size:0.68rem">Publié</span>
+            </div>
+          </a>
+
+          <!-- 👍👎 LIKE/DISLIKE OUTSIDE THE LINK -->
+          <div style="margin-top:0.6rem;display:flex;align-items:center;gap:0.5rem;border-top:1px solid var(--border);padding-top:0.6rem">
+            <button onclick="event.preventDefault(); toggleReaction('article', <?= $articleId ?>, 'like')" id="article-like-btn-<?= $articleId ?>" style="display:flex;align-items:center;gap:0.2rem;padding:0.25rem 0.6rem;border:1px solid var(--border);border-radius:var(--radius-full);background:transparent;cursor:pointer;font-size:0.72rem;color:var(--text-muted);transition:all 0.2s">
+              👍 <span id="article-like-count-<?= $articleId ?>">0</span>
+            </button>
+            <button onclick="event.preventDefault(); toggleReaction('article', <?= $articleId ?>, 'dislike')" id="article-dislike-btn-<?= $articleId ?>" style="display:flex;align-items:center;gap:0.2rem;padding:0.25rem 0.6rem;border:1px solid var(--border);border-radius:var(--radius-full);background:transparent;cursor:pointer;font-size:0.72rem;color:var(--text-muted);transition:all 0.2s">
+              👎 <span id="article-dislike-count-<?= $articleId ?>">0</span>
+            </button>
           </div>
-
-          <!-- CONTENT PREVIEW -->
-          <p style="margin-top:1.2rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.7">
-            <?php
-              $excerpt = trim(strip_tags($a['contenu']));
-              if (mb_strlen($excerpt) > 160) $excerpt = mb_substr($excerpt, 0, 160) . '...';
-              echo htmlspecialchars($excerpt);
-            ?>
-          </p>
-
-          <!-- READ MORE -->
-          <div style="margin-top:1.4rem;display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:0.82rem;color:var(--primary);font-weight:700;display:flex;align-items:center;gap:0.3rem">
-              Lire l'article <i data-lucide="arrow-right" style="width:0.9rem;height:0.9rem"></i>
-            </span>
-            <span class="badge badge-success" style="font-size:0.68rem">Publié</span>
-          </div>
-
-        </a>
+        </div>
       <?php endforeach; ?>
 
     </div>
@@ -175,6 +192,82 @@
 </div>
 
 <script>
+// ==================== REACTIONS ====================
+function toggleReaction(type, id, reaction) {
+  const key = 'reaction_' + type + '_' + id;
+  const current = localStorage.getItem(key);
+  const likeBtn = document.getElementById(type + '-like-btn-' + id);
+  const dislikeBtn = document.getElementById(type + '-dislike-btn-' + id);
+  const likeCount = document.getElementById(type + '-like-count-' + id);
+  const dislikeCount = document.getElementById(type + '-dislike-count-' + id);
+
+  if (!likeBtn || !dislikeBtn) return;
+
+  likeBtn.style.background = 'transparent';
+  likeBtn.style.color = 'var(--text-muted)';
+  likeBtn.style.borderColor = 'var(--border)';
+  dislikeBtn.style.background = 'transparent';
+  dislikeBtn.style.color = 'var(--text-muted)';
+  dislikeBtn.style.borderColor = 'var(--border)';
+
+  let likes = parseInt(localStorage.getItem(key + '_likes') || '0');
+  let dislikes = parseInt(localStorage.getItem(key + '_dislikes') || '0');
+
+  if (current === reaction) {
+    localStorage.removeItem(key);
+    if (reaction === 'like') likes--;
+    else dislikes--;
+  } else {
+    if (current === 'like') likes--;
+    if (current === 'dislike') dislikes--;
+    localStorage.setItem(key, reaction);
+    if (reaction === 'like') {
+      likes++;
+      likeBtn.style.background = 'rgba(34,197,94,0.12)';
+      likeBtn.style.color = '#16a34a';
+      likeBtn.style.borderColor = '#86efac';
+    } else {
+      dislikes++;
+      dislikeBtn.style.background = 'rgba(239,68,68,0.1)';
+      dislikeBtn.style.color = '#dc2626';
+      dislikeBtn.style.borderColor = '#fca5a5';
+    }
+  }
+
+  likeCount.textContent = likes;
+  dislikeCount.textContent = dislikes;
+  localStorage.setItem(key + '_likes', likes);
+  localStorage.setItem(key + '_dislikes', dislikes);
+}
+
+function loadReactions() {
+  <?php foreach ($articles as $a): ?>
+  (function(){
+    var id = <?= (int)$a['id'] ?>;
+    var key = 'reaction_article_' + id;
+    var current = localStorage.getItem(key);
+    var likeBtn = document.getElementById('article-like-btn-' + id);
+    var dislikeBtn = document.getElementById('article-dislike-btn-' + id);
+    var likeCount = document.getElementById('article-like-count-' + id);
+    var dislikeCount = document.getElementById('article-dislike-count-' + id);
+    if (likeCount) likeCount.textContent = localStorage.getItem(key + '_likes') || '0';
+    if (dislikeCount) dislikeCount.textContent = localStorage.getItem(key + '_dislikes') || '0';
+    if (current === 'like' && likeBtn) {
+      likeBtn.style.background = 'rgba(34,197,94,0.12)';
+      likeBtn.style.color = '#16a34a';
+      likeBtn.style.borderColor = '#86efac';
+    } else if (current === 'dislike' && dislikeBtn) {
+      dislikeBtn.style.background = 'rgba(239,68,68,0.1)';
+      dislikeBtn.style.color = '#dc2626';
+      dislikeBtn.style.borderColor = '#fca5a5';
+    }
+  })();
+  <?php endforeach; ?>
+}
+
+document.addEventListener('DOMContentLoaded', loadReactions);
+
+// ==================== SEARCH ====================
 function validateSearchForm() {
   const input = document.getElementById('searchInput');
   const err   = document.getElementById('searchErr');
