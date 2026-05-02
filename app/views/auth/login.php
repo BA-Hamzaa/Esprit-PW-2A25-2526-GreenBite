@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label class="flex items-center gap-2" style="color:var(--text-secondary);cursor:pointer">
             <input type="checkbox" style="accent-color:var(--primary);width:1rem;height:1rem;border-radius:4px"> Se souvenir de moi
           </label>
-          <a href="#" style="color:var(--secondary);font-weight:600;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mot de passe oublié ?</a>
+          <a href="<?= BASE_URL ?>/?page=forgot-password" style="color:var(--secondary);font-weight:600;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mot de passe oublié ?</a>
         </div>
         <button type="submit" class="btn btn-primary btn-lg btn-block" style="border-radius:var(--radius-xl);padding:0.9rem;font-size:0.95rem;margin-top:0.5rem">
           <i data-lucide="log-in" style="width:1.125rem;height:1.125rem"></i> Se connecter

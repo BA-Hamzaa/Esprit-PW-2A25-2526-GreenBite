@@ -1,6 +1,7 @@
 <?php
 require_once BASE_PATH . '/config/database.php';
 require_once BASE_PATH . '/config/google.php';
+require_once BASE_PATH . '/config/email.php';
 require_once BASE_PATH . '/app/models/UserModel.php';
 require_once BASE_PATH . '/app/controllers/UserController.php';
 
@@ -154,6 +155,84 @@ class AuthController {
         session_destroy();
         header('Location: ' . BASE_URL . '/?page=login');
         exit();
+    }
+
+/////..............................Forgot Password............................../////
+    function RequestPasswordReset($email) {
+        $sql = "SELECT * FROM users WHERE email = :email";
+        $db = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':email', $email);
+            $query->execute();
+            $user = $query->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                // Don't reveal if email exists or not for security
+                return ['success' => 'Si cet email existe, un lien de réinitialisation a été envoyé.'];
+            }
+
+            // Generate secure token
+            $token = bin2hex(random_bytes(32));
+            $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+            // Update user with reset token
+            $updateSql = "UPDATE users SET password_reset_token = :token, reset_token_expiry = :expiry WHERE id = :id";
+            $updateQuery = $db->prepare($updateSql);
+            $updateQuery->bindValue(':token', $token);
+            $updateQuery->bindValue(':expiry', $expiry);
+            $updateQuery->bindValue(':id', $user['id']);
+            $updateQuery->execute();
+
+            // Generate reset link
+            $resetLink = FULL_BASE_URL . '/?page=reset-password&token=' . $token;
+            
+            // Send email via SMTP
+            $subject = 'Réinitialisation de votre mot de passe - NutriGreen';
+            $body = getPasswordResetTemplate($resetLink, $user['username']);
+            $emailResult = sendEmail($email, $subject, $body);
+            
+            if ($emailResult['success']) {
+                return ['success' => 'Un email de réinitialisation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.'];
+            } else {
+                // Fallback: if email fails, still allow testing mode
+                $_SESSION['reset_link'] = $resetLink;
+                $_SESSION['reset_email'] = $email;
+                return ['success' => 'Si cet email existe, un lien de réinitialisation a été envoyé. (Mode test - Email non envoyé: ' . $emailResult['message'] . ')'];
+            }
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+/////..............................Reset Password............................../////
+    function ResetPassword($token, $newPassword) {
+        $sql = "SELECT * FROM users WHERE password_reset_token = :token AND reset_token_expiry > NOW()";
+        $db = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':token', $token);
+            $query->execute();
+            $user = $query->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return ['error' => 'Le lien de réinitialisation est invalide ou a expiré.'];
+            }
+
+            // Hash new password
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
+            // Update password and clear reset token
+            $updateSql = "UPDATE users SET password = :password, password_reset_token = NULL, reset_token_expiry = NULL WHERE id = :id";
+            $updateQuery = $db->prepare($updateSql);
+            $updateQuery->bindValue(':password', $hashedPassword);
+            $updateQuery->bindValue(':id', $user['id']);
+            $updateQuery->execute();
+
+            return ['success' => 'Votre mot de passe a été réinitialisé avec succès.'];
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
     }
 }
 ?>

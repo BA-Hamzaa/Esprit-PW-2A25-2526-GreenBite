@@ -1,16 +1,19 @@
 <?php
-// ---- Pagination ----
+// ---- Pagination & Sorting ----
 $page    = isset($_GET['page_num']) ? max(1, (int)$_GET['page_num']) : 1;
 $perPage = 10;
+$sortBy  = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'created_at';
+$sortDir = isset($_GET['sort_dir']) ? $_GET['sort_dir'] : 'DESC';
 $total   = $ctrl->CountUsers();
 $pages   = ceil($total / $perPage);
 
 // ---- Récupérer liste paginée ----
-$users     = $ctrl->AfficherUsersPaginated($page, $perPage)->fetchAll();
+$users     = $ctrl->AfficherUsersPaginated($page, $perPage, $sortBy, $sortDir)->fetchAll();
 $actifs    = count(array_filter($users, fn($u) => $u['is_active'] == 1));
 $suspendus = count($users) - $actifs;
 $admins    = count(array_filter($users, fn($u) => $u['role'] === 'ADMIN'));
 $coachs    = count(array_filter($users, fn($u) => $u['role'] === 'COACH'));
+$regulars  = count(array_filter($users, fn($u) => $u['role'] === 'USER'));
 
 // ---- Demandes COACH en attente ----
 $pending = $ctrl->GetDemandesPending();
@@ -189,11 +192,56 @@ $pending = $ctrl->GetDemandesPending();
       <thead>
         <tr>
           <th></th>
-          <th>Nom</th>
-          <th>Email</th>
-          <th>Rôle</th>
-          <th>Statut</th>
-          <th>Inscrit le</th>
+          <th>
+            <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page ?>&sort_by=username&sort_dir=<?= $sortBy === 'username' ? ($sortDir === 'ASC' ? 'DESC' : 'ASC') : 'ASC' ?>"
+               style="color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:0.35rem;cursor:pointer"
+               onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+              Nom
+              <?php if ($sortBy === 'username'): ?>
+                <i data-lucide="<?= $sortDir === 'ASC' ? 'chevron-up' : 'chevron-down' ?>" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
+              <?php endif; ?>
+            </a>
+          </th>
+          <th>
+            <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page ?>&sort_by=email&sort_dir=<?= $sortBy === 'email' ? ($sortDir === 'ASC' ? 'DESC' : 'ASC') : 'ASC' ?>"
+               style="color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:0.35rem;cursor:pointer"
+               onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+              Email
+              <?php if ($sortBy === 'email'): ?>
+                <i data-lucide="<?= $sortDir === 'ASC' ? 'chevron-up' : 'chevron-down' ?>" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
+              <?php endif; ?>
+            </a>
+          </th>
+          <th>
+            <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page ?>&sort_by=role&sort_dir=<?= $sortBy === 'role' ? ($sortDir === 'ASC' ? 'DESC' : 'ASC') : 'ASC' ?>"
+               style="color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:0.35rem;cursor:pointer"
+               onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+              Rôle
+              <?php if ($sortBy === 'role'): ?>
+                <i data-lucide="<?= $sortDir === 'ASC' ? 'chevron-up' : 'chevron-down' ?>" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
+              <?php endif; ?>
+            </a>
+          </th>
+          <th>
+            <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page ?>&sort_by=is_active&sort_dir=<?= $sortBy === 'is_active' ? ($sortDir === 'ASC' ? 'DESC' : 'ASC') : 'ASC' ?>"
+               style="color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:0.35rem;cursor:pointer"
+               onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+              Statut
+              <?php if ($sortBy === 'is_active'): ?>
+                <i data-lucide="<?= $sortDir === 'ASC' ? 'chevron-up' : 'chevron-down' ?>" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
+              <?php endif; ?>
+            </a>
+          </th>
+          <th>
+            <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page ?>&sort_by=created_at&sort_dir=<?= $sortBy === 'created_at' ? ($sortDir === 'ASC' ? 'DESC' : 'ASC') : 'DESC' ?>"
+               style="color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:0.35rem;cursor:pointer"
+               onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+              Inscrit le
+              <?php if ($sortBy === 'created_at'): ?>
+                <i data-lucide="<?= $sortDir === 'ASC' ? 'chevron-up' : 'chevron-down' ?>" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
+              <?php endif; ?>
+            </a>
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -300,7 +348,7 @@ $pending = $ctrl->GetDemandesPending();
       </div>
       <div style="display:flex;align-items:center;gap:0.5rem">
         <?php if ($page > 1): ?>
-          <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page - 1 ?>"
+          <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page - 1 ?>&sort_by=<?= $sortBy ?>&sort_dir=<?= $sortDir ?>"
              style="display:flex;align-items:center;gap:0.35rem;padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem;transition:all 0.2s"
              onmouseover="this.style.background='var(--primary)';this.style.color='#fff';this.style.borderColor='var(--primary)'"
              onmouseout="this.style.background='var(--surface)';this.style.color='var(--text-primary)';this.style.borderColor='var(--border)'">
@@ -312,28 +360,27 @@ $pending = $ctrl->GetDemandesPending();
         $startPage = max(1, $page - 2);
         $endPage = min($pages, $page + 2);
         if ($startPage > 1) {
-            echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=1" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">1</a>';
+            echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=1&sort_by=' . $sortBy . '&sort_dir=' . $sortDir . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">1</a>';
             if ($startPage > 2) echo '<span style="color:var(--text-muted);padding:0 0.5rem">...</span>';
         }
         for ($i = $startPage; $i <= $endPage; $i++) {
             if ($i == $page) {
                 echo '<span style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--primary);color:#fff;font-size:0.8rem;font-weight:600">' . $i . '</span>';
             } else {
-                echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=' . $i . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">' . $i . '</a>';
+                echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=' . $i . '&sort_by=' . $sortBy . '&sort_dir=' . $sortDir . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">' . $i . '</a>';
             }
         }
         if ($endPage < $pages) {
             if ($endPage < $pages - 1) echo '<span style="color:var(--text-muted);padding:0 0.5rem">...</span>';
-            echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=' . $pages . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">' . $pages . '</a>';
+            echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=' . $pages . '&sort_by=' . $sortBy . '&sort_dir=' . $sortDir . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">' . $pages . '</a>';
         }
         ?>
 
         <?php if ($page < $pages): ?>
-          <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page + 1 ?>"
+          <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page + 1 ?>&sort_by=<?= $sortBy ?>&sort_dir=<?= $sortDir ?>"
              style="display:flex;align-items:center;gap:0.35rem;padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem;transition:all 0.2s"
              onmouseover="this.style.background='var(--primary)';this.style.color='#fff';this.style.borderColor='var(--primary)'"
              onmouseout="this.style.background='var(--surface)';this.style.color='var(--text-primary)';this.style.borderColor='var(--border)'">
-            Suivant <i data-lucide="chevron-right" style="width:0.875rem;height:0.875rem"></i>
           </a>
         <?php endif; ?>
       </div>
@@ -342,11 +389,53 @@ $pending = $ctrl->GetDemandesPending();
   </div>
 </div>
 
+<!-- Pie Chart - Users by Role -->
+<div class="card" style="padding:1rem;margin-top:1rem;margin-left:2rem;margin-bottom:2rem;max-width:520px;">
+  <h3 class="font-semibold flex items-center gap-2 mb-3" 
+      style="color:var(--text-primary);font-size:1rem;">
+    <i data-lucide="pie-chart" 
+       style="width:0.9rem;height:0.9rem;color:var(--primary)"></i>
+    Répartition par rôle
+  </h3>
+
+  <div style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap">
+    
+    <div style="width:180px;height:180px">
+      <canvas id="roleChart"></canvas>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:0.5rem">
+      <div style="display:flex;align-items:center;gap:0.4rem">
+        <div style="width:10px;height:10px;border-radius:50%;background:#ea580c"></div>
+        <span style="font-size:0.8rem;color:var(--text-primary)">
+          ADMIN: <strong><?= $admins ?></strong>
+        </span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:0.4rem">
+        <div style="width:10px;height:10px;border-radius:50%;background:#7c3aed"></div>
+        <span style="font-size:0.8rem;color:var(--text-primary)">
+          COACH: <strong><?= $coachs ?></strong>
+        </span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:0.4rem">
+        <div style="width:10px;height:10px;border-radius:50%;background:#2563eb"></div>
+        <span style="font-size:0.8rem;color:var(--text-primary)">
+          USER: <strong><?= $regulars ?></strong>
+        </span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ==================== MODAL AJOUTER ==================== -->
 <div id="modalAdd" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
   <div style="background:var(--background);border-radius:1rem;padding:2rem;width:100%;max-width:28rem;box-shadow:0 25px 50px rgba(0,0,0,0.15);position:relative">
     <button onclick="closeModal('modalAdd')" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-muted)">
       <i data-lucide="x" style="width:1.25rem;height:1.25rem"></i>
+    ...
     </button>
     <h3 style="font-family:var(--font-heading);font-size:1.25rem;font-weight:700;color:var(--text-primary);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem">
       <i data-lucide="user-plus" style="width:1.25rem;height:1.25rem;color:var(--primary)"></i> Ajouter un utilisateur
@@ -477,6 +566,7 @@ $pending = $ctrl->GetDemandesPending();
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
@@ -685,5 +775,40 @@ $pending = $ctrl->GetDemandesPending();
     link.textContent      = isBan ? '🚫 Bloquer' : '✅ Débloquer';
     openModal('modalToggle');
     lucide.createIcons();
+  }
+
+  // ==================== PIE CHART - USERS BY ROLE ====================
+  const ctx = document.getElementById('roleChart');
+  if (ctx && typeof Chart !== 'undefined') {
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['ADMIN', 'COACH', 'USER'],
+        datasets: [{
+          data: [<?= $admins ?>, <?= $coachs ?>, <?= $regulars ?>],
+          backgroundColor: ['#ea580c', '#7c3aed', '#2563eb'],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((context.raw / total) * 100).toFixed(1);
+                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
   }
 </script>

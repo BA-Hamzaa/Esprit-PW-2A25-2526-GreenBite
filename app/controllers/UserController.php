@@ -17,9 +17,19 @@ $db = Database::getConnexion();
     }
 
 /////..............................Afficher avec pagination............................../////
-    function AfficherUsersPaginated($page = 1, $perPage = 10) {
+    function AfficherUsersPaginated($page = 1, $perPage = 10, $sortBy = 'created_at', $sortDir = 'DESC') {
         $offset = ($page - 1) * $perPage;
-        $sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        
+        // Validate sort column to prevent SQL injection
+        $allowedColumns = ['username', 'email', 'role', 'is_active', 'created_at'];
+        if (!in_array($sortBy, $allowedColumns)) {
+            $sortBy = 'created_at';
+        }
+        
+        // Validate sort direction
+        $sortDir = strtoupper($sortDir) === 'ASC' ? 'ASC' : 'DESC';
+        
+        $sql = "SELECT * FROM users ORDER BY $sortBy $sortDir LIMIT :limit OFFSET :offset";
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);

@@ -8,6 +8,7 @@ session_start();
 // Chemin de base du projet
 define('BASE_PATH', dirname(__DIR__));
 define('BASE_URL', '/GREENBITE/public');
+define('FULL_BASE_URL', 'http://localhost/GREENBITE/public');
 // Charger la configuration de la base de données
 require_once BASE_PATH . '/config/database.php';
 
@@ -73,6 +74,14 @@ case 'logout':
 
 case 'signup':
     require_once BASE_PATH . '/app/views/auth/signup.php';
+    break;
+
+case 'forgot-password':
+    require_once BASE_PATH . '/app/views/auth/forgot-password.php';
+    break;
+
+case 'reset-password':
+    require_once BASE_PATH . '/app/views/auth/reset-password.php';
     break;
 
 // ---- UTILISATEURS (Back) ----
