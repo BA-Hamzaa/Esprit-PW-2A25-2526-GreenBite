@@ -16,6 +16,34 @@ $db = Database::getConnexion();
         }
     }
 
+/////..............................Afficher avec pagination............................../////
+    function AfficherUsersPaginated($page = 1, $perPage = 10) {
+        $offset = ($page - 1) * $perPage;
+        $sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+        $db = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':limit', $perPage, PDO::PARAM_INT);
+            $query->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $query->execute();
+            return $query;
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+/////..............................Compter total utilisateurs............................../////
+    function CountUsers() {
+        $sql = "SELECT COUNT(*) as total FROM users";
+        $db = Database::getConnexion();
+        try {
+            $result = $db->query($sql);
+            return $result->fetch()['total'];
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
 /////..............................Supprimer............................../////
     function SupprimerUser($id) {
         // Supprimer aussi l'avatar du serveur avant de supprimer le user

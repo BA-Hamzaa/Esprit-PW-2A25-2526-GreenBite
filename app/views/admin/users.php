@@ -1,9 +1,14 @@
 <?php
-// ---- Récupérer stats + liste ----
-$users     = $ctrl->AfficherUsers()->fetchAll();
-$total     = count($users);
+// ---- Pagination ----
+$page    = isset($_GET['page_num']) ? max(1, (int)$_GET['page_num']) : 1;
+$perPage = 10;
+$total   = $ctrl->CountUsers();
+$pages   = ceil($total / $perPage);
+
+// ---- Récupérer liste paginée ----
+$users     = $ctrl->AfficherUsersPaginated($page, $perPage)->fetchAll();
 $actifs    = count(array_filter($users, fn($u) => $u['is_active'] == 1));
-$suspendus = $total - $actifs;
+$suspendus = count($users) - $actifs;
 $admins    = count(array_filter($users, fn($u) => $u['role'] === 'ADMIN'));
 $coachs    = count(array_filter($users, fn($u) => $u['role'] === 'COACH'));
 
@@ -280,16 +285,62 @@ $pending = $ctrl->GetDemandesPending();
         <?php if (empty($users)): ?>
           <tr>
             <td colspan="7" style="padding:3rem;text-align:center;color:var(--text-muted)">
-              <i data-lucide="users" style="width:2rem;height:2rem;margin:0 auto 0.5rem;display:block;opacity:0.3"></i>
               Aucun utilisateur trouvé
             </td>
           </tr>
         <?php endif; ?>
       </tbody>
     </table>
+
+    <!-- Pagination -->
+    <?php if ($pages > 1): ?>
+    <div style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)">
+      <div style="font-size:0.8rem;color:var(--text-muted)">
+        Affichage de <?= ($page - 1) * $perPage + 1 ?> à <?= min($page * $perPage, $total) ?> sur <?= $total ?> utilisateurs
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <?php if ($page > 1): ?>
+          <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page - 1 ?>"
+             style="display:flex;align-items:center;gap:0.35rem;padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem;transition:all 0.2s"
+             onmouseover="this.style.background='var(--primary)';this.style.color='#fff';this.style.borderColor='var(--primary)'"
+             onmouseout="this.style.background='var(--surface)';this.style.color='var(--text-primary)';this.style.borderColor='var(--border)'">
+            <i data-lucide="chevron-left" style="width:0.875rem;height:0.875rem"></i> Précédent
+          </a>
+        <?php endif; ?>
+
+        <?php
+        $startPage = max(1, $page - 2);
+        $endPage = min($pages, $page + 2);
+        if ($startPage > 1) {
+            echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=1" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">1</a>';
+            if ($startPage > 2) echo '<span style="color:var(--text-muted);padding:0 0.5rem">...</span>';
+        }
+        for ($i = $startPage; $i <= $endPage; $i++) {
+            if ($i == $page) {
+                echo '<span style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--primary);color:#fff;font-size:0.8rem;font-weight:600">' . $i . '</span>';
+            } else {
+                echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=' . $i . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">' . $i . '</a>';
+            }
+        }
+        if ($endPage < $pages) {
+            if ($endPage < $pages - 1) echo '<span style="color:var(--text-muted);padding:0 0.5rem">...</span>';
+            echo '<a href="' . BASE_URL . '/?page=admin-users&page_num=' . $pages . '" style="padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem">' . $pages . '</a>';
+        }
+        ?>
+
+        <?php if ($page < $pages): ?>
+          <a href="<?= BASE_URL ?>/?page=admin-users&page_num=<?= $page + 1 ?>"
+             style="display:flex;align-items:center;gap:0.35rem;padding:0.4rem 0.75rem;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);color:var(--text-primary);text-decoration:none;font-size:0.8rem;transition:all 0.2s"
+             onmouseover="this.style.background='var(--primary)';this.style.color='#fff';this.style.borderColor='var(--primary)'"
+             onmouseout="this.style.background='var(--surface)';this.style.color='var(--text-primary)';this.style.borderColor='var(--border)'">
+            Suivant <i data-lucide="chevron-right" style="width:0.875rem;height:0.875rem"></i>
+          </a>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endif; ?>
   </div>
 </div>
-
 
 <!-- ==================== MODAL AJOUTER ==================== -->
 <div id="modalAdd" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
