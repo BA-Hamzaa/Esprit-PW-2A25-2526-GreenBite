@@ -11,6 +11,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 require_once BASE_PATH . '/app/controllers/AuthController.php';
 
 $error = null;
+if (isset($_SESSION['error'])) {
+    $error = $_SESSION['error'];
+    unset($_SESSION['error']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $auth   = new AuthController();
     $result = $auth->Login($_POST['email'], $_POST['password']);
@@ -103,9 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
 
-      <button class="btn btn-outline btn-block" style="border-radius:var(--radius-xl);padding:0.8rem;font-size:0.85rem" onclick="showToast('success', 'Connexion Google en cours...')">
-        <i data-lucide="chrome" style="width:1rem;height:1rem"></i> Continuer avec Google
-      </button>
+      <a href="<?= BASE_URL ?>/?page=google-auth" class="btn btn-outline btn-block" style="display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-xl);padding:0.8rem;font-size:0.85rem;text-decoration:none;color:inherit">
+        <i data-lucide="chrome" style="width:1rem;height:1rem;margin-right:0.5rem"></i> Continuer avec Google
+      </a>
 
 <p class="text-center text-sm mt-6" style="color:var(--text-muted)">
   Pas encore de compte ? <a href="<?= BASE_URL ?>/?page=signup" style="color:var(--secondary);font-weight:700;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Créer un compte</a>

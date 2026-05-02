@@ -7,7 +7,7 @@ session_start();
 
 // Chemin de base du projet
 define('BASE_PATH', dirname(__DIR__));
-define('BASE_URL', '/PHP GREENBITE/public');
+define('BASE_URL', '/GREENBITE/public');
 // Charger la configuration de la base de données
 require_once BASE_PATH . '/config/database.php';
 
@@ -49,6 +49,21 @@ switch ($page) {
 // ---- AUTH ----
 case 'login':
     require_once BASE_PATH . '/app/views/auth/login.php';
+    break;
+
+case 'google-auth':
+    $auth = new AuthController();
+    $auth->RedirectToGoogle();
+    break;
+
+case 'google-callback':
+    $auth = new AuthController();
+    $result = $auth->HandleGoogleCallback();
+    if (isset($result['error'])) {
+        $_SESSION['error'] = $result['error'];
+        header('Location: ' . BASE_URL . '/?page=login');
+        exit();
+    }
     break;
 
 case 'logout':
