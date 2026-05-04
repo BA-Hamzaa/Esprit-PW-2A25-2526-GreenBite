@@ -18,8 +18,6 @@ setlocale(LC_TIME, 'fr_FR.UTF-8', 'fra', 'french');
 define('BASE_PATH', dirname(dirname(dirname(__DIR__))));
 define('BASE_URL', '');
 
-require_once BASE_PATH . '/app/helpers/media.php';
-
 // Charger la configuration de la base de données
 require_once BASE_PATH . '/config/database.php';
 // Charger la configuration des API externes (Stripe, Mapbox)
@@ -28,6 +26,7 @@ require_once BASE_PATH . '/config/stripe.php';
 require_once BASE_PATH . '/config/nutrition_apis.php';
 
 // Charger tous les modèles
+require_once BASE_PATH . '/app/models/MediaHelper.php';
 require_once BASE_PATH . '/app/models/Repas.php';
 require_once BASE_PATH . '/app/models/Aliment.php';
 require_once BASE_PATH . '/app/models/Produit.php';
