@@ -93,7 +93,7 @@
         </h3>
         <?php if (!empty($produit['image'])): ?>
         <div class="flex items-center gap-4 p-3 rounded-xl mb-4" style="background:var(--muted);border:1px solid var(--border)">
-          <img src="<?= htmlspecialchars(gb_media_url($produit['image'] ?? '', gb_fallback_produit($produit['categorie'] ?? ''))) ?>" alt="" style="width:4rem;height:4rem;object-fit:cover;border-radius:var(--radius-lg)">
+          <img src="<?= htmlspecialchars(MediaHelper::url($produit['image'] ?? '', MediaHelper::fallbackProduit($produit['categorie'] ?? ''))) ?>" alt="" style="width:4rem;height:4rem;object-fit:cover;border-radius:var(--radius-lg)">
           <div>
             <div class="text-sm font-medium" style="color:var(--text-primary)"><?= htmlspecialchars($produit['image']) ?></div>
             <div class="text-xs" style="color:var(--text-muted)">Image actuelle</div>
