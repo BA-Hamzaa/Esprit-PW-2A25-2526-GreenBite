@@ -691,6 +691,11 @@ $followRegimeUrl = BASE_URL . '/?page=nutrition&action=plans&regime_id=' . (int)
       </a>
     </section>
   <?php endif; ?>
+
+  <!-- ═══ API Widgets ═══ -->
+  <?php require_once BASE_PATH . '/app/views/frontoffice/nutrition/partials/micronutrient_widget.php'; ?>
+  <?php require_once BASE_PATH . '/app/views/frontoffice/nutrition/partials/nutriscore_widget.php'; ?>
+
 </div>
 
 <div class="floating-follow" id="floatingFollowRegime">

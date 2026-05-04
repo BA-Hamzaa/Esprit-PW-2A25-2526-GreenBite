@@ -84,14 +84,31 @@
                   placeholder="Brève présentation de votre recette..."><?= htmlspecialchars($_POST['description'] ?? $recette['description']) ?></textarea>
       </div>
 
-      <!-- Instructions -->
-      <div class="form-group">
-        <label class="form-label" for="instructions">
-          <i data-lucide="list-ordered" style="width:0.875rem;height:0.875rem"></i>
-          Instructions détaillées <span style="color:var(--destructive)">*</span> <small style="color:var(--text-muted)">(min 20 caractères)</small>
-        </label>
-        <textarea name="instructions" id="instructions" class="form-textarea" rows="6"
-                  placeholder="Étape 1 : ...&#10;Étape 2 : ...&#10;Étape 3 : ..."><?= htmlspecialchars($_POST['instructions'] ?? $recette['instructions']) ?></textarea>
+      <!-- Instructions (hidden legacy) -->
+      <input type="hidden" name="instructions" value="<?= htmlspecialchars($recette['instructions'] ?? '') ?>">
+
+      <!-- ═══ ÉTAPES DE PRÉPARATION ═══ -->
+      <div class="mb-6" style="border-top:1px solid var(--border);padding-top:1.5rem">
+        <div class="flex items-center justify-between mb-4">
+          <label class="form-label mb-0"><i data-lucide="list-ordered" style="width:0.875rem;height:0.875rem"></i> Étapes de préparation <span style="color:var(--destructive)">*</span></label>
+          <button type="button" id="btn-add-step" class="btn btn-outline-primary btn-sm" style="border-radius:var(--radius-xl)"><i data-lucide="plus" style="width:.875rem;height:.875rem"></i> Ajouter une étape</button>
+        </div>
+        <div id="steps-list" class="space-y-3"></div>
+        <div id="step-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+          <div style="background:var(--card-bg,#fff);border-radius:var(--radius-xl);padding:1.75rem;width:95%;max-width:520px;box-shadow:0 25px 60px rgba(0,0,0,.25);border:1px solid var(--border)">
+            <div class="flex items-center gap-3 mb-5">
+              <div style="width:2.5rem;height:2.5rem;border-radius:var(--radius-xl);background:linear-gradient(135deg,#dbeafe,#eff6ff);display:flex;align-items:center;justify-content:center"><i data-lucide="list-ordered" style="width:1.25rem;height:1.25rem;color:#2563eb"></i></div>
+              <h3 id="step-modal-title" class="text-lg font-bold" style="color:var(--text-primary)">Ajouter une étape</h3>
+            </div>
+            <input type="hidden" id="step-edit-index" value="-1">
+            <div class="form-group"><label class="form-label">Titre <span style="color:var(--destructive)">*</span></label><input type="text" id="step-titre" class="form-input" placeholder="Ex: Préparer les légumes"></div>
+            <div class="form-group"><label class="form-label">Description <span style="color:var(--destructive)">*</span></label><textarea id="step-desc" class="form-textarea" rows="3" placeholder="Détails..."></textarea></div>
+            <div class="flex gap-3 mt-4">
+              <button type="button" id="step-save" class="btn btn-primary flex-1" style="border-radius:var(--radius-xl)"><i data-lucide="check" style="width:.875rem;height:.875rem"></i> Enregistrer</button>
+              <button type="button" id="step-cancel" class="btn btn-outline-primary" style="border-radius:var(--radius-xl)">Annuler</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Row : temps / difficulté / catégorie -->
@@ -205,6 +222,33 @@
         <button type="button" id="add-ingredient-btn" class="btn btn-outline-primary btn-sm mt-3">
           <i data-lucide="plus" style="width:0.875rem;height:0.875rem"></i> Ajouter un ingrédient
         </button>
+      <!-- ═══ MATÉRIELS NÉCESSAIRES ═══ -->
+      <div class="mb-6" style="border-top:1px solid var(--border);padding-top:1.5rem">
+        <div class="flex items-center justify-between mb-4">
+          <label class="form-label mb-0"><i data-lucide="wrench" style="width:0.875rem;height:0.875rem"></i> Matériels nécessaires</label>
+          <button type="button" id="btn-propose-materiel" class="btn btn-outline-primary btn-sm" style="border-radius:var(--radius-xl)"><i data-lucide="plus" style="width:.875rem;height:.875rem"></i> Proposer</button>
+        </div>
+        <div id="materiels-chips" style="display:flex;flex-wrap:wrap;gap:0.5rem">
+          <?php foreach ($materielsListe as $mat): ?>
+            <?php $sel = in_array($mat['id'], $selectedMaterielIds); ?>
+            <label class="materiel-chip" style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;border:1.5px solid <?= $sel?'#22c55e':'var(--border)' ?>;cursor:pointer;transition:all .2s;font-size:.85rem;color:<?= $sel?'#166534':'var(--text-secondary)' ?>;background:<?= $sel?'linear-gradient(135deg,#dcfce7,#f0fdf4)':'var(--muted)' ?>;user-select:none">
+              <input type="checkbox" name="materiel_ids[]" value="<?= $mat['id'] ?>" <?= $sel?'checked':'' ?> style="display:none" class="mat-cb">
+              <i data-lucide="wrench" style="width:.75rem;height:.75rem;opacity:.6"></i>
+              <span><?= htmlspecialchars($mat['nom']) ?></span>
+            </label>
+          <?php endforeach; ?>
+        </div>
+        <div id="mat-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+          <div style="background:var(--card-bg,#fff);border-radius:var(--radius-xl);padding:1.75rem;width:95%;max-width:460px;box-shadow:0 25px 60px rgba(0,0,0,.25);border:1px solid var(--border)">
+            <h3 class="text-lg font-bold mb-4" style="color:var(--text-primary)">Proposer un matériel</h3>
+            <div class="form-group"><label class="form-label">Nom <span style="color:var(--destructive)">*</span></label><input type="text" id="mat-nom" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Description</label><textarea id="mat-desc" class="form-textarea" rows="2"></textarea></div>
+            <div class="flex gap-3 mt-3">
+              <button type="button" id="mat-save" class="btn btn-primary flex-1" style="border-radius:var(--radius-xl);background:linear-gradient(135deg,#d97706,#f59e0b);border:none">Proposer</button>
+              <button type="button" id="mat-cancel" class="btn btn-outline-primary" style="border-radius:var(--radius-xl)">Annuler</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Submit -->
@@ -221,41 +265,142 @@
 </div>
 
 <script>
-// Clone ingredient row
+// ── Ingredients ──
 document.getElementById('add-ingredient-btn').addEventListener('click', function() {
   const c = document.getElementById('ingredients-container');
   const row = c.querySelector('.ingredient-row').cloneNode(true);
   row.querySelector('select').value = '';
   row.querySelector('input[type="number"]').value = '';
+  const old = row.querySelector('.eco-score-badge'); if(old) old.remove();
   c.appendChild(row);
+  attachEcoScore(row.querySelector('select'));
   if (typeof lucide !== 'undefined') lucide.createIcons();
 });
 
-// Client-side validation with toast
-document.getElementById('editSuggestionForm').addEventListener('submit', function(e) {
-  const errors = [];
-  if (!document.getElementById('titre').value.trim())
-    errors.push("Le titre est obligatoire.");
-  if (document.getElementById('instructions').value.trim().length < 20)
-    errors.push("Les instructions doivent contenir au moins 20 caractères.");
-  const temps = document.getElementById('temps_preparation').value;
-  if (!temps || parseInt(temps) <= 0)
-    errors.push("Le temps de préparation doit être un nombre positif.");
-  if (!document.getElementById('difficulte').value)
-    errors.push("La difficulté est obligatoire.");
-
-  // Check at least one ingredient filled
-  let hasIngredient = false;
-  document.querySelectorAll('#ingredients-container .ingredient-row').forEach(row => {
-    const sel = row.querySelector('select').value;
-    const qty = parseFloat(row.querySelector('input[type="number"]').value);
-    if (sel && qty > 0) hasIngredient = true;
+// ═══ API 1: Open Food Facts — Eco-Score per Ingredient ═══
+const ECO_LABELS = {a:'🟢 Eco A',b:'🟡 Eco B',c:'🟠 Eco C',d:'🔴 Eco D',e:'⛔ Eco E'};
+const ECO_CLASSES = {a:'eco-a',b:'eco-b',c:'eco-c',d:'eco-d',e:'eco-e'};
+const _ecoCache = {};
+async function fetchEcoScore(name) {
+  if (_ecoCache[name] !== undefined) return _ecoCache[name];
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&json=1&page_size=1&fields=ecoscore_grade`);
+    const d = await res.json();
+    const g = d?.products?.[0]?.ecoscore_grade?.toLowerCase() || null;
+    _ecoCache[name] = g; return g;
+  } catch { return null; }
+}
+function attachEcoScore(select) {
+  select.addEventListener('change', async function() {
+    const row = this.closest('.ingredient-row');
+    let badge = row.querySelector('.eco-score-badge'); if(badge) badge.remove();
+    const txt = this.options[this.selectedIndex]?.text;
+    if (!this.value || !txt) return;
+    const name = txt.split('(')[0].trim();
+    badge = document.createElement('span');
+    badge.className = 'eco-score-badge eco-badge';
+    badge.style.cssText = 'background:var(--muted);color:var(--text-muted);margin-left:.35rem;font-size:.65rem;padding:.15rem .4rem;border-radius:999px;border:1px solid var(--border);vertical-align:middle';
+    badge.textContent = '⏳';
+    this.insertAdjacentElement('afterend', badge);
+    const grade = await fetchEcoScore(name);
+    if (grade && ECO_LABELS[grade]) {
+      badge.textContent = ECO_LABELS[grade];
+      badge.className = `eco-score-badge eco-badge ${ECO_CLASSES[grade]}`;
+    } else {
+      badge.textContent = '🔵 Eco ?';
+      badge.className = 'eco-score-badge eco-badge';
+      badge.style.background = 'rgba(59,130,246,0.08)'; badge.style.color = '#2563eb'; badge.style.borderColor = '#93c5fd';
+    }
   });
-  if (!hasIngredient) errors.push("Ajoutez au moins un ingrédient avec une quantité.");
+}
+document.querySelectorAll('#ingredients-container .ingredient-row select').forEach(attachEcoScore);
 
-  if (errors.length > 0) {
-    e.preventDefault();
-    showToast('error', errors[0]);
-  }
+
+// ── Steps ──
+const steps = <?= json_encode(array_map(function($inst) {
+  return ['titre' => $inst['titre'], 'desc' => $inst['description']];
+}, $recetteInstructions ?? [])) ?>;
+
+function renderSteps() {
+  const list = document.getElementById('steps-list');
+  list.innerHTML = '';
+  steps.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'display:flex;align-items:flex-start;gap:.75rem;padding:.85rem 1rem;border-radius:var(--radius-xl);background:var(--muted);border:1px solid var(--border)';
+    card.innerHTML = `
+      <div style="min-width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem">${i+1}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--text-primary);font-size:.9rem">${s.titre}</div><div style="font-size:.8rem;color:var(--text-muted);margin-top:2px">${s.desc}</div></div>
+      <button type="button" onclick="editStep(${i})" class="icon-btn" style="color:#2563eb;width:1.75rem;height:1.75rem"><i data-lucide="pencil" style="width:.8rem;height:.8rem"></i></button>
+      <button type="button" onclick="removeStep(${i})" class="icon-btn" style="color:var(--destructive);width:1.75rem;height:1.75rem"><i data-lucide="trash-2" style="width:.8rem;height:.8rem"></i></button>
+      <input type="hidden" name="inst_titre[]" value="${s.titre.replace(/"/g,'&quot;')}">
+      <input type="hidden" name="inst_description[]" value="${s.desc.replace(/"/g,'&quot;')}">
+      <input type="hidden" name="inst_ordre[]" value="${i+1}">`;
+    list.appendChild(card);
+  });
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+function openStepModal(idx) {
+  document.getElementById('step-edit-index').value = idx;
+  document.getElementById('step-modal-title').textContent = idx >= 0 ? 'Modifier l\'étape' : 'Ajouter une étape';
+  document.getElementById('step-titre').value = idx >= 0 ? steps[idx].titre : '';
+  document.getElementById('step-desc').value = idx >= 0 ? steps[idx].desc : '';
+  document.getElementById('step-modal').style.display = 'flex';
+}
+function editStep(i) { openStepModal(i); }
+function removeStep(i) { steps.splice(i, 1); renderSteps(); }
+document.getElementById('btn-add-step').addEventListener('click', () => openStepModal(-1));
+document.getElementById('step-cancel').addEventListener('click', () => document.getElementById('step-modal').style.display = 'none');
+document.getElementById('step-save').addEventListener('click', () => {
+  const t = document.getElementById('step-titre').value.trim(), d = document.getElementById('step-desc').value.trim();
+  if (!t || !d) return;
+  const idx = parseInt(document.getElementById('step-edit-index').value);
+  if (idx >= 0) steps[idx] = {titre:t, desc:d}; else steps.push({titre:t, desc:d});
+  document.getElementById('step-modal').style.display = 'none';
+  renderSteps();
+});
+renderSteps();
+
+// ── Materiel chips ──
+document.querySelectorAll('.materiel-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const cb = chip.querySelector('.mat-cb'); cb.checked = !cb.checked;
+    chip.style.background = cb.checked ? 'linear-gradient(135deg,#dcfce7,#f0fdf4)' : 'var(--muted)';
+    chip.style.borderColor = cb.checked ? '#22c55e' : 'var(--border)';
+    chip.style.color = cb.checked ? '#166534' : 'var(--text-secondary)';
+  });
+});
+document.getElementById('btn-propose-materiel').addEventListener('click', () => { document.getElementById('mat-nom').value=''; document.getElementById('mat-desc').value=''; document.getElementById('mat-modal').style.display='flex'; });
+document.getElementById('mat-cancel').addEventListener('click', () => document.getElementById('mat-modal').style.display='none');
+document.getElementById('mat-save').addEventListener('click', () => {
+  const nom = document.getElementById('mat-nom').value.trim();
+  if (!nom) return;
+  const fd = new FormData(); fd.append('nom',nom); fd.append('description',document.getElementById('mat-desc').value.trim()); fd.append('propose_par','<?= htmlspecialchars($recette['soumis_par'] ?? '') ?>');
+  fetch('<?= BASE_URL ?>/?page=recettes&action=propose-materiel',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success){const c=document.createElement('label');c.className='materiel-chip';c.style.cssText='display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;border:1.5px dashed #f59e0b;font-size:.85rem;color:#92400e;background:#fef9c3;opacity:.8';c.innerHTML='<span>'+d.nom+' (en attente)</span>';document.getElementById('materiels-chips').appendChild(c);document.getElementById('mat-modal').style.display='none';if(typeof showToast==='function')showToast('success','Matériel proposé');}
+  });
+});
+
+// ── Inline validation ──
+function showFE(f,m){f.classList.add('is-invalid');let w=f.closest('.form-group')||f.parentElement;let e=w.querySelector('.field-error');if(!e){e=document.createElement('div');e.className='field-error';w.appendChild(e);}e.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> '+m;e.classList.add('show');}
+function clearFE(f){f.classList.remove('is-invalid');f.classList.add('is-valid');let w=f.closest('.form-group')||f.parentElement;let e=w.querySelector('.field-error');if(e)e.classList.remove('show');}
+function showSE(id,m){let e=document.getElementById(id+'-err');if(!e){e=document.createElement('div');e.id=id+'-err';e.className='field-error';document.getElementById(id).after(e);}e.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> '+m;e.classList.add('show');}
+function clearSE(id){let e=document.getElementById(id+'-err');if(e)e.classList.remove('show');}
+
+const tEl=document.getElementById('titre'), tmEl=document.getElementById('temps_preparation'), dEl=document.getElementById('difficulte');
+tEl?.addEventListener('blur',()=>{if(!tEl.value.trim())showFE(tEl,'Titre obligatoire.');else clearFE(tEl);});
+tEl?.addEventListener('input',()=>{if(tEl.classList.contains('is-invalid')&&tEl.value.trim())clearFE(tEl);});
+tmEl?.addEventListener('blur',()=>{if(!tmEl.value||parseInt(tmEl.value)<=0)showFE(tmEl,'Temps > 0.');else clearFE(tmEl);});
+dEl?.addEventListener('change',()=>{if(!dEl.value)showFE(dEl,'Difficulté obligatoire.');else clearFE(dEl);});
+
+document.getElementById('editSuggestionForm').addEventListener('submit', function(e) {
+  let v=true;
+  if(!tEl.value.trim()){showFE(tEl,'Titre obligatoire.');v=false;}else clearFE(tEl);
+  if(steps.length===0){showSE('steps-list','Ajoutez au moins une étape.');v=false;}else clearSE('steps-list');
+  if(!tmEl.value||parseInt(tmEl.value)<=0){showFE(tmEl,'Temps > 0.');v=false;}else clearFE(tmEl);
+  if(!dEl.value){showFE(dEl,'Difficulté obligatoire.');v=false;}else clearFE(dEl);
+  let h=false;document.querySelectorAll('#ingredients-container .ingredient-row').forEach(r=>{if(r.querySelector('select').value&&parseFloat(r.querySelector('input[type="number"]').value)>0)h=true;});
+  if(!h){showSE('ingredients-container','Ajoutez au moins un ingrédient.');v=false;}else clearSE('ingredients-container');
+  if(!v)e.preventDefault();
 });
 </script>
+

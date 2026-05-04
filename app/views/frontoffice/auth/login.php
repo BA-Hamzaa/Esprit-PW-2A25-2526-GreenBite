@@ -278,25 +278,43 @@
     lucide.createIcons();
   }
 
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const email = this.querySelector('input[type="email"]').value;
-    const pwd = this.querySelector('input[type="password"]').value;
-    let error = null;
-    
-    if (!email.trim()) {
-        error = "L'adresse email est obligatoire.";
-    } else if (!pwd) {
-        error = "Le mot de passe est obligatoire.";
-    }
-    
-    if (error) {
-        showToast('error', error);
-    } else {
-        showToast('success', 'Connexion réussie ! Redirection...');
-    }
+  // Inline validation helpers (validate.js not loaded here so we inline them)
+  const ERR_ICON = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  function showFE(field, msg) {
+    field.classList.add('is-invalid'); field.classList.remove('is-valid');
+    let el = field.closest('div').querySelector('.field-error');
+    if (!el) { el = document.createElement('div'); el.className = 'field-error'; field.closest('div').appendChild(el); }
+    el.innerHTML = ERR_ICON + ' ' + msg; el.classList.add('show');
+  }
+  function clearFE(field) {
+    field.classList.remove('is-invalid'); field.classList.add('is-valid');
+    const el = field.closest('div').querySelector('.field-error');
+    if (el) el.classList.remove('show');
+  }
+
+  const emailEl = document.getElementById('login-email');
+  const pwdEl   = document.getElementById('login-password');
+
+  emailEl.addEventListener('blur', () => {
+    if (!emailEl.value.trim()) showFE(emailEl, "L'adresse email est obligatoire.");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) showFE(emailEl, "Format d'email invalide.");
+    else clearFE(emailEl);
+  });
+  pwdEl.addEventListener('blur', () => {
+    if (!pwdEl.value) showFE(pwdEl, "Le mot de passe est obligatoire.");
+    else clearFE(pwdEl);
   });
 
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let valid = true;
+    if (!emailEl.value.trim()) { showFE(emailEl, "L'adresse email est obligatoire."); valid = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) { showFE(emailEl, "Format d'email invalide."); valid = false; }
+    else clearFE(emailEl);
+    if (!pwdEl.value) { showFE(pwdEl, "Le mot de passe est obligatoire."); valid = false; }
+    else clearFE(pwdEl);
+    if (valid) showToast('success', 'Connexion réussie ! Redirection...');
+  });
   function showToast(type, msg) {
     const cont = document.getElementById('toastContainer');
     const t = document.createElement('div');

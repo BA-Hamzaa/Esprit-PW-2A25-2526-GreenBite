@@ -3,6 +3,8 @@ require_once BASE_PATH . '/config/database.php';
 require_once BASE_PATH . '/app/models/Recette.php';
 require_once BASE_PATH . '/app/models/Ingredient.php';
 require_once BASE_PATH . '/app/models/CommentaireRecette.php';
+require_once BASE_PATH . '/app/models/InstructionRecette.php';
+require_once BASE_PATH . '/app/models/Materiel.php';
 
 class RecettesController {
 
@@ -126,6 +128,13 @@ class RecettesController {
             die('Erreur: ' . $e->getMessage());
         }
     }
+
+    /////..............................Ajouter Recette avec nom image déjà connu (download URL)............................../////
+    function AjouterRecetteAvecNomImage(Recette $recette, $imageName = null) {
+        if ($imageName) { $recette->setImage($imageName); }
+        return $this->AjouterRecette($recette, null);
+    }
+
 
     /////..............................Ajouter Lien Recette-Ingrédient............................../////
     function AjouterIngredientRecette($recette_id, $ingredient_id, $quantite) {
@@ -393,7 +402,7 @@ class RecettesController {
 
     /////..............................Upload Image (méthode privée)............................../////
     private function uploadImage($imageFile) {
-        $uploadDir    = BASE_PATH . '/app/models/public/assets/images/uploads/';
+        $uploadDir    = BASE_PATH . '/app/views/public/assets/images/uploads/';
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize      = 2 * 1024 * 1024;
 
@@ -409,6 +418,22 @@ class RecettesController {
         if (!move_uploaded_file($imageFile['tmp_name'], $uploadDir . $imageName)) {
             die("Erreur: Échec de l'upload de l'image");
         }
+        return $imageName;
+    }
+
+    /////..............................Download Image from URL (TheMealDB)............................../////
+    private function downloadImageFromUrl($url) {
+        if (empty($url)) return null;
+        $uploadDir = BASE_PATH . '/app/views/public/assets/images/uploads/';
+        if (!is_dir($uploadDir)) { mkdir($uploadDir, 0755, true); }
+        $ctx = stream_context_create(['http' => ['timeout' => 8, 'user_agent' => 'GreenBite/1.0']]);
+        $data = @file_get_contents($url, false, $ctx);
+        if (!$data) return null;
+        // Detect extension from URL
+        $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg','jpeg','png','gif','webp'])) $ext = 'jpg';
+        $imageName = uniqid('meal_', true) . '.' . $ext;
+        file_put_contents($uploadDir . $imageName, $data);
         return $imageName;
     }
 
@@ -446,14 +471,26 @@ class RecettesController {
     function suggestFront() {
         $errors          = [];
         $ingredientsList = $this->AfficherIngredients();
+        $materielsListe  = $this->AfficherMaterielsAcceptes();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->ValiderSuggestion($_POST, $_FILES);
             if (empty($errors)) {
+                // Build legacy instructions text from structured steps
+                $instrText = '';
+                if (!empty($_POST['inst_titre'])) {
+                    foreach ($_POST['inst_titre'] as $i => $t) {
+                        if (trim($t) !== '') {
+                            $instrText .= 'Étape ' . ($i + 1) . ' — ' . trim($t) . "\n" . trim($_POST['inst_description'][$i] ?? '') . "\n\n";
+                        }
+                    }
+                }
+                if (empty(trim($instrText))) { $instrText = trim($_POST['instructions'] ?? '...'); }
+
                 $recette = new Recette(
                     trim($_POST['titre']),
                     trim($_POST['description']),
-                    trim($_POST['instructions']),
+                    trim($instrText),
                     (int)$_POST['temps_preparation'],
                     $_POST['difficulte'],
                     'en_attente',
@@ -463,7 +500,17 @@ class RecettesController {
                     (float)($_POST['score_carbone'] ?? 0),
                     trim($_POST['soumis_par'] ?? '')
                 );
-                $recetteId = $this->AjouterRecette($recette, $_FILES['image'] ?? null);
+                // Handle image: prefer uploaded file, fallback to TheMealDB URL download
+                $imageFile = $_FILES['image'] ?? null;
+                $imageUrl  = trim($_POST['image_url'] ?? '');
+                if (!empty($imageFile['tmp_name'])) {
+                    $recetteId = $this->AjouterRecette($recette, $imageFile);
+                } elseif (!empty($imageUrl)) {
+                    $downloadedName = $this->downloadImageFromUrl($imageUrl);
+                    $recetteId = $this->AjouterRecetteAvecNomImage($recette, $downloadedName);
+                } else {
+                    $recetteId = $this->AjouterRecette($recette, null);
+                }
 
                 if (!empty($_POST['ingredient_ids'])) {
                     foreach ($_POST['ingredient_ids'] as $i => $ingredientId) {
@@ -473,6 +520,15 @@ class RecettesController {
                         }
                     }
                 }
+
+                // Save structured instructions
+                $this->SauvegarderInstructionsPost($recetteId, $_POST);
+
+                // Save materiels
+                if (!empty($_POST['materiel_ids'])) {
+                    $this->LierMaterielsRecette($recetteId, $_POST['materiel_ids']);
+                }
+
                 $_SESSION['recette_user'] = $recette->getSoumisPar();
                 $_SESSION['success']      = "Votre recette a été soumise et est en attente de validation.";
                 header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;
@@ -513,15 +569,29 @@ class RecettesController {
             header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;
         }
 
-        $errors             = [];
-        $ingredientsList    = $this->AfficherIngredients();
-        $recetteIngredients = $this->RecupererLiensIngredients($id);
+        $errors               = [];
+        $ingredientsList      = $this->AfficherIngredients();
+        $recetteIngredients   = $this->RecupererLiensIngredients($id);
+        $materielsListe       = $this->AfficherMaterielsAcceptes();
+        $recetteInstructions  = $this->RecupererInstructionsRecette($id);
+        $recetteMateriels     = $this->RecupererMaterielsRecette($id);
+        $selectedMaterielIds  = array_column($recetteMateriels, 'id');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->ValiderSuggestion($_POST, $_FILES);
             if (empty($errors)) {
+                $instrText = '';
+                if (!empty($_POST['inst_titre'])) {
+                    foreach ($_POST['inst_titre'] as $i => $t) {
+                        if (trim($t) !== '') {
+                            $instrText .= 'Étape ' . ($i + 1) . ' — ' . trim($t) . "\n" . trim($_POST['inst_description'][$i] ?? '') . "\n\n";
+                        }
+                    }
+                }
+                if (empty(trim($instrText))) { $instrText = trim($_POST['instructions'] ?? '...'); }
+
                 $r = new Recette(
-                    trim($_POST['titre']), trim($_POST['description']), trim($_POST['instructions']),
+                    trim($_POST['titre']), trim($_POST['description']), trim($instrText),
                     (int)$_POST['temps_preparation'], $_POST['difficulte'], 'en_attente',
                     trim($_POST['categorie'] ?? ''), $recette['image'],
                     (int)($_POST['calories_total'] ?? 0), (float)($_POST['score_carbone'] ?? 0)
@@ -536,6 +606,11 @@ class RecettesController {
                         }
                     }
                 }
+                // Save structured instructions
+                $this->SauvegarderInstructionsPost($id, $_POST);
+                // Save materiels
+                $this->LierMaterielsRecette($id, $_POST['materiel_ids'] ?? []);
+
                 $this->ModifierStatutRecette($id, 'en_attente');
                 $_SESSION['success'] = "Votre recette a été mise à jour et resoumise pour validation.";
                 header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;
@@ -581,12 +656,23 @@ class RecettesController {
     function addBack() {
         $errors          = [];
         $ingredientsList = $this->AfficherIngredients();
+        $materielsListe  = $this->AfficherMaterielsAcceptes();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->ValiderRecette($_POST, $_FILES);
             if (empty($errors)) {
+                $instrText = '';
+                if (!empty($_POST['inst_titre'])) {
+                    foreach ($_POST['inst_titre'] as $i => $t) {
+                        if (trim($t) !== '') {
+                            $instrText .= 'Étape ' . ($i + 1) . ' — ' . trim($t) . "\n" . trim($_POST['inst_description'][$i] ?? '') . "\n\n";
+                        }
+                    }
+                }
+                if (empty(trim($instrText))) { $instrText = trim($_POST['instructions'] ?? '...'); }
+
                 $recette = new Recette(
-                    trim($_POST['titre']), trim($_POST['description']), trim($_POST['instructions']),
+                    trim($_POST['titre']), trim($_POST['description']), trim($instrText),
                     (int)$_POST['temps_preparation'], $_POST['difficulte'], 'acceptee',
                     trim($_POST['categorie']), '',
                     (int)($_POST['calories_total'] ?? 0), (float)($_POST['score_carbone'] ?? 0)
@@ -600,6 +686,9 @@ class RecettesController {
                         }
                     }
                 }
+                $this->SauvegarderInstructionsPost($recetteId, $_POST);
+                $this->LierMaterielsRecette($recetteId, $_POST['materiel_ids'] ?? []);
+
                 $_SESSION['success'] = "Recette ajoutée avec succès !";
                 header('Location: ' . BASE_URL . '/?page=admin-recettes&action=list'); exit;
             }
@@ -619,15 +708,29 @@ class RecettesController {
             header('Location: ' . BASE_URL . '/?page=admin-recettes&action=list'); exit;
         }
 
-        $errors             = [];
-        $ingredientsList    = $this->AfficherIngredients();
-        $recetteIngredients = $this->RecupererLiensIngredients($id);
+        $errors               = [];
+        $ingredientsList      = $this->AfficherIngredients();
+        $recetteIngredients   = $this->RecupererLiensIngredients($id);
+        $materielsListe       = $this->AfficherMaterielsAcceptes();
+        $recetteInstructions  = $this->RecupererInstructionsRecette($id);
+        $recetteMateriels     = $this->RecupererMaterielsRecette($id);
+        $selectedMaterielIds  = array_column($recetteMateriels, 'id');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->ValiderRecette($_POST, $_FILES, true);
             if (empty($errors)) {
+                $instrText = '';
+                if (!empty($_POST['inst_titre'])) {
+                    foreach ($_POST['inst_titre'] as $i => $t) {
+                        if (trim($t) !== '') {
+                            $instrText .= 'Étape ' . ($i + 1) . ' — ' . trim($t) . "\n" . trim($_POST['inst_description'][$i] ?? '') . "\n\n";
+                        }
+                    }
+                }
+                if (empty(trim($instrText))) { $instrText = trim($_POST['instructions'] ?? '...'); }
+
                 $r = new Recette(
-                    trim($_POST['titre']), trim($_POST['description']), trim($_POST['instructions']),
+                    trim($_POST['titre']), trim($_POST['description']), trim($instrText),
                     (int)$_POST['temps_preparation'], $_POST['difficulte'], $recette['statut'],
                     trim($_POST['categorie']), $recette['image'],
                     (int)($_POST['calories_total'] ?? 0), (float)($_POST['score_carbone'] ?? 0)
@@ -642,6 +745,9 @@ class RecettesController {
                         }
                     }
                 }
+                $this->SauvegarderInstructionsPost($id, $_POST);
+                $this->LierMaterielsRecette($id, $_POST['materiel_ids'] ?? []);
+
                 $_SESSION['success'] = "Recette modifiée avec succès !";
                 header('Location: ' . BASE_URL . '/?page=admin-recettes&action=list'); exit;
             }
@@ -1076,6 +1182,371 @@ class RecettesController {
             $_SESSION['error'] = implode(' ', $errors);
         }
         header('Location: ' . BASE_URL . '/?page=recettes&action=detail&id=' . $recette_id . '#commentaires'); exit;
+    }
+
+    // ============================================================
+    // INSTRUCTIONS PAR ÉTAPES (instruction_recette)
+    // ============================================================
+
+    /////..............................Récupérer Instructions d'une Recette............................../////
+    function RecupererInstructionsRecette($recette_id) {
+        $sql = "SELECT * FROM instruction_recette WHERE recette_id = :recette_id ORDER BY ordre ASC";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':recette_id', $recette_id, PDO::PARAM_INT);
+            $query->execute();
+            return $query->fetchAll();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Ajouter une Instruction............................../////
+    function AjouterInstruction($recette_id, $ordre, $titre, $description) {
+        $sql = "INSERT INTO instruction_recette (recette_id, ordre, titre, description)
+                VALUES (:recette_id, :ordre, :titre, :description)";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute([
+                'recette_id'  => $recette_id,
+                'ordre'       => $ordre,
+                'titre'       => $titre,
+                'description' => $description,
+            ]);
+            return $db->lastInsertId();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Modifier une Instruction............................../////
+    function ModifierInstruction($id, $ordre, $titre, $description) {
+        $sql = "UPDATE instruction_recette SET ordre=:ordre, titre=:titre, description=:description WHERE id=:id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['ordre'=>$ordre,'titre'=>$titre,'description'=>$description,'id'=>$id]);
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Supprimer une Instruction............................../////
+    function SupprimerInstruction($id) {
+        $sql = "DELETE FROM instruction_recette WHERE id = :id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':id', $id, PDO::PARAM_INT);
+            $query->execute();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Supprimer toutes les Instructions d'une Recette............................../////
+    function SupprimerInstructionsRecette($recette_id) {
+        $sql = "DELETE FROM instruction_recette WHERE recette_id = :recette_id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':recette_id', $recette_id, PDO::PARAM_INT);
+            $query->execute();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Sauvegarder les Instructions depuis POST............................../////
+    function SauvegarderInstructionsPost($recette_id, $post) {
+        $this->SupprimerInstructionsRecette($recette_id);
+        if (!empty($post['inst_titre'])) {
+            foreach ($post['inst_titre'] as $i => $titre) {
+                $titre = trim($titre);
+                $desc  = trim($post['inst_description'][$i] ?? '');
+                $ordre = (int)($post['inst_ordre'][$i] ?? ($i + 1));
+                if ($titre !== '' && $desc !== '') {
+                    $this->AjouterInstruction($recette_id, $ordre, $titre, $desc);
+                }
+            }
+        }
+    }
+
+    // ============================================================
+    // MATÉRIELS (materiel + recette_materiel)
+    // ============================================================
+
+    /////..............................Afficher Matériels Acceptés............................../////
+    function AfficherMaterielsAcceptes() {
+        $sql = "SELECT * FROM materiel WHERE statut = 'accepte' ORDER BY nom ASC";
+        $db  = Database::getConnexion();
+        try { return $db->query($sql)->fetchAll(); }
+        catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Afficher Tous les Matériels (Back)............................../////
+    function AfficherTousMateriels() {
+        $sql = "SELECT * FROM materiel ORDER BY created_at DESC";
+        $db  = Database::getConnexion();
+        try { return $db->query($sql)->fetchAll(); }
+        catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Récupérer Matériels d'une Recette............................../////
+    function RecupererMaterielsRecette($recette_id) {
+        $sql = "SELECT m.* FROM materiel m
+                INNER JOIN recette_materiel rm ON rm.materiel_id = m.id
+                WHERE rm.recette_id = :recette_id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':recette_id', $recette_id, PDO::PARAM_INT);
+            $query->execute();
+            return $query->fetchAll();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Ajouter Matériel............................../////
+    function AjouterMateriel(Materiel $m) {
+        $sql = "INSERT INTO materiel (nom, description, propose_par, statut)
+                VALUES (:nom, :description, :propose_par, :statut)";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute([
+                'nom'         => $m->getNom(),
+                'description' => $m->getDescription(),
+                'propose_par' => $m->getProposePar(),
+                'statut'      => $m->getStatut(),
+            ]);
+            return $db->lastInsertId();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Modifier Statut Matériel............................../////
+    function ModifierStatutMateriel($id, $statut, $motif_refus = null) {
+        $sql = "UPDATE materiel SET statut = :statut, motif_refus = :motif WHERE id = :id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['statut' => $statut, 'motif' => $motif_refus, 'id' => $id]);
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Supprimer Matériel............................../////
+    function SupprimerMateriel($id) {
+        $sql = "DELETE FROM materiel WHERE id = :id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':id', $id, PDO::PARAM_INT);
+            $query->execute();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Supprimer Liens Matériels d'une Recette............................../////
+    function SupprimerMaterielsRecette($recette_id) {
+        $sql = "DELETE FROM recette_materiel WHERE recette_id = :recette_id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':recette_id', $recette_id, PDO::PARAM_INT);
+            $query->execute();
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    /////..............................Lier Matériels à une Recette (ids[])............................../////
+    function LierMaterielsRecette($recette_id, array $materiel_ids) {
+        $this->SupprimerMaterielsRecette($recette_id);
+        if (empty($materiel_ids)) return;
+        $sql = "INSERT IGNORE INTO recette_materiel (recette_id, materiel_id) VALUES (:recette_id, :materiel_id)";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            foreach ($materiel_ids as $mid) {
+                $mid = (int)$mid;
+                if ($mid > 0) {
+                    $query->execute(['recette_id' => $recette_id, 'materiel_id' => $mid]);
+                }
+            }
+        } catch (Exception $e) { die('Erreur: ' . $e->getMessage()); }
+    }
+
+    // ============================================================
+    // AJAX ENDPOINTS — Instructions
+    // ============================================================
+
+    /////..............................AJAX — Ajouter Instruction............................../////
+    function instructionAdd() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Méthode invalide']); exit;
+        }
+        $recette_id = (int)($_POST['recette_id'] ?? 0);
+        $titre      = trim($_POST['titre'] ?? '');
+        $desc       = trim($_POST['description'] ?? '');
+        $ordre      = (int)($_POST['ordre'] ?? 1);
+        if (!$recette_id || empty($titre) || empty($desc)) {
+            echo json_encode(['success' => false, 'error' => 'Champs manquants']); exit;
+        }
+        $id = $this->AjouterInstruction($recette_id, $ordre, $titre, $desc);
+        echo json_encode(['success' => true, 'id' => $id]);
+        exit;
+    }
+
+    /////..............................AJAX — Modifier Instruction............................../////
+    function instructionEdit() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Méthode invalide']); exit;
+        }
+        $id    = (int)($_POST['id'] ?? 0);
+        $titre = trim($_POST['titre'] ?? '');
+        $desc  = trim($_POST['description'] ?? '');
+        $ordre = (int)($_POST['ordre'] ?? 1);
+        if (!$id || empty($titre) || empty($desc)) {
+            echo json_encode(['success' => false, 'error' => 'Champs manquants']); exit;
+        }
+        $this->ModifierInstruction($id, $ordre, $titre, $desc);
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    /////..............................AJAX — Supprimer Instruction............................../////
+    function instructionDelete() {
+        header('Content-Type: application/json');
+        $id = (int)($_GET['id'] ?? 0);
+        if (!$id) { echo json_encode(['success' => false, 'error' => 'ID manquant']); exit; }
+        $this->SupprimerInstruction($id);
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    // ============================================================
+    // AJAX ENDPOINTS — Matériels
+    // ============================================================
+
+    /////..............................AJAX — Proposer un Matériel (client)............................../////
+    function proposeMateriel() {
+        while (ob_get_level() > 0) ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Méthode invalide']); exit;
+        }
+        $nom        = trim($_POST['nom'] ?? '');
+        $desc       = trim($_POST['description'] ?? '');
+        $propose_par= trim($_POST['propose_par'] ?? 'Anonyme');
+        if (empty($nom)) {
+            echo json_encode(['success' => false, 'error' => 'Le nom est obligatoire']); exit;
+        }
+        try {
+            $m  = new Materiel($nom, $desc, $propose_par, 'en_attente');
+            $id = $this->AjouterMateriel($m);
+            echo json_encode(['success' => true, 'id' => $id, 'nom' => $nom]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /////..............................AJAX — Proposer un ingrédient (client)............................../////
+    function proposeIngredient() {
+        // Clear ALL output buffer levels (including the global one in index.php)
+        // so any PHP notices/warnings won't corrupt the JSON response
+        while (ob_get_level() > 0) ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Méthode invalide']); exit;
+        }
+
+        $nom   = trim($_POST['nom']         ?? '');
+        $unite = trim($_POST['unite']        ?? 'g');
+        $cal   = (float)($_POST['calories']  ?? 0);
+
+        if (empty($nom)) {
+            echo json_encode(['success' => false, 'error' => 'Le nom est obligatoire']); exit;
+        }
+
+        $db = Database::getConnexion();
+        try {
+            // Return existing ingredient instead of failing on duplicate
+            $chk = $db->prepare("SELECT id, nom, unite FROM ingredient WHERE LOWER(TRIM(nom)) = LOWER(TRIM(:nom)) LIMIT 1");
+            $chk->execute(['nom' => $nom]);
+            $existing = $chk->fetch(PDO::FETCH_ASSOC);
+            if ($existing) {
+                echo json_encode(['success' => true, 'id' => (int)$existing['id'], 'nom' => $existing['nom'], 'unite' => $existing['unite']]);
+                exit;
+            }
+
+            $stmt = $db->prepare(
+                "INSERT INTO ingredient (nom, unite, calories_par_unite, is_local) VALUES (:nom, :unite, :cal, 0)"
+            );
+            $stmt->execute(['nom' => $nom, 'unite' => $unite, 'cal' => $cal]);
+            $newId = (int)$db->lastInsertId();
+
+            echo json_encode(['success' => true, 'id' => $newId, 'nom' => $nom, 'unite' => $unite]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // ============================================================
+    // BACKOFFICE — Matériels
+    // ============================================================
+
+    /////..............................BACKOFFICE — Liste Matériels............................../////
+    function listMateriels() {
+        $materiels = $this->AfficherTousMateriels();
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/backoffice/recettes/materiels.php';
+        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
+    }
+
+    /////..............................BACKOFFICE — Ajouter Matériel (admin)............................../////
+    function addMaterielBack() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $nom  = trim($_POST['nom'] ?? '');
+            $desc = trim($_POST['description'] ?? '');
+            if (!empty($nom)) {
+                $m = new Materiel($nom, $desc, null, 'accepte');
+                $this->AjouterMateriel($m);
+                $_SESSION['success'] = "Matériel ajouté avec succès !";
+            } else {
+                $_SESSION['error'] = "Le nom du matériel est obligatoire.";
+            }
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-recettes&action=materiels'); exit;
+    }
+
+    /////..............................BACKOFFICE — Accepter Matériel............................../////
+    function acceptMateriel() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id > 0) {
+            $this->ModifierStatutMateriel($id, 'accepte');
+            $_SESSION['success'] = "Matériel approuvé et disponible pour sélection.";
+        } else {
+            $_SESSION['error'] = "Matériel introuvable.";
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-recettes&action=materiels'); exit;
+    }
+
+    /////..............................BACKOFFICE — Refuser Matériel............................../////
+    function refuseMateriel() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : 0);
+        $motif = trim($_POST['motif_refus'] ?? '');
+        if ($id > 0) {
+            $this->ModifierStatutMateriel($id, 'refuse', $motif ?: null);
+            $_SESSION['success'] = "Matériel refusé.";
+        } else {
+            $_SESSION['error'] = "Matériel introuvable.";
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-recettes&action=materiels'); exit;
+    }
+
+    /////..............................BACKOFFICE — Supprimer Matériel............................../////
+    function deleteMateriel() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id > 0) {
+            $this->SupprimerMateriel($id);
+            $_SESSION['success'] = "Matériel supprimé.";
+        } else {
+            $_SESSION['error'] = "Matériel introuvable.";
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-recettes&action=materiels'); exit;
     }
 }
 ?>
