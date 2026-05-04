@@ -122,7 +122,7 @@ $diffLabels = ['facile'=>'Facile','moyen'=>'Moyen','difficile'=>'Difficile'];
             <!-- Left: image + info -->
             <div style="display:flex;align-items:center;gap:1rem;flex:1;min-width:0">
               <!-- Thumbnail -->
-              <?php $sggThumb = gb_media_url($mr['image'] ?? '', gb_fallback_recette($mr['categorie'] ?? '')); ?>
+              <?php $sggThumb = MediaHelper::url($mr['image'] ?? '', MediaHelper::fallbackRecette($mr['categorie'] ?? '')); ?>
               <div style="width:3.5rem;height:3.5rem;border-radius:0.875rem;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--muted),var(--border))">
                 <img src="<?= htmlspecialchars($sggThumb) ?>"
                      alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">
