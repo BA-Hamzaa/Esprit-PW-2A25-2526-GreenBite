@@ -25,10 +25,6 @@
       <div class="form-group">
         <label class="form-label" for="nom"><i data-lucide="type" style="width:0.875rem;height:0.875rem"></i> Nom du repas <span style="color:#ef4444">*</span></label>
         <input type="text" name="nom" id="nom" class="form-input" placeholder="Ex: Toast avocat" value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>">
-        <div id="err-repasNom" style="display:none;align-items:center;gap:0.35rem;margin-top:0.35rem;font-size:0.75rem;font-weight:600;color:#ef4444">
-          <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem"></i>
-          <span></span>
-        </div>
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">
@@ -71,56 +67,37 @@ document.getElementById('add-aliment-btn').addEventListener('click', function() 
   c.appendChild(row);
   if (typeof lucide !== 'undefined') lucide.createIcons();
 });
+const _EI2 = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+function showFE(field, msg) {
+  field.classList.add('is-invalid'); field.classList.remove('is-valid');
+  let wrap = field.closest('.form-group') || field.parentElement;
+  let el = wrap.querySelector('.field-error');
+  if (!el) { el = document.createElement('div'); el.className = 'field-error'; wrap.appendChild(el); }
+  el.innerHTML = _EI2 + ' ' + msg; el.classList.add('show');
+}
+function clearFE(field) {
+  field.classList.remove('is-invalid'); field.classList.add('is-valid');
+  const wrap = field.closest('.form-group') || field.parentElement;
+  const el = wrap.querySelector('.field-error'); if (el) el.classList.remove('show');
+}
+
+const nomEl   = document.getElementById('nom');
+const dateEl  = document.getElementById('date_repas');
+const typeEl  = document.getElementById('type_repas');
+
+nomEl.addEventListener('blur', () => { const v=nomEl.value.trim(); if(!v) showFE(nomEl,'Le nom est obligatoire.'); else if(v.length<3) showFE(nomEl,'Min. 3 caractères.'); else clearFE(nomEl); });
+nomEl.addEventListener('input', () => { if(nomEl.classList.contains('is-invalid') && nomEl.value.trim().length>=3) clearFE(nomEl); });
+dateEl.addEventListener('blur', () => { if(!dateEl.value) showFE(dateEl,'La date est obligatoire.'); else clearFE(dateEl); });
+typeEl.addEventListener('change', () => { if(!typeEl.value) showFE(typeEl,'Le type est obligatoire.'); else clearFE(typeEl); });
+
 document.getElementById('repasForm').addEventListener('submit', function(e) {
-  let errors = [];
-  const nomVal = document.getElementById('nom').value.trim();
-  const errNomBox = document.getElementById('err-repasNom');
-
-  // Reset nom error
-  errNomBox.style.display = 'none';
-  document.getElementById('nom').style.borderColor = '';
-  document.getElementById('nom').style.boxShadow   = '';
-
-  if (!nomVal) {
-    errors.push('Le nom est obligatoire.');
-    showRepasFieldError('Le nom est obligatoire.');
-  } else if (nomVal.length < 3) {
-    errors.push('Le nom doit contenir au moins 3 caractères.');
-    showRepasFieldError('Le nom doit contenir au moins 3 caractères.');
-  }
-  if (document.getElementById('date_repas').value === '') errors.push('La date est obligatoire.');
-  if (document.getElementById('type_repas').value === '') errors.push('Le type est obligatoire.');
-
-  function showRepasFieldError(msg) {
-    const field = document.getElementById('nom');
-    const box   = document.getElementById('err-repasNom');
-    field.style.borderColor = '#ef4444';
-    field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
-    box.querySelector('span').textContent = msg;
-    box.style.display = 'flex';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  }
-
-  if (errors.length > 0) {
-    e.preventDefault();
-    if (typeof showToast === 'function') showToast('error', errors[0]);
-  }
-});
-
-// Real-time validation for nom
-document.getElementById('nom').addEventListener('input', function() {
-  const val = this.value.trim();
-  const box  = document.getElementById('err-repasNom');
-  if (val.length > 0 && val.length < 3) {
-    this.style.borderColor = '#ef4444';
-    this.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
-    box.querySelector('span').textContent = 'Le nom doit contenir au moins 3 caractères.';
-    box.style.display = 'flex';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  } else {
-    this.style.borderColor = '';
-    this.style.boxShadow   = '';
-    box.style.display = 'none';
-  }
+  let valid = true;
+  const nomVal = nomEl.value.trim();
+  if (!nomVal) { showFE(nomEl,'Le nom est obligatoire.'); valid=false; }
+  else if (nomVal.length < 3) { showFE(nomEl,'Min. 3 caractères.'); valid=false; }
+  else clearFE(nomEl);
+  if (!dateEl.value) { showFE(dateEl,'La date est obligatoire.'); valid=false; } else clearFE(dateEl);
+  if (!typeEl.value) { showFE(typeEl,'Le type est obligatoire.'); valid=false; } else clearFE(typeEl);
+  if (!valid) e.preventDefault();
 });
 </script>

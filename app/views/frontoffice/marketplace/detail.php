@@ -1,4 +1,5 @@
 <!-- Vue FrontOffice : Détail d'un produit -->
+<?php $heroProduitImg = gb_media_url($produit['image'] ?? '', gb_fallback_produit($produit['categorie'] ?? '')); ?>
 <div style="padding:2rem;max-width:56rem">
   <a href="<?= BASE_URL ?>/?page=marketplace" class="flex items-center gap-2 text-sm mb-6" style="color:var(--secondary);font-weight:500;transition:all 0.3s" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
     <i data-lucide="arrow-left" style="width:1rem;height:1rem"></i> Retour aux produits
@@ -8,11 +9,7 @@
     <div class="grid grid-cols-2 gap-0">
       <!-- Image -->
       <div style="height:22rem;background:var(--muted);overflow:hidden">
-        <?php if (!empty($produit['image'])): ?>
-          <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($produit['image']) ?>" alt="<?= htmlspecialchars($produit['nom']) ?>" style="width:100%;height:100%;object-fit:cover">
-        <?php else: ?>
-          <div class="flex items-center justify-center" style="height:100%"><i data-lucide="package" style="width:4rem;height:4rem;color:var(--text-muted)"></i></div>
-        <?php endif; ?>
+        <img src="<?= htmlspecialchars($heroProduitImg) ?>" alt="<?= htmlspecialchars($produit['nom']) ?>" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">
       </div>
 
       <!-- Infos -->

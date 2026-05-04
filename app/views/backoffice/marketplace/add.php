@@ -148,18 +148,38 @@ function showToast(type, msg) {
   setTimeout(()=>{ t.classList.add('hiding'); setTimeout(()=>t.remove(), 300); }, 4000);
 }
 
+// ── Inline validation helpers ──
+const _EI = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+function showFE(field, msg) {
+  field.classList.add('is-invalid'); field.classList.remove('is-valid');
+  let wrap = field.closest('.form-group') || field.parentElement;
+  let el = wrap.querySelector('.field-error');
+  if (!el) { el = document.createElement('div'); el.className = 'field-error'; wrap.appendChild(el); }
+  el.innerHTML = _EI + ' ' + msg; el.classList.add('show');
+}
+function clearFE(field) {
+  field.classList.remove('is-invalid'); field.classList.add('is-valid');
+  const wrap = field.closest('.form-group') || field.parentElement;
+  const el = wrap.querySelector('.field-error'); if (el) el.classList.remove('show');
+}
+
+const nomEl = document.getElementById('nom');
+const prixEl = document.getElementById('prix');
+const stockEl = document.getElementById('stock');
+
+nomEl.addEventListener('blur', () => { const v=nomEl.value.trim(); if(!v) showFE(nomEl,'Le nom est obligatoire.'); else if(v.length<3) showFE(nomEl,'Min. 3 caractères.'); else clearFE(nomEl); });
+nomEl.addEventListener('input', () => { if(nomEl.classList.contains('is-invalid') && nomEl.value.trim().length>=3) clearFE(nomEl); });
+prixEl.addEventListener('blur', () => { if(!prixEl.value || isNaN(prixEl.value) || parseFloat(prixEl.value)<=0) showFE(prixEl,'Prix positif obligatoire.'); else clearFE(prixEl); });
+stockEl.addEventListener('blur', () => { if(stockEl.value!=='' && (isNaN(stockEl.value)||parseInt(stockEl.value)<0)) showFE(stockEl,'Stock ne peut être négatif.'); else clearFE(stockEl); });
+
 document.getElementById('produitForm').addEventListener('submit', function(e) {
-  let errors = [];
-  const nom = document.getElementById('nom').value.trim();
-  if (nom === '') errors.push('Le nom du produit est obligatoire.');
-  else if (nom.length < 3) errors.push('Le nom doit contenir au moins 3 caractères.');
-  const prix = document.getElementById('prix').value;
-  if (prix === '' || isNaN(prix) || parseFloat(prix) <= 0) errors.push('Le prix doit être un nombre positif.');
-  const stock = document.getElementById('stock').value;
-  if (stock !== '' && (isNaN(stock) || parseInt(stock) < 0)) errors.push('Le stock ne peut pas être négatif.');
-  if (errors.length > 0) {
-    e.preventDefault();
-    showToast('error', errors[0]);
-  }
+  let valid = true;
+  const nom = nomEl.value.trim();
+  if (!nom) { showFE(nomEl,'Le nom est obligatoire.'); valid=false; }
+  else if (nom.length<3) { showFE(nomEl,'Min. 3 caractères.'); valid=false; }
+  else clearFE(nomEl);
+  if (!prixEl.value || isNaN(prixEl.value) || parseFloat(prixEl.value)<=0) { showFE(prixEl,'Prix positif obligatoire.'); valid=false; } else clearFE(prixEl);
+  if (stockEl.value!=='' && (isNaN(stockEl.value)||parseInt(stockEl.value)<0)) { showFE(stockEl,'Stock ne peut être négatif.'); valid=false; } else clearFE(stockEl);
+  if (!valid) e.preventDefault();
 });
 </script>
