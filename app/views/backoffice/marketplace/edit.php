@@ -93,7 +93,7 @@
         </h3>
         <?php if (!empty($produit['image'])): ?>
         <div class="flex items-center gap-4 p-3 rounded-xl mb-4" style="background:var(--muted);border:1px solid var(--border)">
-          <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($produit['image']) ?>" alt="" style="width:4rem;height:4rem;object-fit:cover;border-radius:var(--radius-lg)">
+          <img src="<?= htmlspecialchars(gb_media_url($produit['image'] ?? '', gb_fallback_produit($produit['categorie'] ?? ''))) ?>" alt="" style="width:4rem;height:4rem;object-fit:cover;border-radius:var(--radius-lg)">
           <div>
             <div class="text-sm font-medium" style="color:var(--text-primary)"><?= htmlspecialchars($produit['image']) ?></div>
             <div class="text-xs" style="color:var(--text-muted)">Image actuelle</div>
@@ -142,16 +142,20 @@ function showToast(type, msg) {
   if (typeof lucide !== 'undefined') lucide.createIcons();
   setTimeout(()=>{ t.classList.add('hiding'); setTimeout(()=>t.remove(), 300); }, 4000);
 }
+const _EI=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+function showFE(f,m){f.classList.add('is-invalid');let w=f.closest('.form-group')||f.parentElement;let e=w.querySelector('.field-error');if(!e){e=document.createElement('div');e.className='field-error';w.appendChild(e);}e.innerHTML=_EI+' '+m;e.classList.add('show');}
+function clearFE(f){f.classList.remove('is-invalid');f.classList.add('is-valid');let w=f.closest('.form-group')||f.parentElement;let e=w.querySelector('.field-error');if(e)e.classList.remove('show');}
+
+const nomEl=document.getElementById('nom'), prixEl=document.getElementById('prix');
+nomEl.addEventListener('blur',()=>{const v=nomEl.value.trim();if(!v)showFE(nomEl,'Nom obligatoire.');else if(v.length<3)showFE(nomEl,'Min. 3 caractères.');else clearFE(nomEl);});
+nomEl.addEventListener('input',()=>{if(nomEl.classList.contains('is-invalid')&&nomEl.value.trim().length>=3)clearFE(nomEl);});
+prixEl.addEventListener('blur',()=>{if(!prixEl.value||parseFloat(prixEl.value)<=0)showFE(prixEl,'Prix positif obligatoire.');else clearFE(prixEl);});
+
 document.getElementById('produitForm').addEventListener('submit', function(e) {
-  let errors = [];
-  const nom = document.getElementById('nom').value.trim();
-  if (nom === '') errors.push('Le nom du produit est obligatoire.');
-  else if (nom.length < 3) errors.push('Le nom doit contenir au moins 3 caractères.');
-  const prix = document.getElementById('prix').value;
-  if (prix === '' || parseFloat(prix) <= 0) errors.push('Le prix doit être un nombre positif.');
-  if (errors.length > 0) {
-    e.preventDefault();
-    showToast('error', errors[0]);
-  }
+  let valid=true;
+  const nom=nomEl.value.trim();
+  if(!nom){showFE(nomEl,'Nom obligatoire.');valid=false;}else if(nom.length<3){showFE(nomEl,'Min. 3 caractères.');valid=false;}else clearFE(nomEl);
+  if(!prixEl.value||parseFloat(prixEl.value)<=0){showFE(prixEl,'Prix positif obligatoire.');valid=false;}else clearFE(prixEl);
+  if(!valid)e.preventDefault();
 });
 </script>

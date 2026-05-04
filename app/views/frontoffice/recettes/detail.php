@@ -1,4 +1,5 @@
 <!-- Vue FrontOffice : Détail d'une recette + Commentaires -->
+<?php $heroRecipeImg = gb_media_url($recette['image'] ?? '', gb_fallback_recette($recette['categorie'] ?? '')); ?>
 <div style="padding:2rem;max-width:56rem">
   <a href="<?= BASE_URL ?>/?page=recettes" class="flex items-center gap-2 text-sm mb-6" style="color:var(--secondary);font-weight:500;transition:all 0.3s" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
     <i data-lucide="arrow-left" style="width:1rem;height:1rem"></i> Retour aux recettes
@@ -6,11 +7,9 @@
 
   <!-- En-tête -->
   <div class="card mb-6" style="overflow:hidden;padding:0">
-    <?php if (!empty($recette['image'])): ?>
-      <div style="height:16rem;overflow:hidden">
-        <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($recette['image']) ?>" alt="<?= htmlspecialchars($recette['titre']) ?>" style="width:100%;height:100%;object-fit:cover">
-      </div>
-    <?php endif; ?>
+    <div style="height:16rem;overflow:hidden;background:var(--muted)">
+      <img src="<?= htmlspecialchars($heroRecipeImg) ?>" alt="<?= htmlspecialchars($recette['titre']) ?>" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">
+    </div>
 
     <div style="padding:2rem">
       <?php
@@ -48,6 +47,7 @@
     <!-- Ingrédients -->
     <div class="card">
       <h2 class="font-semibold mb-4 flex items-center gap-2" style="color:var(--text-primary)"><i data-lucide="carrot" style="width:1rem;height:1rem;color:var(--accent-orange)"></i> Ingrédients</h2>
+
       <div class="space-y-2">
         <?php foreach ($ingredients as $i): ?>
           <div class="flex items-center justify-between p-2 rounded-xl" style="background:var(--muted);transition:all 0.2s" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
@@ -68,7 +68,31 @@
     </div>
   </div>
 
+  <!-- ═══ API 3: Spoonacular — Analyse Nutritionnelle ═══ -->
+  <div id="spoonacular-card" class="card mb-6" style="padding:0;overflow:hidden;border:2px solid rgba(249,115,22,0.15);background:linear-gradient(135deg,rgba(249,115,22,0.03),transparent)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(249,115,22,0.1);background:linear-gradient(135deg,rgba(249,115,22,0.06),transparent)">
+      <div class="flex items-center gap-3">
+        <div style="width:2.25rem;height:2.25rem;border-radius:var(--radius-xl);background:linear-gradient(135deg,#ffedd5,#fff7ed);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(249,115,22,0.2)">
+          <i data-lucide="brain-circuit" style="width:1.1rem;height:1.1rem;color:#f97316"></i>
+        </div>
+        <div>
+          <h2 style="font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--text-primary)">🔬 Analyse Nutritionnelle IA</h2>
+          <p style="font-size:0.7rem;color:var(--text-muted)">Via Spoonacular · Estimation basée sur le titre de la recette</p>
+        </div>
+      </div>
+      <span id="spoon-status" style="font-size:0.7rem;color:var(--text-muted)"></span>
+    </div>
+    <div id="spoon-body" style="padding:1.25rem">
+      <div id="spoon-loading" style="display:flex;align-items:center;gap:0.75rem;color:var(--text-muted);font-size:0.82rem">
+        <div style="width:1.25rem;height:1.25rem;border:2px solid var(--border);border-top-color:#f97316;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0"></div>
+        Analyse en cours...
+      </div>
+      <div id="spoon-content" style="display:none"></div>
+    </div>
+  </div>
+
   <!-- ===== SECTION COMMENTAIRES ===== -->
+
   <div id="commentaires">
 
     <!-- Flash messages -->
@@ -171,7 +195,7 @@
                     <span style="font-weight:400"> (même nom que lors de la soumission)</span>
                   </label>
                   <input type="text" name="auteur" placeholder="Votre nom exact" class="input"
-                         style="width:100%;font-size:0.85rem" required>
+                         style="width:100%;font-size:0.85rem">
                 </div>
 
                 <!-- New star rating -->
@@ -239,7 +263,7 @@
             <label class="text-sm font-semibold mb-1 block" style="color:var(--text-primary)">
               Votre nom <span style="color:var(--destructive)">*</span>
             </label>
-            <input type="text" name="auteur" id="auteur" maxlength="150" required
+            <input type="text" name="auteur" id="auteur" maxlength="150"
                    placeholder="Ex: Marie Dupont"
                    class="input" style="width:100%">
           </div>
@@ -266,7 +290,7 @@
                      onmouseout="restoreStars()">
                 ★
               </label>
-              <input type="radio" name="note" id="star<?= $s ?>" value="<?= $s ?>" required
+              <input type="radio" name="note" id="star<?= $s ?>" value="<?= $s ?>"
                      style="display:none" onchange="setStarValue(<?= $s ?>)">
             <?php endfor; ?>
           </div>
@@ -278,7 +302,7 @@
           <label for="commentaire" class="text-sm font-semibold mb-1 block" style="color:var(--text-primary)">
             Commentaire <span style="color:var(--destructive)">*</span>
           </label>
-          <textarea name="commentaire" id="commentaire" rows="4" maxlength="1000" required
+          <textarea name="commentaire" id="commentaire" rows="4" maxlength="1000"
                     placeholder="Partagez votre expérience avec cette recette... (min. 10 caractères)"
                     class="input" style="width:100%;resize:vertical;min-height:100px"
                     oninput="updateCharCount(this)"></textarea>
@@ -517,3 +541,117 @@
     }
   });
 </script>
+
+<script>
+// ═══ API 3: Spoonacular — Nutrition Analysis ═══
+(async function() {
+  const title  = <?= json_encode($recette['titre']) ?>;
+  const storedCal = <?= (int)($recette['calories_total'] ?? 0) ?>;
+  const apiKey = 'b3fc0d49128842d891296aa0bd1b0053';
+  const loading = document.getElementById('spoon-loading');
+  const content = document.getElementById('spoon-content');
+  const status  = document.getElementById('spoon-status');
+
+  const bar = (val, color, label, unit, total) => `
+    <div style="margin-bottom:0.875rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
+        <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary)">${label}</span>
+        <span style="font-size:0.75rem;font-weight:700;color:${color}">${val}${unit}</span>
+      </div>
+      <div style="height:8px;background:var(--muted);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,Math.round(val/(total||1)*100))}%;background:${color};border-radius:99px;transition:width 1s ease-out"></div>
+      </div>
+    </div>`;
+
+  function renderCard(cal, prot, carb, fat, source) {
+    const total = prot + carb + fat || 1;
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:1.25rem 2rem;align-items:start">
+        <div style="text-align:center;padding:1rem 1.5rem;background:linear-gradient(135deg,#ffedd5,#fff7ed);border-radius:var(--radius-xl);border:2px solid rgba(249,115,22,0.2)">
+          <div style="font-size:2rem;font-weight:900;color:#f97316;line-height:1">${cal}</div>
+          <div style="font-size:0.7rem;font-weight:600;color:var(--text-muted);margin-top:0.25rem">kcal</div>
+          <div style="font-size:0.62rem;color:var(--text-muted);margin-top:0.15rem">estimées</div>
+        </div>
+        <div style="flex:1">
+          ${bar(prot,'#2563eb','🥩 Protéines','g', total)}
+          ${bar(carb,'#16a34a','🌾 Glucides','g', total)}
+          ${bar(fat,'#f97316','🧈 Lipides','g', total)}
+        </div>
+      </div>
+      <p style="font-size:0.65rem;color:var(--text-muted);margin-top:0.75rem;display:flex;align-items:center;gap:0.3rem">
+        <i data-lucide="info" style="width:0.65rem;height:0.65rem"></i>
+        ${source}
+      </p>`;
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    status.textContent = '✅ Analyse complète';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  function localFallback() {
+    // Use stored calories or estimate; split into typical macro ratios
+    var cal = storedCal > 0 ? storedCal : 400;
+    var titleLow = title.toLowerCase();
+    var prot, carb, fat;
+    // Adjust ratios by recipe type
+    if (/salade|salad|veggie|vegan|légume|vegetable/.test(titleLow)) {
+      prot = Math.round(cal * 0.15 / 4);
+      fat  = Math.round(cal * 0.25 / 9);
+      carb = Math.round(cal * 0.60 / 4);
+    } else if (/poulet|chicken|dinde|turkey|viande|beef|lamb/.test(titleLow)) {
+      prot = Math.round(cal * 0.35 / 4);
+      fat  = Math.round(cal * 0.30 / 9);
+      carb = Math.round(cal * 0.35 / 4);
+    } else if (/pâtes|pasta|riz|rice|bowl|couscous/.test(titleLow)) {
+      prot = Math.round(cal * 0.15 / 4);
+      fat  = Math.round(cal * 0.20 / 9);
+      carb = Math.round(cal * 0.65 / 4);
+    } else {
+      prot = Math.round(cal * 0.20 / 4);
+      fat  = Math.round(cal * 0.30 / 9);
+      carb = Math.round(cal * 0.50 / 4);
+    }
+    renderCard(cal, prot, carb, fat, 'Estimation locale basée sur le profil de la recette · Les valeurs réelles peuvent varier');
+  }
+
+  try {
+    // Translate French food words → English so Spoonacular understands the recipe
+    const frToEn = {
+      'poulet':'chicken','boeuf':'beef','veau':'veal','porc':'pork','agneau':'lamb',
+      'saumon':'salmon','thon':'tuna','crevettes':'shrimp','moules':'mussels',
+      'salade':'salad','soupe':'soup','velouté':'cream soup','gratin':'gratin',
+      'pâtes':'pasta','riz':'rice','couscous':'couscous','quiche':'quiche',
+      'tarte':'tart','pizza':'pizza','burger':'burger','sandwich':'sandwich',
+      'curry':'curry','rôti':'roast','ragoût':'stew','mijoté':'braised',
+      'tomate':'tomato','carotte':'carrot','courgette':'zucchini','champignon':'mushroom',
+      'épinard':'spinach','avocat':'avocado','brocoli':'broccoli','aubergine':'eggplant',
+      'poivron':'pepper','oignon':'onion','ail':'garlic','pomme de terre':'potato',
+      'lentilles':'lentils','pois chiches':'chickpeas','haricots':'beans',
+      'fromage':'cheese','oeuf':'egg','crème':'cream','beurre':'butter',
+      'bio':'organic','maison':'homemade','au four':'baked','grillé':'grilled',
+      'césar':'caesar','méditerranéen':'mediterranean','asiatique':'asian',
+      'thaï':'thai','indien':'indian','libanais':'lebanese','mexicain':'mexican'
+    };
+    var translatedTitle = title.toLowerCase();
+    Object.keys(frToEn).forEach(function(fr) {
+      translatedTitle = translatedTitle.replace(new RegExp(fr, 'gi'), frToEn[fr]);
+    });
+    const res = await fetch(`https://api.spoonacular.com/recipes/guessNutrition?title=${encodeURIComponent(translatedTitle)}&apiKey=${apiKey}`);
+    if (res.status === 402 || res.status === 429) { localFallback(); return; }
+    if (!res.ok) { localFallback(); return; }
+    const d = await res.json();
+    // Check for quota error embedded in 200 response
+    if (d.code === 402 || d.status === 'failure') { localFallback(); return; }
+    const cal  = Math.round(d.calories?.value  || 0);
+    const prot = Math.round(d.protein?.value   || 0);
+    const carb = Math.round(d.carbs?.value     || 0);
+    const fat  = Math.round(d.fat?.value       || 0);
+    // If all zeros, use fallback
+    if (cal === 0 && prot === 0 && carb === 0 && fat === 0) { localFallback(); return; }
+    renderCard(cal, prot, carb, fat, 'Via Spoonacular · Estimation basée sur le titre de la recette · Les valeurs réelles peuvent varier selon les quantités');
+  } catch(err) {
+    localFallback();
+  }
+})();
+</script>
+

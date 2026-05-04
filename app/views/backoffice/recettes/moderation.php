@@ -66,14 +66,11 @@
           </div>
 
           <!-- Image -->
+          <?php $modImg = gb_media_url($r['image'] ?? '', gb_fallback_recette($r['categorie'] ?? '')); ?>
           <div style="height:9rem;background:var(--muted);position:relative;overflow:hidden">
-            <?php if (!empty($r['image'])): ?>
-              <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($r['image']) ?>"
-                   alt="<?= htmlspecialchars($r['titre']) ?>"
-                   style="width:100%;height:100%;object-fit:cover">
-            <?php else: ?>
-              <div class="flex items-center justify-center" style="height:100%;font-size:3rem">🍽️</div>
-            <?php endif; ?>
+            <img src="<?= htmlspecialchars($modImg) ?>"
+                 alt="<?= htmlspecialchars($r['titre']) ?>"
+                 loading="lazy" style="width:100%;height:100%;object-fit:cover">
           </div>
 
           <!-- Content -->

@@ -112,22 +112,18 @@
     <div class="grid grid-cols-3 gap-6">
       <?php foreach ($produits as $p):
         $inCart = isset($_SESSION['panier'][$p['id']]) ? $_SESSION['panier'][$p['id']] : 0;
+        $productPhoto = gb_media_url($p['image'] ?? '', gb_fallback_produit($p['categorie'] ?? ''));
       ?>
         <div class="card card-interactive card-glow" style="padding:0;overflow:hidden;border:1px solid var(--border)<?= $inCart > 0 ? ';outline:2px solid rgba(249,115,22,0.35)' : '' ?>">
 
           <!-- Product image -->
           <div style="height:11rem;background:linear-gradient(135deg,var(--muted),var(--border));position:relative;overflow:hidden">
-            <?php if (!empty($p['image'])): ?>
-              <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($p['image']) ?>"
-                   alt="<?= htmlspecialchars($p['nom']) ?>"
-                   style="width:100%;height:100%;object-fit:cover;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1)"
-                   onmouseover="this.style.transform='scale(1.1)'"
-                   onmouseout="this.style.transform='scale(1)'">
-            <?php else: ?>
-              <div style="height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(202,138,4,0.07),rgba(202,138,4,0.03))">
-                <i data-lucide="package" style="width:3rem;height:3rem;color:var(--text-muted)"></i>
-              </div>
-            <?php endif; ?>
+            <img src="<?= htmlspecialchars($productPhoto) ?>"
+                 alt="<?= htmlspecialchars($p['nom']) ?>"
+                 loading="lazy" decoding="async"
+                 style="width:100%;height:100%;object-fit:cover;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1)"
+                 onmouseover="this.style.transform='scale(1.06)'"
+                 onmouseout="this.style.transform='scale(1)'">
 
             <!-- Overlay gradient -->
             <div style="position:absolute;bottom:0;left:0;right:0;height:3.5rem;background:linear-gradient(transparent,rgba(0,0,0,0.35))"></div>

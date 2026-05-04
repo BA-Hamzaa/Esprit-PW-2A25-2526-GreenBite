@@ -188,10 +188,10 @@ class MarketplaceController {
         }
     }
 
-    /////..............................Ajouter Commande............................../////
+    /////..............................Ajouter Commande (avec coordonnées GPS)............................../////
     function AjouterCommande(Commande $commande) {
-        $sql = "INSERT INTO commande (client_nom, client_email, client_adresse, total, statut)
-                VALUES (:client_nom, :client_email, :client_adresse, :total, :statut)";
+        $sql = "INSERT INTO commande (client_nom, client_email, client_adresse, latitude, longitude, total, statut)
+                VALUES (:client_nom, :client_email, :client_adresse, :latitude, :longitude, :total, :statut)";
         $db  = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -199,6 +199,8 @@ class MarketplaceController {
                 'client_nom'     => $commande->getClientNom(),
                 'client_email'   => $commande->getClientEmail(),
                 'client_adresse' => $commande->getClientAdresse(),
+                'latitude'       => $commande->getLatitude(),
+                'longitude'      => $commande->getLongitude(),
                 'total'          => $commande->getTotal(),
                 'statut'         => $commande->getStatut(),
             ]);
@@ -310,7 +312,7 @@ class MarketplaceController {
 
     /////..............................Upload Image (méthode privée)............................../////
     private function uploadImage($imageFile) {
-        $uploadDir    = BASE_PATH . '/app/models/public/assets/images/uploads/';
+        $uploadDir    = BASE_PATH . '/app/views/public/assets/images/uploads/';
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize      = 2 * 1024 * 1024;
 
@@ -413,17 +415,16 @@ class MarketplaceController {
         header('Location: ' . BASE_URL . '/?page=marketplace'); exit;
     }
 
-    /////..............................FRONTOFFICE — Passer Commande............................../////
+    /////..............................FRONTOFFICE — Passer Commande (Stripe)............................../////
     function orderFront() {
-        $errors       = [];
-        $db           = Database::getConnexion();
-        $stmt         = $db->query("SELECT * FROM produit ORDER BY nom ASC");
-        $produits     = $stmt->fetchAll();
+        $errors     = [];
+        $db         = Database::getConnexion();
+        $produits   = $db->query("SELECT * FROM produit ORDER BY nom ASC")->fetchAll();
 
-        // Build cart items with product details
-        $panier      = $_SESSION['panier'] ?? [];
-        $cartItems   = [];
-        $cartTotal   = 0;
+        // Build cart
+        $panier    = $_SESSION['panier'] ?? [];
+        $cartItems = [];
+        $cartTotal = 0;
         foreach ($panier as $pid => $qty) {
             $p = $this->RecupererProduit($pid);
             if ($p) {
@@ -435,55 +436,85 @@ class MarketplaceController {
         }
         $cartCount = array_sum($panier);
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $errors = $this->ValiderCommande($_POST);
+        // ---- Stripe payment confirmation (POST from JS) ----
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['stripe_payment_intent_id'])) {
+            $piId = trim($_POST['stripe_payment_intent_id']);
 
-            if (empty($errors)) {
-                $lignes   = [];
-                $totalVal = 0;
+            // Verify PaymentIntent status with Stripe
+            $ch = curl_init('https://api.stripe.com/v1/payment_intents/' . urlencode($piId));
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . STRIPE_SECRET_KEY],
+            ]);
+            $stripeResp = json_decode(curl_exec($ch), true);
+            curl_close($ch);
 
-                if (!empty($_POST['produit_ids'])) {
-                    foreach ($_POST['produit_ids'] as $i => $produitId) {
-                        $quantite = (int)$_POST['quantites'][$i];
-                        if (!empty($produitId) && $quantite > 0) {
-                            $p = $this->RecupererProduit($produitId);
-                            if ($p) {
-                                $totalVal += $p['prix'] * $quantite;
-                                $lignes[] = [
-                                    'produit_id' => $produitId,
-                                    'quantite'   => $quantite,
-                                    'prix_unit'  => $p['prix'],
-                                ];
-                            }
+            if (isset($stripeResp['status']) && $stripeResp['status'] === 'succeeded') {
+                // Basic field validation
+                $nom     = trim($_POST['client_nom']     ?? '');
+                $email   = trim($_POST['client_email']   ?? '');
+                $adresse = trim($_POST['client_adresse'] ?? '');
+                $lat     = !empty($_POST['client_lat'])  ? (float)$_POST['client_lat']  : null;
+                $lng     = !empty($_POST['client_lng'])  ? (float)$_POST['client_lng']  : null;
+                if (empty($nom))                            $errors[] = 'Nom obligatoire.';
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
+                if (strlen($adresse) < 5)                   $errors[] = 'Adresse invalide.';
+                if (empty($cartItems))                      $errors[] = 'Panier vide.';
+
+                if (empty($errors)) {
+                    $lignes   = [];
+                    $totalVal = 0;
+                    foreach ($panier as $pid => $qty) {
+                        $p = $this->RecupererProduit($pid);
+                        if ($p && $qty > 0) {
+                            $totalVal += $p['prix'] * $qty;
+                            $lignes[] = ['produit_id' => $pid, 'quantite' => $qty, 'prix_unit' => $p['prix']];
                         }
                     }
+
+                    $commande   = new Commande($nom, $email, $adresse, $totalVal, 'confirmee', $lat, $lng);
+                    $commandeId = $this->AjouterCommande($commande);
+                    foreach ($lignes as $l) {
+                        $this->AjouterLigneCommande($commandeId, $l['produit_id'], $l['quantite'], $l['prix_unit']);
+                    }
+
+                    unset($_SESSION['panier']);
+                    $_SESSION['order_success'] = [
+                        'commande_id'      => $commandeId,
+                        'total'            => $totalVal,
+                        'client_nom'       => $nom,
+                        'client_email'     => $email,
+                        'payment_intent'   => $piId,
+                        'items_count'      => count($lignes),
+                    ];
+
+                    header('Location: ' . BASE_URL . '/?page=marketplace&action=order-success');
+                    exit;
                 }
-
-                $commande = new Commande(
-                    trim($_POST['client_nom']),
-                    trim($_POST['client_email']),
-                    trim($_POST['client_adresse']),
-                    $totalVal,
-                    'en_attente'
-                );
-
-                $commandeId = $this->AjouterCommande($commande);
-
-                foreach ($lignes as $ligne) {
-                    $this->AjouterLigneCommande($commandeId, $ligne['produit_id'], $ligne['quantite'], $ligne['prix_unit']);
-                }
-
-                // Clear cart after successful order
-                unset($_SESSION['panier']);
-
-                $_SESSION['success'] = "Commande passée avec succès ! Numéro : #" . $commandeId;
-                header('Location: ' . BASE_URL . '/?page=marketplace');
-                exit;
+            } else {
+                $errors[] = 'Paiement non vérifié. Veuillez réessayer.';
             }
         }
 
+        $stripePublishableKey = STRIPE_PUBLISHABLE_KEY;
+        $mapboxToken          = MAPBOX_TOKEN;
+
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/frontoffice/marketplace/order.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
+    }
+
+    /////..............................FRONTOFFICE — Confirmation Commande............................../////
+    function orderSuccess() {
+        if (empty($_SESSION['order_success'])) {
+            header('Location: ' . BASE_URL . '/?page=marketplace');
+            exit;
+        }
+        $orderData = $_SESSION['order_success'];
+        unset($_SESSION['order_success']);
+
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/marketplace/order_success.php';
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
     }
 

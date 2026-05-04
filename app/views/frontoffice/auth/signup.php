@@ -112,34 +112,44 @@
     const colors = ['#ef4444','#f59e0b','#22c55e','#16a34a'];
     bars.forEach((b,i) => { b.style.background = i < s ? colors[Math.min(s-1,3)] : 'var(--border)'; });
   });
+  const ERR_ICON = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  function showFE(field, msg) {
+    field.classList.add('is-invalid'); field.classList.remove('is-valid');
+    let wrap = field.closest('.form-group') || field.parentElement;
+    let el = wrap.querySelector('.field-error');
+    if (!el) { el = document.createElement('div'); el.className = 'field-error'; wrap.appendChild(el); }
+    el.innerHTML = ERR_ICON + ' ' + msg; el.classList.add('show');
+  }
+  function clearFE(field) {
+    field.classList.remove('is-invalid'); field.classList.add('is-valid');
+    const wrap = field.closest('.form-group') || field.parentElement;
+    const el = wrap.querySelector('.field-error');
+    if (el) el.classList.remove('show');
+  }
+
+  // Live blur validation
+  const allInputs = document.querySelectorAll('#signupForm input[type="text"], #signupForm input[type="email"], #signupForm input[type="password"]');
+  const prenom = allInputs[0], nom = allInputs[1], emailS = allInputs[2], pwdS = allInputs[3], confirmS = allInputs[4];
+
+  prenom.addEventListener('blur', () => { if (!prenom.value.trim() || prenom.value.trim().length < 2) showFE(prenom,'Prénom requis (min. 2 car.)'); else clearFE(prenom); });
+  nom.addEventListener('blur', () => { if (!nom.value.trim() || nom.value.trim().length < 2) showFE(nom,'Nom requis (min. 2 car.)'); else clearFE(nom); });
+  emailS.addEventListener('blur', () => { if (!emailS.value.trim()) showFE(emailS,"Email obligatoire."); else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailS.value)) showFE(emailS,"Format d'email invalide."); else clearFE(emailS); });
+  pwdS.addEventListener('blur', () => { if (!pwdS.value) showFE(pwdS,'Mot de passe obligatoire.'); else if (pwdS.value.length < 8) showFE(pwdS,'Min. 8 caractères.'); else clearFE(pwdS); });
+  confirmS.addEventListener('blur', () => { if (!confirmS.value) showFE(confirmS,'Confirmation obligatoire.'); else if (confirmS.value !== pwdS.value) showFE(confirmS,'Les mots de passe ne correspondent pas.'); else clearFE(confirmS); });
+
   document.getElementById('signupForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const allInputs = this.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
-    const prenom = allInputs[0], nom = allInputs[1], email = allInputs[2];
-    const pwd = allInputs[3], confirm = allInputs[4];
-    let error = null;
-
-    if (!prenom.value.trim())        error = "Le prénom est obligatoire.";
-    else if (prenom.value.trim().length < 2) error = "Le prénom doit contenir au moins 2 caractères.";
-    else if (!nom.value.trim())      error = "Le nom est obligatoire.";
-    else if (nom.value.trim().length < 2)    error = "Le nom doit contenir au moins 2 caractères.";
-    else if (!email.value.trim())    error = "L'adresse email est obligatoire.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) error = "L'adresse email n'est pas valide.";
-    else if (!pwd.value)             error = "Le mot de passe est obligatoire.";
-    else if (pwd.value.length < 8)   error = "Le mot de passe doit contenir au moins 8 caractères.";
-    else if (!confirm.value)         error = "Veuillez confirmer votre mot de passe.";
-    else if (pwd.value !== confirm.value) error = "Les mots de passe ne correspondent pas.";
-
+    let valid = true;
+    if (!prenom.value.trim() || prenom.value.trim().length < 2) { showFE(prenom,'Prénom requis (min. 2 car.)'); valid=false; } else clearFE(prenom);
+    if (!nom.value.trim() || nom.value.trim().length < 2) { showFE(nom,'Nom requis (min. 2 car.)'); valid=false; } else clearFE(nom);
+    if (!emailS.value.trim()) { showFE(emailS,"Email obligatoire."); valid=false; } else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailS.value)){ showFE(emailS,"Format invalide."); valid=false; } else clearFE(emailS);
+    if (!pwdS.value) { showFE(pwdS,'Mot de passe obligatoire.'); valid=false; } else if(pwdS.value.length<8){ showFE(pwdS,'Min. 8 caractères.'); valid=false; } else clearFE(pwdS);
+    if (!confirmS.value) { showFE(confirmS,'Confirmation obligatoire.'); valid=false; } else if(confirmS.value!==pwdS.value){ showFE(confirmS,'Les mots de passe ne correspondent pas.'); valid=false; } else clearFE(confirmS);
     const terms = this.querySelector('input[type="checkbox"]');
-    if (!error && terms && !terms.checked)
-        error = "Vous devez accepter les conditions d'utilisation.";
-
-    if (error) {
-        showToast('error', error);
-    } else {
-        showToast('success', 'Compte créé ! Redirection...');
-    }
+    if (terms && !terms.checked) { showToast('error',"Acceptez les conditions d'utilisation."); valid=false; }
+    if (valid) showToast('success', 'Compte créé ! Redirection...');
   });
+
 
   function showToast(type, msg) {
     const t = document.createElement('div');
