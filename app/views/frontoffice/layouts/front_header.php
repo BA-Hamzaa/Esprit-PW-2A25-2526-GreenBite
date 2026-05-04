@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="<?= BASE_URL ?>/assets/js/validate.js"></script>
 </head>
 <body>
 <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
@@ -51,8 +52,8 @@
         <div class="sidebar-section-label">Suivi Nutritionnel</div>
         <ul class="space-y-1 mb-5">
           <li>
-            <a href="<?= BASE_URL ?>/?page=nutrition" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && (!isset($_GET['action']) || $_GET['action'] === 'list')) ? 'active' : '' ?>">
-              <i data-lucide="utensils-crossed"></i><span>Mes Repas</span>
+            <a href="<?= BASE_URL ?>/?page=nutrition&action=regimes" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'regime') !== false) ? 'active' : '' ?>">
+              <i data-lucide="salad"></i><span>Régimes</span>
             </a>
           </li>
           <li>
@@ -61,8 +62,8 @@
             </a>
           </li>
           <li>
-            <a href="<?= BASE_URL ?>/?page=nutrition&action=regimes" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'regime') !== false) ? 'active' : '' ?>">
-              <i data-lucide="salad"></i><span>Régimes</span>
+            <a href="<?= BASE_URL ?>/?page=nutrition" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && (!isset($_GET['action']) || $_GET['action'] === 'list')) ? 'active' : '' ?>">
+              <i data-lucide="utensils-crossed"></i><span>Mes Repas</span>
             </a>
           </li>
         </ul>

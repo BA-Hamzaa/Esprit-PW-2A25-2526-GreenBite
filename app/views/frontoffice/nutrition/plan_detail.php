@@ -461,8 +461,12 @@
     <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
       <?= nl2br(htmlspecialchars($plan['description'] ?? 'Aucune description fournie.')) ?>
     </p>
-  </div>
+</div>
 
+<!-- ═══ API Widgets ═══ -->
+<div style="max-width:64rem;margin:0 auto;padding:0 2rem 2rem">
+  <?php require_once BASE_PATH . '/app/views/frontoffice/nutrition/partials/micronutrient_widget.php'; ?>
+  <?php require_once BASE_PATH . '/app/views/frontoffice/nutrition/partials/nutriscore_widget.php'; ?>
 </div>
 
 <div class="floating-follow-plan" id="floatingFollowPlan">

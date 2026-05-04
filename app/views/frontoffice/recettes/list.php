@@ -85,21 +85,17 @@
         $diffColors = ['facile'=>'#16a34a','moyen'=>'#d97706','difficile'=>'#dc2626'];
       ?>
       <?php foreach ($recettes as $r): ?>
+        <?php $recipePhoto = gb_media_url($r['image'] ?? '', gb_fallback_recette($r['categorie'] ?? '')); ?>
         <div class="card card-interactive card-glow" style="padding:0;overflow:hidden;border:1px solid var(--border)">
 
-          <!-- Image area -->
+          <!-- Image area (upload local ou photo de repli si fichier seed absent) -->
           <div style="height:11rem;background:linear-gradient(135deg,var(--muted),var(--border));position:relative;overflow:hidden">
-            <?php if (!empty($r['image'])): ?>
-              <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($r['image']) ?>"
-                   alt="<?= htmlspecialchars($r['titre']) ?>"
-                   style="width:100%;height:100%;object-fit:cover;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1)"
-                   onmouseover="this.style.transform='scale(1.1)'"
-                   onmouseout="this.style.transform='scale(1)'">
-            <?php else: ?>
-              <div style="height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(82,183,136,0.08),rgba(45,106,79,0.06))">
-                <i data-lucide="chef-hat" style="width:3rem;height:3rem;color:var(--text-muted)"></i>
-              </div>
-            <?php endif; ?>
+            <img src="<?= htmlspecialchars($recipePhoto) ?>"
+                 alt="<?= htmlspecialchars($r['titre']) ?>"
+                 loading="lazy" decoding="async"
+                 style="width:100%;height:100%;object-fit:cover;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1)"
+                 onmouseover="this.style.transform='scale(1.06)'"
+                 onmouseout="this.style.transform='scale(1)'">
 
             <!-- Overlay gradient -->
             <div style="position:absolute;bottom:0;left:0;right:0;height:3.5rem;background:linear-gradient(transparent,rgba(0,0,0,0.4))"></div>
@@ -159,4 +155,94 @@
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
+
+  <!-- --- API 2: TheMealDB — Inspiration du Jour --- -->
+  <div id="inspiration-widget" class="card mt-8" style="padding:0;overflow:hidden;border:2px solid rgba(82,183,136,0.2);background:linear-gradient(135deg,rgba(82,183,136,0.04),rgba(45,106,79,0.02))">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid rgba(82,183,136,0.12);background:linear-gradient(135deg,rgba(82,183,136,0.08),transparent)">
+      <div class="flex items-center gap-3">
+        <div style="width:2.5rem;height:2.5rem;border-radius:var(--radius-xl);background:linear-gradient(135deg,#dcfce7,#f0fdf4);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(34,197,94,0.2)">
+          <i data-lucide="sparkles" style="width:1.25rem;height:1.25rem;color:#16a34a"></i>
+        </div>
+        <div>
+          <h2 style="font-family:var(--font-heading);font-size:1rem;font-weight:700;color:var(--text-primary)">💡 Inspiration du Jour</h2>
+          <p style="font-size:0.72rem;color:var(--text-muted)">Via TheMealDB · Recette internationale du moment</p>
+        </div>
+      </div>
+      <button id="refresh-inspiration" onclick="loadInspiration()" style="display:flex;align-items:center;gap:0.4rem;padding:0.45rem 0.9rem;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.75rem;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(22,163,74,0.3);transition:all 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">
+        <i data-lucide="refresh-cw" style="width:0.75rem;height:0.75rem"></i> Nouvelle recette
+      </button>
+    </div>
+    <div id="inspiration-body" style="padding:1.5rem">
+      <div id="inspiration-loading" style="text-align:center;padding:2rem;color:var(--text-muted)">
+        <div style="width:2rem;height:2rem;border:3px solid var(--border);border-top-color:#16a34a;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 0.75rem"></div>
+        <p style="font-size:0.85rem">Chargement de l'inspiration...</p>
+      </div>
+      <div id="inspiration-content" style="display:none"></div>
+    </div>
+  </div>
+
 </div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+.eco-badge { display:inline-flex;align-items:center;gap:0.25rem;padding:0.15rem 0.45rem;border-radius:var(--radius-full);font-size:0.65rem;font-weight:700;letter-spacing:0.03em;margin-left:0.4rem;vertical-align:middle }
+.eco-a { background:#dcfce7;color:#15803d;border:1px solid #86efac }
+.eco-b { background:#d1fae5;color:#065f46;border:1px solid #6ee7b7 }
+.eco-c { background:#fef9c3;color:#854d0e;border:1px solid #fde047 }
+.eco-d { background:#ffedd5;color:#9a3412;border:1px solid #fdba74 }
+.eco-e { background:#fee2e2;color:#991b1b;border:1px solid #fca5a5 }
+</style>
+
+<script>
+// === API 2: TheMealDB - Inspiration du Jour ===
+async function loadInspiration() {
+  var loading = document.getElementById('inspiration-loading');
+  var content = document.getElementById('inspiration-content');
+  var btn = document.getElementById('refresh-inspiration');
+  loading.style.display = 'block'; content.style.display = 'none';
+  btn.disabled = true; btn.style.opacity = '0.7';
+  var controller = new AbortController();
+  var timer = setTimeout(function(){ controller.abort(); }, 8000);
+  try {
+    var res = await fetch('https://www.themealdb.com/api/json/v1/1/random.php', { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var m = data.meals[0];
+    var ings = [];
+    for (var i = 1; i <= 20; i++) {
+      if (m['strIngredient'+i] && m['strIngredient'+i].trim()) ings.push(m['strIngredient'+i]);
+    }
+    var ingHtml = ings.slice(0,8).map(function(x){ return '<span style="padding:0.2rem 0.55rem;background:var(--muted);color:var(--text-secondary);border-radius:var(--radius-full);font-size:0.7rem;border:1px solid var(--border)">'+x+'</span>'; }).join('');
+    if (ings.length > 8) ingHtml += '<span style="padding:0.2rem 0.55rem;color:var(--text-muted);font-size:0.7rem">+' + (ings.length-8) + ' autres</span>';
+    var instr = (m.strInstructions || '').substring(0,200);
+    content.innerHTML =
+      '<div style="display:grid;grid-template-columns:200px 1fr;gap:1.5rem;align-items:start">' +
+        '<div style="position:relative">' +
+          '<img src="' + m.strMealThumb + '" alt="' + m.strMeal + '" style="width:100%;border-radius:var(--radius-xl);object-fit:cover;aspect-ratio:1;box-shadow:0 8px 24px rgba(0,0,0,0.12)" onerror="this.style.background=\'var(--muted)\'">' +
+          '<span style="position:absolute;top:0.5rem;left:0.5rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.65rem;font-weight:600;padding:0.2rem 0.5rem;border-radius:999px">' + (m.strArea||'') + '</span>' +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap">' +
+            '<h3 style="font-family:var(--font-heading);font-weight:800;font-size:1.1rem;color:var(--text-primary)">' + m.strMeal + '</h3>' +
+            '<span style="background:rgba(82,183,136,0.12);color:var(--secondary);font-size:0.7rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:999px;border:1px solid rgba(82,183,136,0.2)">' + m.strCategory + '</span>' +
+          '</div>' +
+          '<p style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;margin-bottom:0.875rem">' + instr + '...</p>' +
+          '<div style="margin-bottom:1rem">' +
+            '<p style="font-size:0.72rem;font-weight:600;color:var(--text-muted);margin-bottom:0.4rem">Ingredients cles</p>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:0.35rem">' + ingHtml + '</div>' +
+          '</div>' +
+          (function(){var ingData=[];for(var j=1;j<=20;j++){if(m['strIngredient'+j]&&m['strIngredient'+j].trim())ingData.push({nom:m['strIngredient'+j].trim(),qty:(m['strMeasure'+j]||'').trim()});}var propUrl='<?= BASE_URL ?>/?page=recettes&action=suggest'+'&titre='+encodeURIComponent(m.strMeal)+'&description='+encodeURIComponent((m.strInstructions||'').substring(0,150))+'&categorie='+encodeURIComponent(m.strCategory||'')+'&ings='+encodeURIComponent(JSON.stringify(ingData))+'&instructions_full='+encodeURIComponent(m.strInstructions||'')+'&image_url='+encodeURIComponent(m.strMealThumb||'');return '<a href="'+propUrl+'" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1.1rem;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border-radius:999px;font-size:0.78rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(217,119,6,0.3)">Proposer cette recette</a>';}()) +
+        '</div>' +
+      '</div>';
+    loading.style.display = 'none'; content.style.display = 'block';
+  } catch(err) {
+    clearTimeout(timer);
+    loading.style.display = 'block';
+    loading.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem">Erreur de chargement - <button onclick="loadInspiration()" style="color:var(--secondary);font-weight:600;background:none;border:none;cursor:pointer;text-decoration:underline">Reessayer</button></p>';
+    content.style.display = 'none';
+  }
+  btn.disabled = false; btn.style.opacity = '1';
+}
+loadInspiration();
+</script>

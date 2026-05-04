@@ -223,8 +223,7 @@ foreach ($planCaloriesByObjective as $key => $sumCal) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 (function () {
   if (typeof Chart === 'undefined') return;
@@ -316,42 +315,130 @@ foreach ($planCaloriesByObjective as $key => $sumCal) {
   const btn = document.getElementById('exportPlansPdfBtn');
   if (!btn) return;
 
+  const rows = <?= json_encode(array_map(function ($p) {
+    $statut = $p['statut'] ?? 'en_attente';
+    $badgeStyle = $statut === 'accepte'
+      ? 'background:#dcfce7;color:#166534;border:1px solid #86efac'
+      : ($statut === 'refuse' ? 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5' : 'background:#fef9c3;color:#854d0e;border:1px solid #fde047');
+    $statutLabel = $statut === 'accepte' ? 'Accepte' : ($statut === 'refuse' ? 'Refuse' : 'En attente');
+    return [
+      (int)($p['id'] ?? 0),
+      htmlspecialchars((string)($p['nom'] ?? '')),
+      htmlspecialchars((string)($p['regime_nom'] ?? '—')),
+      htmlspecialchars((string)($p['type_objectif'] ?? '')),
+      (int)($p['duree_jours'] ?? 0) . ' j',
+      number_format((int)($p['objectif_calories'] ?? 0)) . ' kcal',
+      htmlspecialchars((string)($p['soumis_par'] ?? '')),
+      $statutLabel,
+      $badgeStyle,
+    ];
+  }, $plans), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
   btn.addEventListener('click', function () {
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      alert('Bibliothèque PDF indisponible.');
-      return;
+    btn.disabled = true;
+    btn.textContent = 'Generation...';
+    var total = <?= count($plans) ?>;
+    var acceptes = <?= count(array_filter($plans, fn($p) => ($p['statut']??'') === 'accepte')) ?>;
+    var attente  = <?= count(array_filter($plans, fn($p) => ($p['statut']??'') === 'en_attente')) ?>;
+    var refuses  = total - acceptes - attente;
+    var avgDuree = <?= $statsPlans['avg_duree'] ?? 0 ?>;
+    var avgCal   = <?= $statsPlans['avg_cal'] ?? 0 ?>;
+    var chart1Img = '', chart2Img = '';
+    var c1 = document.getElementById('plansStatusChart');
+    var c2 = document.getElementById('plansCaloriesObjectiveChart');
+    if (c1) chart1Img = c1.toDataURL('image/png');
+    if (c2) chart2Img = c2.toDataURL('image/png');
+    var chartsHtml = '';
+    if (chart1Img || chart2Img) {
+      chartsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 30px 20px">';
+      if (chart1Img) chartsHtml += '<div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:8px">Validation des plans</div><img src="' + chart1Img + '" style="width:100%;height:160px;object-fit:contain"></div>';
+      if (chart2Img) chartsHtml += '<div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:8px">Calories par objectif</div><img src="' + chart2Img + '" style="width:100%;height:160px;object-fit:contain"></div>';
+      chartsHtml += '</div>';
     }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
 
-    doc.setFontSize(16);
-    doc.text('Plans Nutritionnels', 40, 36);
-    doc.setFontSize(10);
-    doc.text('Export généré le <?= date('d/m/Y H:i') ?>', 40, 54);
+    var tableRows = rows.map(function(r) {
+      return '<tr style="border-bottom:1px solid #f1f5f9">'
+        + '<td style="padding:7px 9px;font-weight:800;color:#2D6A4F;width:28px">' + r[0] + '</td>'
+        + '<td style="padding:7px 9px;font-weight:700;color:#1a2332">' + r[1] + '</td>'
+        + '<td style="padding:7px 9px;color:#2D6A4F;font-style:italic">' + r[2] + '</td>'
+        + '<td style="padding:7px 9px;color:#475569">' + r[3] + '</td>'
+        + '<td style="padding:7px 9px;font-weight:600">' + r[4] + '</td>'
+        + '<td style="padding:7px 9px;font-weight:800;color:#d97706">' + r[5] + '</td>'
+        + '<td style="padding:7px 9px;color:#2D6A4F;font-weight:600">' + r[6] + '</td>'
+        + '<td style="padding:7px 9px"><span style="display:inline-block;padding:3px 9px;border-radius:99px;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;' + r[8] + '">' + r[7] + '</span></td>'
+        + '</tr>';
+    }).join('');
 
-    const rows = <?= json_encode(array_map(function ($p) {
-      return [
-        (int)($p['id'] ?? 0),
-        (string)($p['nom'] ?? ''),
-        (string)($p['regime_nom'] ?? '—'),
-        (string)($p['type_objectif'] ?? ''),
-        (string)((int)($p['duree_jours'] ?? 0) . ' jours'),
-        (string)((int)($p['objectif_calories'] ?? 0) . ' kcal'),
-        (string)($p['soumis_par'] ?? ''),
-        (string)($p['statut'] ?? ''),
-      ];
-    }, $plans), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    var html = '<!doctype html><html><head><meta charset="utf-8"><title>GreenBite - Plans</title>'
+      + '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>'
+      + '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a2332;background:#fff}'
+      + '#wrap{width:794px;margin:0 auto}'
+      + '.hdr{background:linear-gradient(135deg,#1B4332,#2D6A4F,#40916C);padding:24px 30px;display:flex;align-items:center;justify-content:space-between}'
+      + '.lw{display:flex;align-items:center;gap:12px}'
+      + '.lb{width:48px;height:48px;background:#1a2332;border-radius:12px;border:2px solid rgba(82,183,136,0.5);display:flex;align-items:center;justify-content:center}'
+      + '.bn{font-size:20px;font-weight:900;color:#fff;display:block}.bt{font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.2px;display:block;margin-top:2px}'
+      + '.cr{text-align:right;color:rgba(255,255,255,0.85);font-size:9.5px;line-height:1.9}'
+      + '.gb{height:3px;background:linear-gradient(90deg,#1B4332,#52B788,#95D5B2,#52B788,#1B4332)}'
+      + '.dm{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:12px 30px;display:flex;align-items:center;justify-content:space-between}'
+      + '.dt{font-size:15px;font-weight:800;color:#1a2332}.ds{font-size:9px;color:#64748b;margin-top:2px}'
+      + '.dr{text-align:right;font-size:9px;color:#94a3b8;line-height:1.8}.dr b{color:#334155;font-size:10px;display:block}'
+      + '.sr{display:grid;grid-template-columns:repeat(4,1fr);background:#e2e8f0;gap:1px;border-bottom:2px solid #d1d9e0}'
+      + '.sc{background:#fff;padding:12px 8px;text-align:center}'
+      + '.sn{font-size:24px;font-weight:900;line-height:1;margin-bottom:3px}.sl{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700}'
+      + '.tw{padding:20px 30px 24px}.tl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:8px}'
+      + 'table{width:100%;border-collapse:collapse;font-size:9.5px}'
+      + 'thead tr{background:linear-gradient(90deg,#1B4332,#2D6A4F)}'
+      + 'thead th{color:#fff;padding:9px 9px;text-align:left;font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px}'
+      + 'tbody tr:nth-child(even){background:#f8fafc}'
+      + '.ft{background:#1a2332;padding:12px 30px;display:flex;align-items:center;justify-content:space-between}'
+      + '.fb{font-size:11px;font-weight:800;color:#a7f3d0;display:flex;align-items:center;gap:8px}'
+      + '.fm{font-size:8.5px;color:#475569;text-align:center}.fc{font-size:8.5px;color:#64748b;text-align:right;line-height:1.7}'
+      + '</style></head><body>'
+      + '<div id="wrap">'
+      + '<div class="hdr">'
+      + '<div class="lw"><div class="lb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#52B788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></div>'
+      + '<div><span class="bn">GreenBite</span><span class="bt">Alimentation Durable &amp; Nutrition</span></div></div>'
+      + '<div class="cr"><div>&#9679; Elghazela, Arianna, Tunisie</div><div>&#9679; +216 70875569</div><div>&#9679; www.greenbite.tn</div></div>'
+      + '</div><div class="gb"></div>'
+      + '<div class="dm"><div><div class="dt">Rapport - Plans Nutritionnels</div><div class="ds">Export officiel · Systeme GreenBite · Confidentiel</div></div>'
+      + '<div class="dr"><b>Genere le <?= date('d/m/Y H:i') ?></b>Ref : GB-PLN-<?= date('Ymd-Hi') ?><br>' + total + ' plan(s)</div></div>'
+      + '<div class="sr">'
+      + '<div class="sc"><div class="sn" style="color:#2D6A4F">' + total + '</div><div class="sl">Total</div></div>'
+      + '<div class="sc"><div class="sn" style="color:#16a34a">' + acceptes + '</div><div class="sl">Acceptes</div></div>'
+      + '<div class="sc"><div class="sn" style="color:#d97706">' + attente + '</div><div class="sl">En Attente</div></div>'
+      + '<div class="sc"><div class="sn" style="color:#dc2626">' + refuses + '</div><div class="sl">Refuses</div></div>'
+      + '<div class="sc"><div class="sn" style="color:#334155">' + avgDuree + ' j</div><div class="sl">Moy. Duree</div></div>'
+      + '<div class="sc"><div class="sn" style="color:#b45309">' + avgCal.toLocaleString() + '</div><div class="sl">Moy. kcal</div></div>'
+      + '</div>'
+      + chartsHtml
+      + '<div class="tw"><div class="tl">Liste complete des plans nutritionnels</div>'
+      + '<table><thead><tr><th>#</th><th>Nom du Plan</th><th>Regime lie</th><th>Objectif</th><th>Duree</th><th>Cal/j</th><th>Soumis par</th><th>Statut</th></tr></thead>'
+      + '<tbody>' + tableRows + '</tbody></table></div>'
+      + '<div class="gb"></div>'
+      + '<div class="ft">'
+      + '<div class="fb"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#52B788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>GreenBite</div>'
+      + '<div class="fm">Document genere automatiquement · Reproduction interdite</div>'
+      + '<div class="fc">Elghazela, Arianna, Tunisie<br>+216 70875569</div>'
+      + '</div></div>'
+      + '</body></html>';
 
-    doc.autoTable({
-      startY: 68,
-      head: [['ID', 'Nom', 'Régime lié', 'Objectif', 'Durée', 'Calories', 'Soumis par', 'Statut']],
-      body: rows,
-      styles: { fontSize: 8, cellPadding: 4 },
-      headStyles: { fillColor: [31, 122, 79] },
-      theme: 'grid'
+    var ghost = document.createElement('div');
+    ghost.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;z-index:-1';
+    ghost.innerHTML = html;
+    document.body.appendChild(ghost);
+    var wrap = ghost.querySelector('#wrap') || ghost;
+    html2pdf().set({
+      margin: 0,
+      filename: 'GreenBite_Plans_<?= date('Y-m-d') ?>.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
+      jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+    }).from(wrap).save().then(function() {
+      document.body.removeChild(ghost);
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="file-down" style="width:1rem;height:1rem"></i> Export PDF';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     });
-
-    doc.save('plans_nutritionnels.pdf');
   });
 })();
 </script>
