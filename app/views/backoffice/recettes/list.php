@@ -127,13 +127,9 @@
               <tr style="<?= $r['statut'] === 'en_attente' ? 'background:rgba(253,230,138,0.08)' : '' ?>">
                 <td style="color:var(--text-muted)">#<?= $r['id'] ?></td>
                 <td>
+                  <?php $admRimg = gb_media_url($r['image'] ?? '', gb_fallback_recette($r['categorie'] ?? '')); ?>
                   <div style="width:3rem;height:3rem;border-radius:var(--radius-lg);overflow:hidden;background:var(--muted)">
-                    <?php if (!empty($r['image'])): ?>
-                      <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($r['image']) ?>"
-                           style="width:100%;height:100%;object-fit:cover">
-                    <?php else: ?>
-                      <div class="flex items-center justify-center" style="height:100%;font-size:1.25rem">🍽️</div>
-                    <?php endif; ?>
+                    <img src="<?= htmlspecialchars($admRimg) ?>" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">
                   </div>
                 </td>
                 <td class="font-semibold" style="color:var(--primary)"><?= htmlspecialchars($r['titre']) ?></td>

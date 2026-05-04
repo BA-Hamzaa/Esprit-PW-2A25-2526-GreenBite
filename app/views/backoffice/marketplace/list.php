@@ -24,7 +24,7 @@
             <?php foreach ($produits as $p): ?>
               <tr>
                 <td style="color:var(--text-muted)">#<?= $p['id'] ?></td>
-                <td><div style="width:3rem;height:3rem;border-radius:var(--radius-lg);overflow:hidden;background:var(--muted)"><?php if (!empty($p['image'])): ?><img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($p['image']) ?>" style="width:100%;height:100%;object-fit:cover"><?php else: ?><div class="flex items-center justify-center" style="height:100%;font-size:1.25rem">📦</div><?php endif; ?></div></td>
+                <td><div style="width:3rem;height:3rem;border-radius:var(--radius-lg);overflow:hidden;background:var(--muted)"><?php $admPimg = gb_media_url($p['image'] ?? '', gb_fallback_produit($p['categorie'] ?? '')); ?><img src="<?= htmlspecialchars($admPimg) ?>" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover"></div></td>
                 <td class="font-semibold" style="color:var(--primary)"><?= htmlspecialchars($p['nom']) ?></td>
                 <td><span class="badge badge-gray"><?= htmlspecialchars($p['categorie'] ?? '-') ?></span></td>
                 <td class="font-semibold" style="color:var(--accent-orange)"><?= number_format($p['prix'], 2) ?> DT</td>
