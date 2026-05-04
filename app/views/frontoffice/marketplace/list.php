@@ -112,7 +112,7 @@
     <div class="grid grid-cols-3 gap-6">
       <?php foreach ($produits as $p):
         $inCart = isset($_SESSION['panier'][$p['id']]) ? $_SESSION['panier'][$p['id']] : 0;
-        $productPhoto = gb_media_url($p['image'] ?? '', gb_fallback_produit($p['categorie'] ?? ''));
+        $productPhoto = MediaHelper::url($p['image'] ?? '', MediaHelper::fallbackProduit($p['categorie'] ?? ''));
       ?>
         <div class="card card-interactive card-glow" style="padding:0;overflow:hidden;border:1px solid var(--border)<?= $inCart > 0 ? ';outline:2px solid rgba(249,115,22,0.35)' : '' ?>">
 

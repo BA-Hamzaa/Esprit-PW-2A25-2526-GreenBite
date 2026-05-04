@@ -66,7 +66,7 @@
           </div>
 
           <!-- Image -->
-          <?php $modImg = gb_media_url($r['image'] ?? '', gb_fallback_recette($r['categorie'] ?? '')); ?>
+          <?php $modImg = MediaHelper::url($r['image'] ?? '', MediaHelper::fallbackRecette($r['categorie'] ?? '')); ?>
           <div style="height:9rem;background:var(--muted);position:relative;overflow:hidden">
             <img src="<?= htmlspecialchars($modImg) ?>"
                  alt="<?= htmlspecialchars($r['titre']) ?>"
