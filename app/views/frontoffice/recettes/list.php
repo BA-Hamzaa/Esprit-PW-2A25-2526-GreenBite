@@ -85,7 +85,7 @@
         $diffColors = ['facile'=>'#16a34a','moyen'=>'#d97706','difficile'=>'#dc2626'];
       ?>
       <?php foreach ($recettes as $r): ?>
-        <?php $recipePhoto = gb_media_url($r['image'] ?? '', gb_fallback_recette($r['categorie'] ?? '')); ?>
+        <?php $recipePhoto = MediaHelper::url($r['image'] ?? '', MediaHelper::fallbackRecette($r['categorie'] ?? '')); ?>
         <div class="card card-interactive card-glow" style="padding:0;overflow:hidden;border:1px solid var(--border)">
 
           <!-- Image area (upload local ou photo de repli si fichier seed absent) -->
