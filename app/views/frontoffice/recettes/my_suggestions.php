@@ -122,15 +122,10 @@ $diffLabels = ['facile'=>'Facile','moyen'=>'Moyen','difficile'=>'Difficile'];
             <!-- Left: image + info -->
             <div style="display:flex;align-items:center;gap:1rem;flex:1;min-width:0">
               <!-- Thumbnail -->
+              <?php $sggThumb = gb_media_url($mr['image'] ?? '', gb_fallback_recette($mr['categorie'] ?? '')); ?>
               <div style="width:3.5rem;height:3.5rem;border-radius:0.875rem;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--muted),var(--border))">
-                <?php if (!empty($mr['image'])): ?>
-                  <img src="<?= BASE_URL ?>/assets/images/uploads/<?= htmlspecialchars($mr['image']) ?>"
-                       alt="" style="width:100%;height:100%;object-fit:cover">
-                <?php else: ?>
-                  <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
-                    <i data-lucide="chef-hat" style="width:1.25rem;height:1.25rem;color:var(--text-muted)"></i>
-                  </div>
-                <?php endif; ?>
+                <img src="<?= htmlspecialchars($sggThumb) ?>"
+                     alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">
               </div>
 
               <div style="min-width:0;flex:1">

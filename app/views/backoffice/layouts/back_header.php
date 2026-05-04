@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="<?= BASE_URL ?>/assets/js/validate.js"></script>
 </head>
 <body>
 <script>
@@ -142,8 +143,8 @@ body {
         <div class="sidebar-section-label">Suivi Nutritionnel</div>
         <ul class="space-y-1 mb-5">
           <li>
-            <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-nutrition' && (!isset($_GET['action']) || in_array($_GET['action'], ['list','add','edit','delete']))) ? 'active' : '' ?>">
-              <i data-lucide="utensils-crossed"></i><span>Repas</span>
+            <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=regimes" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'regime') !== false) ? 'active' : '' ?>">
+              <i data-lucide="salad"></i><span>Régimes</span>
             </a>
           </li>
           <li>
@@ -152,13 +153,13 @@ body {
             </a>
           </li>
           <li>
-            <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=aliments" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'aliment') !== false) ? 'active' : '' ?>">
-              <i data-lucide="apple"></i><span>Aliments</span>
+            <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-nutrition' && (!isset($_GET['action']) || in_array($_GET['action'], ['list','add','edit','delete']))) ? 'active' : '' ?>">
+              <i data-lucide="utensils-crossed"></i><span>Repas</span>
             </a>
           </li>
           <li>
-            <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=regimes" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'regime') !== false) ? 'active' : '' ?>">
-              <i data-lucide="salad"></i><span>Régimes</span>
+            <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=aliments" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-nutrition' && isset($_GET['action']) && strpos($_GET['action'], 'aliment') !== false) ? 'active' : '' ?>">
+              <i data-lucide="apple"></i><span>Aliments</span>
             </a>
           </li>
         </ul>
@@ -194,6 +195,11 @@ body {
           <li>
             <a href="<?= BASE_URL ?>/?page=admin-recettes&action=comments" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-recettes' && isset($_GET['action']) && strpos($_GET['action'], 'comment') !== false) ? 'active' : '' ?>">
               <i data-lucide="message-circle"></i><span>Commentaires</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?= BASE_URL ?>/?page=admin-recettes&action=materiels" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-recettes' && isset($_GET['action']) && strpos($_GET['action'], 'materiel') !== false) ? 'active' : '' ?>">
+              <i data-lucide="wrench"></i><span>Matériels</span>
             </a>
           </li>
         </ul>
