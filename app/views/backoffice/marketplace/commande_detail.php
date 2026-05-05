@@ -24,19 +24,29 @@
         <?php if (!empty($commande['client_adresse'])): ?>
           <div class="flex items-center gap-2"><span class="text-sm font-medium" style="color:var(--text-secondary)">Adresse:</span><span class="text-sm" style="color:var(--text-primary)"><?= htmlspecialchars($commande['client_adresse']) ?></span></div>
         <?php endif; ?>
+        <div class="flex items-center gap-2 mt-2 pt-2" style="border-top:1px solid var(--border)">
+          <span class="text-sm font-medium" style="color:var(--text-secondary)">Paiement:</span>
+          <?php if(($commande['mode_paiement'] ?? 'carte') === 'livraison'): ?>
+            <span class="text-sm font-semibold" style="color:#f97316;display:flex;align-items:center;gap:0.35rem"><i data-lucide="truck" style="width:0.875rem;height:0.875rem"></i> À la livraison</span>
+          <?php else: ?>
+            <span class="text-sm font-semibold" style="color:#2D6A4F;display:flex;align-items:center;gap:0.35rem"><i data-lucide="credit-card" style="width:0.875rem;height:0.875rem"></i> Carte Bancaire (Stripe)</span>
+          <?php endif; ?>
+        </div>
       </div>
     </div>
     <div class="card" style="padding:1.5rem">
       <h3 class="font-semibold mb-3 flex items-center gap-2" style="color:var(--text-primary)"><i data-lucide="settings" style="width:1rem;height:1rem;color:var(--primary)"></i> Statut</h3>
       <?php
-        $statusBadges = ['en_attente'=>'badge-yellow-light','confirmee'=>'badge-blue-light','livree'=>'badge-success','annulee'=>'badge-red-light'];
-        $statusLabels = ['en_attente'=>'En attente','confirmee'=>'Confirmée','livree'=>'Livrée','annulee'=>'Annulée'];
+        $statusBadges = ['en_attente'=>'badge-yellow-light','confirmee'=>'badge-blue-light','en_preparation'=>'badge-purple-light','expediee'=>'badge-orange-light','livree'=>'badge-success','annulee'=>'badge-red-light'];
+        $statusLabels = ['en_attente'=>'En attente','confirmee'=>'Confirmée','en_preparation'=>'En préparation','expediee'=>'Expédiée','livree'=>'Livrée','annulee'=>'Annulée'];
       ?>
       <div class="mb-4"><span class="badge <?= $statusBadges[$commande['statut']] ?? 'badge-gray' ?>" style="font-size:0.85rem;padding:0.4rem 1rem"><?= $statusLabels[$commande['statut']] ?? $commande['statut'] ?></span></div>
       <form novalidate method="POST" action="<?= BASE_URL ?>/?page=admin-marketplace&action=commande-status&id=<?= $commande['id'] ?>" class="flex gap-3">
         <select name="statut" class="form-input flex-1">
           <option value="en_attente" <?= $commande['statut'] === 'en_attente' ? 'selected' : '' ?>>En attente</option>
           <option value="confirmee" <?= $commande['statut'] === 'confirmee' ? 'selected' : '' ?>>Confirmée</option>
+          <option value="en_preparation" <?= $commande['statut'] === 'en_preparation' ? 'selected' : '' ?>>En préparation</option>
+          <option value="expediee" <?= $commande['statut'] === 'expediee' ? 'selected' : '' ?>>Expédiée</option>
           <option value="livree" <?= $commande['statut'] === 'livree' ? 'selected' : '' ?>>Livrée</option>
           <option value="annulee" <?= $commande['statut'] === 'annulee' ? 'selected' : '' ?>>Annulée</option>
         </select>
