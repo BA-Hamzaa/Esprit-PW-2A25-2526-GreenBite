@@ -270,7 +270,9 @@ switch ($page) {
             case 'list':             $controller->listFront(); break;
             case 'detail':           $controller->detailFront(); break;
             case 'order':            $controller->orderFront(); break;
-            case 'order-success':    $controller->orderSuccess(); break;
+            case 'order-success':    $controller->orderSuccessFront(); break;
+            case 'history':          $controller->historyFront(); break;
+            case 'track-order':      $controller->trackOrderFront(); break;
             case 'add-to-cart':      $controller->addToCart(); break;
             case 'remove-from-cart': $controller->removeFromCart(); break;
             case 'update-cart':      $controller->updateCart(); break;
