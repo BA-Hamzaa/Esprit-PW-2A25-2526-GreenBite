@@ -149,13 +149,13 @@ $regimeObjectiveCounts = array_values($topObjectives);
       <table class="table" style="width:100%;border-collapse:collapse">
         <thead>
           <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
-            <th style="padding:1rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Régime</th>
-            <th style="padding:1rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Objectif</th>
-            <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Durée</th>
-            <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">kcal/j</th>
-            <th style="padding:1rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Soumis par</th>
-            <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
-            <th style="padding:1rem 1.25rem;text-align:right;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Actions</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Régime</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Objectif</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Durée</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">kcal/j</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Soumis par</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:180px">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -167,7 +167,7 @@ $regimeObjectiveCounts = array_values($topObjectives);
           ?>
           <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='rgba(82,183,136,0.03)'" onmouseout="this.style.background=''">
             <!-- Nom + Description -->
-            <td style="padding:1rem 1.25rem;max-width:260px">
+            <td style="padding:0.75rem 0.875rem;max-width:220px">
               <div style="font-weight:700;font-size:0.875rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($r['nom']) ?></div>
               <?php if (!empty($r['description'])): ?>
                 <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px"><?= htmlspecialchars(mb_substr($r['description'], 0, 80)) ?>…</div>
@@ -180,18 +180,18 @@ $regimeObjectiveCounts = array_values($topObjectives);
               <?php endif; ?>
             </td>
             <!-- Objectif -->
-            <td style="padding:1rem 1.25rem;font-size:0.82rem;color:var(--text-secondary)"><?= htmlspecialchars($objLabel) ?></td>
+            <td style="padding:0.75rem 0.875rem;font-size:0.82rem;color:var(--text-secondary)"><?= htmlspecialchars($objLabel) ?></td>
             <!-- Durée -->
-            <td style="padding:1rem 1.25rem;text-align:center">
+            <td style="padding:0.75rem 0.875rem;text-align:center">
               <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--text-primary)"><?= (int)$r['duree_semaines'] ?></span>
               <span style="font-size:0.68rem;color:var(--text-muted);display:block">sem.</span>
             </td>
             <!-- Calories -->
-            <td style="padding:1rem 1.25rem;text-align:center">
+            <td style="padding:0.75rem 0.875rem;text-align:center">
               <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--accent-orange)"><?= number_format((int)$r['calories_jour']) ?></span>
             </td>
             <!-- Soumis par -->
-            <td style="padding:1rem 1.25rem">
+            <td style="padding:0.75rem 0.875rem">
               <div style="display:flex;align-items:center;gap:0.5rem">
                 <div style="width:1.75rem;height:1.75rem;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <i data-lucide="user" style="width:0.75rem;height:0.75rem;color:#fff"></i>
@@ -203,7 +203,7 @@ $regimeObjectiveCounts = array_values($topObjectives);
               </div>
             </td>
             <!-- Statut -->
-            <td style="padding:1rem 1.25rem;text-align:center">
+            <td style="padding:0.75rem 0.875rem;text-align:center">
               <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;border-radius:var(--radius-full);background:<?= $st['bg'] ?>;color:<?= $st['color'] ?>;font-size:0.72rem;font-weight:700">
                 <i data-lucide="<?= $st['icon'] ?>" style="width:0.75rem;height:0.75rem"></i>
                 <?= $st['label'] ?>
@@ -213,8 +213,8 @@ $regimeObjectiveCounts = array_values($topObjectives);
               <?php endif; ?>
             </td>
             <!-- Actions -->
-            <td style="padding:1rem 1.25rem;text-align:right">
-              <div style="display:flex;gap:0.4rem;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+            <td style="padding:0.75rem 0.875rem;text-align:center">
+              <div style="display:inline-flex;gap:0.4rem;justify-content:center;align-items:center;flex-wrap:nowrap;white-space:nowrap">
                 <?php if ($stKey === 'accepte'): ?>
                   <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=regime-edit-back&id=<?= $r['id'] ?>"
                      style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"

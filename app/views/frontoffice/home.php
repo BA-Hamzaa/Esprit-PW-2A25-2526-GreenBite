@@ -24,8 +24,8 @@
           <i data-lucide="leaf" style="width:2.25rem;height:2.25rem;color:#a7f3d0"></i>
         </div>
         <div>
-          <h1 style="font-family:var(--font-heading);font-size:2.1rem;font-weight:900;letter-spacing:-0.035em;line-height:1.1;text-shadow:0 3px 18px rgba(0,0,0,0.45)">
-            Bienvenue sur <span style="background:linear-gradient(90deg,#a7f3d0,#6ee7b7,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">GreenBite</span>
+          <h1 style="font-family:var(--font-heading);font-size:2.1rem;font-weight:900;letter-spacing:-0.015em;line-height:1.1;text-shadow:0 3px 18px rgba(0,0,0,0.45)">
+            Bienvenue sur &nbsp;<span style="background:linear-gradient(90deg,#a7f3d0,#6ee7b7,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Green</span><span style="color:#ffffff">Bite</span>
           </h1>
           <p style="color:rgba(236,253,245,0.9);font-size:0.95rem;margin-top:4px;text-shadow:0 2px 12px rgba(0,0,0,0.35)">Votre compagnon pour une alimentation durable & intelligente 🌿</p>
         </div>
@@ -279,7 +279,7 @@
         </div>
         <div>
           <h4 style="font-family:var(--font-heading);font-weight:700;color:var(--text-primary);font-size:1rem">Communauté & Blog</h4>
-          <p style="font-size:0.82rem;color:var(--text-muted);margin-top:2px">Partagez, échangez et inspirez-vous avec la communauté GreenBite.</p>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-top:2px">Partagez, échangez et inspirez-vous avec la communauté <span style="color:#52B788;font-weight:bold">Green</span><span style="font-weight:bold;color:inherit">Bite</span>.</p>
         </div>
       </div>
       <a href="<?= BASE_URL ?>/?page=community" class="btn btn-sm btn-outline-primary" style="border-radius:var(--radius-full);white-space:nowrap">
