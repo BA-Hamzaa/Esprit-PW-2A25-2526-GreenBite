@@ -1,85 +1,138 @@
 <?php /* stats.php — Full Analytics Dashboard */ ?>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 .db-wrap{padding:2rem}
 .section-title{display:flex;align-items:center;gap:.6rem;margin-bottom:1.25rem;margin-top:1.75rem}
 .section-title span{display:block;width:4px;height:1.25rem;background:linear-gradient(180deg,var(--primary),var(--secondary));border-radius:2px}
 .section-title h2{font-family:var(--font-heading);font-size:1.05rem;font-weight:800;color:var(--text-primary);margin:0}
-/* KPI Row 1 — pro cards: photo strip + tighter radius */
-.kpi{
-  position:relative;
-  display:grid;
-  grid-template-columns:minmax(5.25rem,28%) 1fr;
-  gap:0;
-  min-height:7.25rem;
-  padding:0;
-  overflow:hidden;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.06);
-  background:var(--card);
-  box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px -6px rgba(15,23,42,.08);
-  transition:transform .22s ease,box-shadow .22s ease;
+/* ===== STUNNING VERCEL/LINEAR KPI CARDS ===== */
+.kpi-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1;
 }
-.kpi:hover{
-  transform:translateY(-3px);
-  box-shadow:0 4px 12px rgba(0,0,0,.06),0 18px 40px -12px rgba(15,23,42,.12);
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--k-bg), transparent 70%);
+  opacity: 0.6;
+  z-index: -1;
+  transition: opacity 0.3s ease;
 }
-.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:0;z-index:2}
-.kpi-media{
-  position:relative;
-  min-height:7rem;
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
+
+.kpi-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 16px 32px -8px var(--k-glow), inset 0 0 0 1px rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,1);
 }
-.kpi-media::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(90deg,rgba(0,0,0,.12) 0%,rgba(0,0,0,.02) 55%,transparent 100%);
-  pointer-events:none;
+
+.kpi-card:hover::before {
+  opacity: 1;
 }
-.kpi-body{padding:1.05rem 1.15rem 1.1rem;display:flex;flex-direction:column;justify-content:center;min-width:0}
-.kpi-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.35rem}
-.kpi-icon{width:2.35rem;height:2.35rem;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.92);box-shadow:0 1px 2px rgba(0,0,0,.06);flex-shrink:0}
-.kpi-num{font-family:var(--font-heading);font-size:1.65rem;font-weight:800;line-height:1;margin:.15rem 0 .2rem;color:var(--text-primary);letter-spacing:-.02em}
-.kpi-label{font-size:.72rem;color:var(--text-muted);font-weight:600;line-height:1.25}
-.kpi-link{font-size:.68rem;font-weight:700;color:var(--secondary);text-decoration:none;white-space:nowrap;opacity:.95}
-.kpi-link:hover{text-decoration:underline}
-:root:not([data-theme="dark"]) .kpi.kpi-green .kpi-body{background:linear-gradient(135deg,#f0fdf4 0%,#fff 100%)}
-:root:not([data-theme="dark"]) .kpi.kpi-orange .kpi-body{background:linear-gradient(135deg,#fff7ed 0%,#fff 100%)}
-:root:not([data-theme="dark"]) .kpi.kpi-blue .kpi-body{background:linear-gradient(135deg,#eff6ff 0%,#fff 100%)}
-:root:not([data-theme="dark"]) .kpi.kpi-purple .kpi-body{background:linear-gradient(135deg,#faf5ff 0%,#fff 100%)}
-[data-theme="dark"] .kpi{background:var(--card)!important;border-color:var(--border)!important;box-shadow:0 8px 28px rgba(0,0,0,.35)!important}
-[data-theme="dark"] .kpi .kpi-body{background:var(--card)!important}
-[data-theme="dark"] .kpi-icon{background:rgba(255,255,255,.1)!important}
-[data-theme="dark"] .kpi-media::after{background:linear-gradient(90deg,rgba(0,0,0,.45) 0%,transparent 100%)}
-/* KPI Row 2 — compact + thumb */
-.kpi2-card{
-  display:grid;
-  grid-template-columns:4rem 1fr;
-  gap:0;
-  align-items:stretch;
-  min-height:5.25rem;
-  padding:0;
-  overflow:hidden;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.06);
-  background:var(--card);
-  box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px -4px rgba(15,23,42,.07);
-  transition:transform .2s ease,box-shadow .2s ease;
+
+.kpi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
 }
-.kpi2-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(15,23,42,.12)}
-.kpi2-media{position:relative;background-size:cover;background-position:center;min-height:100%}
-.kpi2-media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(0,0,0,.18) 100%);pointer-events:none}
-.kpi2-inner{padding:.85rem 1rem;display:flex;flex-direction:column;justify-content:center;min-width:0}
-.kpi2-icon{border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.05)}
-:root:not([data-theme="dark"]) .kpi2-card.kpi2-cyan .kpi2-inner{background:linear-gradient(135deg,#f0fdff,#fff)}
-:root:not([data-theme="dark"]) .kpi2-card.kpi2-green .kpi2-inner{background:linear-gradient(135deg,#f0fdf4,#fff)}
-:root:not([data-theme="dark"]) .kpi2-card.kpi2-amber .kpi2-inner{background:linear-gradient(135deg,#fffbeb,#fff)}
-:root:not([data-theme="dark"]) .kpi2-card.kpi2-purple .kpi2-inner{background:linear-gradient(135deg,#faf5ff,#fff)}
-[data-theme="dark"] .kpi2-card{background:var(--card)!important;border-color:var(--border)!important}
-[data-theme="dark"] .kpi2-inner{background:var(--card)!important}
-[data-theme="dark"] .kpi2-icon{background:rgba(255,255,255,.08)!important}
+
+.kpi-icon {
+  width: 2.5rem; height: 2.5rem;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--k-color);
+  box-shadow: 0 0 12px var(--k-glow), inset 0 0 0 1px rgba(255,255,255,1);
+  position: relative;
+}
+
+.kpi-icon::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--k-color);
+  opacity: 0.2;
+  filter: blur(6px);
+  z-index: -1;
+}
+
+.kpi-icon i { width: 1.15rem; height: 1.15rem; stroke-width: 2.25; }
+
+.kpi-link {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem; font-weight: 700; color: var(--k-color); text-decoration: none;
+  background: rgba(255,255,255,0.9); padding: 0.3rem 0.75rem; border-radius: 999px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  opacity: 0; transform: translateY(-6px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+}
+
+.kpi-card:hover .kpi-link {
+  opacity: 1; transform: translateY(0);
+}
+
+.kpi-link:hover {
+  background: var(--k-color); color: #fff;
+}
+
+.kpi-val {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.55rem; font-weight: 800; color: #0f172a; line-height: 1; letter-spacing: -0.02em;
+  margin-bottom: 0.15rem;
+}
+
+.kpi-label { font-family: 'Outfit', sans-serif; font-size: 0.75rem; font-weight: 600; color: #475569; }
+
+.kpi-sub { 
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.65rem; font-weight: 700; color: var(--k-color); margin-top: 0.45rem; 
+  display: inline-flex; align-items: center; gap: 0.25rem; 
+  background: var(--k-bg); padding: 0.2rem 0.5rem; border-radius: 0.35rem; 
+  box-shadow: 0 2px 6px var(--k-glow);
+  align-self: flex-start;
+}
+
+/* Dark mode */
+[data-theme="dark"] .kpi-card { 
+  background: rgba(15, 23, 42, 0.6); 
+  border-color: rgba(255,255,255,0.08); 
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+[data-theme="dark"] .kpi-card::before {
+  background: linear-gradient(135deg, var(--k-glow), transparent 60%);
+  opacity: 0.15;
+}
+[data-theme="dark"] .kpi-card:hover::before {
+  opacity: 0.35;
+}
+[data-theme="dark"] .kpi-card:hover { 
+  border-color: rgba(255,255,255,0.25); 
+  box-shadow: 0 24px 48px -12px var(--k-glow), inset 0 0 0 1px rgba(255,255,255,0.15);
+}
+[data-theme="dark"] .kpi-icon { 
+  background: rgba(30, 41, 59, 0.9); 
+  box-shadow: 0 0 24px var(--k-glow), inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+[data-theme="dark"] .kpi-val { color: #f8fafc; }
+[data-theme="dark"] .kpi-label { color: #cbd5e1; }
+[data-theme="dark"] .kpi-sub { background: rgba(0,0,0,0.4); box-shadow: none; }
+[data-theme="dark"] .kpi-link { background: rgba(30, 41, 59, 0.9); color: #f8fafc; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+[data-theme="dark"] .kpi-link:hover { background: var(--k-color); color: #fff; }
 /* Charts & recent */
 .chart-card{
   background:#fff;
@@ -263,14 +316,14 @@
   animation:db-hero-pulse 2.2s ease-in-out infinite;
 }
 .db-hero__time{
-  font-family:var(--font-body);
-  font-size:.8125rem;
-  font-weight:500;
+  font-family:'DM Sans', var(--font-body);
+  font-size:.88rem;
+  font-weight:600;
   font-variant-numeric:tabular-nums;
-  letter-spacing:.03em;
-  color:rgba(255,255,255,.58);
+  letter-spacing:.02em;
+  color:rgba(255,255,255,.95);
   white-space:nowrap;
-  text-shadow:0 1px 2px rgba(0,0,0,.15);
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
 }
 @keyframes db-hero-drift{
   0%,100%{transform:translate(0,0) scale(1);}
@@ -316,52 +369,38 @@
   </div>
 </div>
 
-<!-- ===== KPI ROW 1 ===== -->
-<div class="grid grid-cols-4 gap-4 mb-4">
-  <?php
-  $kpis = [
-    ['icon'=>'utensils-crossed','val'=>$statsRepas,'label'=>'Repas enregistrés','cls'=>'kpi-green','ic'=>'#16a34a','acc'=>'var(--primary),var(--secondary)','link'=>'admin-nutrition','img'=>'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=480&q=80'],
-    ['icon'=>'package','val'=>$statsProduits,'label'=>'Produits actifs','cls'=>'kpi-orange','ic'=>'#ea580c','acc'=>'#f97316,#fb923c','link'=>'admin-marketplace','img'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=480&q=80'],
-    ['icon'=>'shopping-bag','val'=>$statsCommandes,'label'=>'Commandes totales','cls'=>'kpi-blue','ic'=>'#2563eb','acc'=>'#3b82f6,#60a5fa','link'=>'admin-marketplace&action=commandes','img'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=480&q=80'],
-    ['icon'=>'chef-hat','val'=>$statsRecettes,'label'=>'Recettes publiées','cls'=>'kpi-purple','ic'=>'#7c3aed','acc'=>'#8b5cf6,#a78bfa','link'=>'admin-recettes','img'=>'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=480&q=80'],
-  ];
-  foreach($kpis as $k): ?>
-  <div class="kpi <?= $k['cls'] ?>">
-    <div class="kpi-accent" style="background:linear-gradient(90deg,<?= $k['acc'] ?>)"></div>
-    <div class="kpi-media" style="background-image:url('<?= htmlspecialchars($k['img']) ?>')" role="img" aria-label=""></div>
-    <div class="kpi-body">
-      <div class="kpi-head">
-        <div class="kpi-icon"><i data-lucide="<?= $k['icon'] ?>" style="width:1.15rem;height:1.15rem;color:<?= $k['ic'] ?>"></i></div>
-        <a class="kpi-link" href="<?= BASE_URL ?>/?page=<?= $k['link'] ?>">Voir →</a>
-      </div>
-      <div class="kpi-num"><?= number_format($k['val']) ?></div>
-      <div class="kpi-label"><?= $k['label'] ?></div>
-    </div>
-  </div>
-  <?php endforeach; ?>
-</div>
-
-<!-- ===== KPI ROW 2 ===== -->
+<!-- ===== STUNNING KPI GRID ===== -->
 <div class="grid grid-cols-4 gap-4 mb-6">
   <?php
-  $kpis2 = [
-    ['icon'=>'message-square','val'=>$statsComments,'sub'=>$statsComPending.' en attente','ic'=>'#0891b2','cls'=>'kpi2-cyan','img'=>'https://images.unsplash.com/photo-1577563908411-ef7b21e7ef12?auto=format&fit=crop&w=320&q=80'],
-    ['icon'=>'clipboard-list','val'=>$statsPlans,'sub'=>'Plans nutritionnels','ic'=>'#059669','cls'=>'kpi2-green','img'=>'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=320&q=80'],
-    ['icon'=>'salad','val'=>$statsRegimes,'sub'=>'Régimes alimentaires','ic'=>'#d97706','cls'=>'kpi2-amber','img'=>'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=320&q=80'],
-    ['icon'=>'banknote','val'=>number_format($statsRevenue,2).' DT','sub'=>'Moy. '.number_format($statsAvgOrder,2).' DT/cmd','ic'=>'#7c3aed','cls'=>'kpi2-purple','img'=>'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=320&q=80'],
+  $kpis = [
+    // Row 1
+    ['icon'=>'utensils-crossed','val'=>$statsRepas,'label'=>'Repas enregistrés','color'=>'#10b981','bg'=>'#d1fae5','glow'=>'rgba(16, 185, 129, 0.4)','link'=>'admin-nutrition'],
+    ['icon'=>'package','val'=>$statsProduits,'label'=>'Produits actifs','color'=>'#f97316','bg'=>'#ffedd5','glow'=>'rgba(249, 115, 22, 0.4)','link'=>'admin-marketplace'],
+    ['icon'=>'shopping-bag','val'=>$statsCommandes,'label'=>'Commandes totales','color'=>'#3b82f6','bg'=>'#dbeafe','glow'=>'rgba(59, 130, 246, 0.4)','link'=>'admin-marketplace&action=commandes'],
+    ['icon'=>'chef-hat','val'=>$statsRecettes,'label'=>'Recettes publiées','color'=>'#8b5cf6','bg'=>'#ede9fe','glow'=>'rgba(139, 92, 246, 0.4)','link'=>'admin-recettes'],
+    
+    // Row 2
+    ['icon'=>'message-square','val'=>$statsComments,'label'=>'Avis & Commentaires','sub'=>$statsComPending.' en attente','color'=>'#14b8a6','bg'=>'#ccfbf1','glow'=>'rgba(20, 184, 166, 0.4)'],
+    ['icon'=>'clipboard-list','val'=>$statsPlans,'label'=>'Plans nutritionnels','sub'=>'Nutrition','color'=>'#f59e0b','bg'=>'#fef3c7','glow'=>'rgba(245, 158, 11, 0.4)'],
+    ['icon'=>'salad','val'=>$statsRegimes,'label'=>'Régimes alimentaires','sub'=>'Suivis','color'=>'#ec4899','bg'=>'#fce7f3','glow'=>'rgba(236, 72, 153, 0.4)'],
+    ['icon'=>'banknote','val'=>number_format($statsRevenue,2).' DT','label'=>'Chiffre d\'affaires','sub'=>'Moy. '.number_format($statsAvgOrder,2).' DT/cmd','color'=>'#6366f1','bg'=>'#e0e7ff','glow'=>'rgba(99, 102, 241, 0.4)'],
   ];
-  foreach($kpis2 as $k): ?>
-  <div class="kpi2-card <?= $k['cls'] ?>">
-    <div class="kpi2-media" style="background-image:url('<?= htmlspecialchars($k['img']) ?>')" role="img" aria-label=""></div>
-    <div class="kpi2-inner">
-      <div style="display:flex;align-items:center;gap:.75rem">
-        <div class="kpi2-icon" style="width:2.4rem;height:2.4rem"><i data-lucide="<?= $k['icon'] ?>" style="width:1.05rem;height:1.05rem;color:<?= $k['ic'] ?>"></i></div>
-        <div style="min-width:0">
-          <div style="font-family:var(--font-heading);font-weight:800;font-size:1.02rem;color:var(--text-primary);letter-spacing:-.02em;line-height:1.15"><?= $k['val'] ?></div>
-          <div style="font-size:.72rem;color:var(--text-muted);font-weight:500;margin-top:.15rem"><?= $k['sub'] ?></div>
-        </div>
-      </div>
+
+  foreach($kpis as $k): ?>
+  <div class="kpi-card" style="--k-color: <?= $k['color'] ?>; --k-bg: <?= $k['bg'] ?>; --k-glow: <?= $k['glow'] ?>;">
+    <div class="kpi-top">
+      <div class="kpi-icon"><i data-lucide="<?= $k['icon'] ?>"></i></div>
+      <?php if(isset($k['link'])): ?>
+        <a href="<?= BASE_URL ?>/?page=<?= $k['link'] ?>" class="kpi-link">Voir →</a>
+      <?php endif; ?>
     </div>
+    
+    <div class="kpi-val"><?= is_numeric($k['val']) ? number_format($k['val']) : $k['val'] ?></div>
+    <div class="kpi-label"><?= $k['label'] ?></div>
+    
+    <?php if(isset($k['sub'])): ?>
+      <div class="kpi-sub"><i data-lucide="activity" style="width:12px;height:12px"></i> <?= $k['sub'] ?></div>
+    <?php endif; ?>
   </div>
   <?php endforeach; ?>
 </div>

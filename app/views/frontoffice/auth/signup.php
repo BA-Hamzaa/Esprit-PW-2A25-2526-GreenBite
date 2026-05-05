@@ -20,7 +20,7 @@
       <div style="display:inline-flex;align-items:center;justify-content:center;width:5rem;height:5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:1.5rem;margin-bottom:2rem;border:1px solid rgba(255,255,255,0.15);animation:float 3s ease-in-out infinite">
         <i data-lucide="leaf" style="width:2.5rem;height:2.5rem;color:#a7f3d0"></i>
       </div>
-      <h1 style="font-family:var(--font-heading);font-size:2.5rem;font-weight:800;color:#fff;margin-bottom:0.75rem">GreenBite</h1>
+      <h1 style="font-family:var(--font-heading);font-size:2.5rem;font-weight:800;color:#fff;margin-bottom:0.75rem"><span style="color:#52B788">Green</span><span style="color:#ffffff">Bite</span></h1>
       <p style="color:rgba(255,255,255,0.6);font-size:1rem;max-width:20rem;margin:0 auto;line-height:1.6">Rejoignez une communauté engagée pour une alimentation durable.</p>
       <div class="flex flex-wrap gap-3 justify-center mt-8">
         <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-xl);padding:0.75rem 1rem;display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem"><i data-lucide="check-circle-2" style="width:0.85rem;height:0.85rem;color:#a7f3d0"></i> Suivi gratuit</div>

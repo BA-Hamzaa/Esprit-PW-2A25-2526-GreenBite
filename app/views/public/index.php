@@ -236,11 +236,13 @@ switch ($page) {
             case 'add':             $controller->addBack(); break;
             case 'edit':            $controller->editBack(); break;
             case 'delete':          $controller->deleteBack(); break;
+            case 'repas-export-pdf':$controller->exportRepasPdfBack(); break;
             // Aliments
             case 'aliments':        $controller->listAliments(); break;
             case 'add-aliment':     $controller->addAliment(); break;
             case 'edit-aliment':    $controller->editAliment(); break;
             case 'delete-aliment':  $controller->deleteAliment(); break;
+            case 'aliment-export-pdf': $controller->exportAlimentsPdfBack(); break;
             // Plans
             case 'plans':           $controller->listPlansBack(); break;
             case 'plan-add':        $controller->addPlanBack(); break;

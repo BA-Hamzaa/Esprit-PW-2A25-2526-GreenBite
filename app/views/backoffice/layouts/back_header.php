@@ -7,7 +7,7 @@
   <title>GreenBite Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="<?= BASE_URL ?>/assets/js/validate.js"></script>
@@ -64,24 +64,29 @@ body {
   border-radius: 10px;
 }
 .sidebar-section-label {
-  color: rgba(255, 255, 255, 0.4) !important;
-  font-size: 0.7rem !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+  font-size: 0.68rem !important;
   font-weight: 700;
+  font-family: 'DM Sans', 'Poppins', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   margin-bottom: 0.5rem;
   padding-left: 0.5rem;
 }
 .sidebar-nav-item {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: #ffffff !important;
   border-radius: 0.75rem !important;
   margin-bottom: 0.25rem !important;
   padding: 0.65rem 1rem !important;
   transition: all 0.3s ease !important;
+  font-family: 'DM Sans', 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 .sidebar-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #ffffff !important;
   transform: translateX(3px);
 }
 .sidebar-nav-item.active {
@@ -89,6 +94,7 @@ body {
   color: #a7f3d0 !important;
   border-left: 3px solid #52B788 !important;
   box-shadow: inset 0 0 20px rgba(82,183,136,0.05);
+  font-weight: 600;
 }
 .sidebar-nav-item i {
   color: inherit !important;
@@ -98,10 +104,28 @@ body {
   font-family: 'Poppins', sans-serif;
   font-size: 1.45rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #a7f3d0, #52B788);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   letter-spacing: -0.01em;
+}
+.admin-logo-text .logo-green {
+  color: #52B788;
+}
+.admin-logo-text .logo-bite {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+/* Fix for blurry text in dark mode */
+[data-theme='dark'] body, 
+[data-theme='dark'] .page-content-admin * {
+  -webkit-font-smoothing: subpixel-antialiased !important;
+  -moz-osx-font-smoothing: auto !important;
+  text-shadow: none !important;
+}
+
+[data-theme='dark'] .admin-sidebar {
+  /* Disable backdrop-filter in dark mode to prevent webkit blur bug on text */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 </style>
 
@@ -112,17 +136,17 @@ body {
       <!-- Logo -->
       <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding:1.5rem 1.5rem 1.25rem;position:relative;z-index:1">
         <a href="<?= BASE_URL ?>/" style="display:flex;align-items:center;text-decoration:none;margin-bottom:0.4rem">
-          <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.75rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
-            <i data-lucide="leaf" style="width:1.35rem;height:1.35rem;color:#a7f3d0"></i>
+          <div style="display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.875rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
+            <i data-lucide="leaf" style="width:1.5rem;height:1.5rem;color:#a7f3d0"></i>
           </div>
-          <span class="admin-logo-text">GreenBite</span>
+          <span class="admin-logo-text"><span class="logo-green">Green</span><span class="logo-bite">Bite</span></span>
         </a>
 
-        <div style="display:flex;align-items:center;gap:0.4rem">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;background:linear-gradient(135deg,var(--secondary),var(--primary));border-radius:4px">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.15rem">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;background:linear-gradient(135deg,var(--secondary),var(--primary));border-radius:4px;flex-shrink:0">
             <i data-lucide="shield" style="width:0.65rem;height:0.65rem;color:#fff"></i>
           </span>
-          <span style="color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.15em;font-size:0.58rem;font-weight:700">Panneau Admin</span>
+          <span style="color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;font-size:0.62rem;font-weight:700;font-family:'DM Sans','Poppins',sans-serif">Panneau Admin</span>
         </div>
       </div>
 
