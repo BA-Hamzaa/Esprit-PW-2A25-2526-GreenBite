@@ -133,93 +133,124 @@ foreach ($planCaloriesByObjective as $key => $sumCal) {
 </div>
 
 <div class="card" style="padding:0;overflow:hidden">
-  <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;text-align:left">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border);background:var(--muted)">
-          <th style="padding:1rem">ID</th>
-          <th style="padding:1rem">Nom</th>
-          <th style="padding:1rem">Régime lié</th>
-          <th style="padding:1rem">Objectif</th>
-          <th style="padding:1rem">Durée</th>
-          <th style="padding:1rem">Calories Cibles</th>
-          <th style="padding:1rem">Soumis par</th>
-          <th style="padding:1rem">Statut</th>
-          <th style="padding:1rem;text-align:right">Actions</th>
+  <table class="table" style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
+        <th style="padding:1rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Plan</th>
+        <th style="padding:1rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Objectif</th>
+        <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Durée</th>
+        <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">kcal/j</th>
+        <th style="padding:1rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Soumis par</th>
+        <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
+        <th style="padding:1rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:220px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if (empty($plans)): ?>
+        <tr>
+          <td colspan="7" style="padding:2rem;text-align:center;color:var(--text-muted)">Aucun plan trouvé.</td>
         </tr>
-      </thead>
-      <tbody>
-        <?php if (empty($plans)): ?>
-          <tr>
-            <td colspan="9" style="padding:2rem;text-align:center;color:var(--text-muted)">Aucun plan trouvé.</td>
-          </tr>
-        <?php else: ?>
-          <?php foreach ($plans as $p): ?>
-            <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='transparent'">
-              <td style="padding:1rem;color:var(--text-muted)">#<?= $p['id'] ?></td>
-              <td style="padding:1rem;font-weight:600;color:var(--text-primary)"><?= htmlspecialchars($p['nom']) ?></td>
-              <td style="padding:1rem;color:var(--text-secondary)"><?= !empty($p['regime_nom']) ? htmlspecialchars($p['regime_nom']) : '<span style="color:var(--text-muted)">—</span>' ?></td>
-              <td style="padding:1rem">
-                <?php
-                  $typeStr = 'Maintien';
-                  $badgeCls = 'badge-success';
-                  if ($p['type_objectif'] === 'perte_poids') {
-                    $typeStr = 'Perte de poids';
-                    $badgeCls = 'badge-danger';
-                  } elseif ($p['type_objectif'] === 'prise_masse') {
-                    $typeStr = 'Prise de masse';
-                    $badgeCls = 'badge-primary';
-                  }
-                ?>
-                <span class="badge <?= $badgeCls ?>"><?= $typeStr ?></span>
-              </td>
-              <td style="padding:1rem;color:var(--text-secondary)"><?= $p['duree_jours'] ?> jours</td>
-              <td style="padding:1rem;font-weight:600;color:var(--accent-orange)"><?= $p['objectif_calories'] ?> kcal</td>
-              <td style="padding:1rem;color:var(--text-secondary)">
-                <div style="font-weight:600;color:var(--text-primary)"><?= htmlspecialchars($p['soumis_par'] ?? 'Inconnu') ?></div>
-                <div style="font-size:0.75rem"><?= date('d/m/Y', strtotime($p['date_debut'])) ?></div>
-              </td>
-              <td style="padding:1rem;color:var(--text-secondary)">
-                <?php
-                  $st = $normalizePlanStatus($p['statut'] ?? 'accepte');
-                  $conf = [
-                    'en_attente' => ['label'=>'En attente', 'cls'=>'badge-warning'],
-                    'accepte'    => ['label'=>'Accepté',    'cls'=>'badge-success'],
-                    'refuse'     => ['label'=>'Refusé',     'cls'=>'badge-danger'],
-                  ];
-                  $c = $conf[$st] ?? $conf['en_attente'];
-                ?>
-                <span class="badge <?= $c['cls'] ?>"><?= $c['label'] ?></span>
-              </td>
-              <td style="padding:1rem;text-align:right">
-                <div class="flex items-center justify-end gap-2">
-                  <?php if ($st === 'accepte'): ?>
-                    <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=plan-edit&id=<?= $p['id'] ?>" class="btn-ghost" title="Modifier" style="padding:0.5rem;border-radius:var(--radius-full);color:#3b82f6"><i data-lucide="edit" style="width:1.1rem;height:1.1rem"></i></a>
-                  <?php endif; ?>
-                  
-                  <?php if ($st === 'en_attente' || $st === 'refuse'): ?>
-                    <button type="button" class="btn-ghost" title="Accepter" onclick="openAcceptConfirm('<?= BASE_URL ?>/?page=admin-nutrition&action=plan-accept&id=<?= $p['id'] ?>', '<?= addslashes(htmlspecialchars($p['nom'])) ?>')" style="padding:0.5rem;border-radius:var(--radius-full);color:#22c55e">
-                      <i data-lucide="check" style="width:1.1rem;height:1.1rem"></i>
-                    </button>
-                  <?php endif; ?>
+      <?php else: ?>
+        <?php foreach ($plans as $p):
+          $st = $normalizePlanStatus($p['statut'] ?? 'accepte');
+          $stConf = [
+            'en_attente' => ['label'=>'En attente', 'color'=>'#f59e0b', 'bg'=>'rgba(245,158,11,0.1)', 'icon'=>'clock'],
+            'accepte'    => ['label'=>'Accepté',    'color'=>'#22c55e', 'bg'=>'rgba(34,197,94,0.1)',  'icon'=>'check-circle-2'],
+            'refuse'     => ['label'=>'Refusé',     'color'=>'#ef4444', 'bg'=>'rgba(239,68,68,0.1)',  'icon'=>'x-circle'],
+          ];
+          $stBadge = $stConf[$st] ?? $stConf['en_attente'];
+          $objLabels = ['maintien'=>'Maintien', 'perte_poids'=>'Perte de poids', 'prise_masse'=>'Prise de masse'];
+          $objLabel = $objLabels[$p['type_objectif']] ?? $p['type_objectif'];
+        ?>
+        <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='rgba(82,183,136,0.03)'" onmouseout="this.style.background=''">
+          <!-- Nom + Description -->
+          <td style="padding:1rem 1.25rem;max-width:260px">
+            <div style="font-weight:700;font-size:0.875rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($p['nom']) ?></div>
+            <?php if (!empty($p['regime_nom'])): ?>
+              <div style="font-size:0.72rem;color:var(--secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px"><?= htmlspecialchars($p['regime_nom']) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($p['description'])): ?>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px"><?= htmlspecialchars(mb_substr($p['description'], 0, 80)) ?>…</div>
+            <?php endif; ?>
+          </td>
+          <!-- Objectif -->
+          <td style="padding:1rem 1.25rem;font-size:0.82rem;color:var(--text-secondary)"><?= htmlspecialchars($objLabel) ?></td>
+          <!-- Durée -->
+          <td style="padding:1rem 1.25rem;text-align:center">
+            <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--text-primary)"><?= (int)$p['duree_jours'] ?></span>
+            <span style="font-size:0.68rem;color:var(--text-muted);display:block">jours</span>
+          </td>
+          <!-- Calories -->
+          <td style="padding:1rem 1.25rem;text-align:center">
+            <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--accent-orange)"><?= number_format((int)$p['objectif_calories']) ?></span>
+          </td>
+          <!-- Soumis par -->
+          <td style="padding:1rem 1.25rem">
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div style="width:1.75rem;height:1.75rem;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i data-lucide="user" style="width:0.75rem;height:0.75rem;color:#fff"></i>
+              </div>
+              <div>
+                <div style="font-size:0.82rem;font-weight:600;color:var(--text-primary)"><?= htmlspecialchars($p['soumis_par'] ?? 'Inconnu') ?></div>
+                <div style="font-size:0.68rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($p['date_debut'])) ?></div>
+              </div>
+            </div>
+          </td>
+          <!-- Statut -->
+          <td style="padding:1rem 1.25rem;text-align:center">
+            <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;border-radius:var(--radius-full);background:<?= $stBadge['bg'] ?>;color:<?= $stBadge['color'] ?>;font-size:0.72rem;font-weight:700">
+              <i data-lucide="<?= $stBadge['icon'] ?>" style="width:0.75rem;height:0.75rem"></i>
+              <?= $stBadge['label'] ?>
+            </span>
+            <?php if ($st === 'refuse' && !empty($p['commentaire_admin'])): ?>
+              <div style="margin-top:4px;font-size:0.65rem;color:var(--text-muted);font-style:italic;max-width:130px;margin-left:auto;margin-right:auto">"<?= htmlspecialchars(mb_substr($p['commentaire_admin'], 0, 50)) ?>"</div>
+            <?php endif; ?>
+          </td>
+          <!-- Actions -->
+          <td style="padding:1rem 1.25rem;text-align:center">
+            <div style="display:inline-flex;gap:0.4rem;justify-content:center;align-items:center;flex-wrap:nowrap;white-space:nowrap">
+              <?php if ($st === 'accepte'): ?>
+                <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=plan-edit&id=<?= $p['id'] ?>"
+                   style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"
+                   onmouseover="this.style.background='rgba(59,130,246,0.18)';this.style.transform='translateY(-1px)'"
+                   onmouseout="this.style.background='rgba(59,130,246,0.1)';this.style.transform='none'">
+                  <i data-lucide="edit" style="width:0.75rem;height:0.75rem"></i> Modifier
+                </a>
+              <?php endif; ?>
 
-                  <?php if ($st === 'en_attente' || $st === 'accepte'): ?>
-                    <button type="button" class="btn-ghost" title="Refuser" onclick="openRefuseModal(<?= $p['id'] ?>, '<?= addslashes(htmlspecialchars($p['nom'])) ?>')" style="padding:0.5rem;border-radius:var(--radius-full);color:#f97316">
-                      <i data-lucide="x" style="width:1.1rem;height:1.1rem"></i>
-                    </button>
-                  <?php endif; ?>
+              <?php if ($st === 'en_attente' || $st === 'refuse'): ?>
+                <button type="button"
+                   onclick="openAcceptConfirm('<?= BASE_URL ?>/?page=admin-nutrition&action=plan-accept&id=<?= $p['id'] ?>', '<?= addslashes(htmlspecialchars($p['nom'])) ?>')"
+                   style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap"
+                   onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.3)'"
+                   onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+                  <i data-lucide="check" style="width:0.75rem;height:0.75rem"></i> Accepter
+                </button>
+              <?php endif; ?>
 
-                  <button type="button" class="btn-ghost" title="Supprimer" onclick="openDeleteConfirmBack('<?= BASE_URL ?>/?page=admin-nutrition&action=plan-delete&id=<?= $p['id'] ?>', '<?= addslashes(htmlspecialchars($p['nom'])) ?>')" style="padding:0.5rem;border-radius:var(--radius-full);color:var(--destructive)">
-                    <i data-lucide="trash-2" style="width:1.1rem;height:1.1rem"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
+              <?php if ($st === 'en_attente' || $st === 'accepte'): ?>
+                <button onclick="openRefuseModal(<?= $p['id'] ?>, '<?= addslashes(htmlspecialchars($p['nom'])) ?>')"
+                        style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap"
+                        onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.3)'"
+                        onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+                  <i data-lucide="x" style="width:0.75rem;height:0.75rem"></i> Refuser
+                </button>
+              <?php endif; ?>
+
+              <button type="button"
+                 onclick="openDeleteConfirmBack('<?= BASE_URL ?>/?page=admin-nutrition&action=plan-delete&id=<?= $p['id'] ?>', '<?= addslashes(htmlspecialchars($p['nom'])) ?>')"
+                 style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);cursor:pointer;transition:all 0.2s"
+                 onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
+                 onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.transform='none'">
+                <i data-lucide="trash-2" style="width:0.75rem;height:0.75rem"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </tbody>
+  </table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

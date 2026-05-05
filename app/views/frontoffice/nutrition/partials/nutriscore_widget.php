@@ -25,6 +25,9 @@
 .off-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(192,57,43,.35)}
 .off-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .off-empty{text-align:center;padding:20px;color:#6f7f74;font-size:13px}
+.off-legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:rgba(255,255,255,.5);border-radius:12px;border:1px solid transparent}
+.off-legend-label{font-size:11px;font-weight:700;color:#6f7f74;text-transform:uppercase;align-self:center}
+.off-legend-desc{font-size:11px;color:#6f7f74;align-self:center}
 [data-theme='dark'] .off-widget{background:linear-gradient(145deg,rgba(30,41,59,.78),rgba(15,23,42,.72));border-color:rgba(148,163,184,.25)}
 [data-theme='dark'] .off-card{background:rgba(30,41,59,.8);border-color:rgba(148,163,184,.2)}
 [data-theme='dark'] .off-card-name{color:#e5e7eb}
@@ -34,8 +37,8 @@
 [data-theme='dark'] .off-score-label{color:#94a3b8}
 [data-theme='dark'] .off-title{color:#e5e7eb !important}
 [data-theme='dark'] .off-head div:last-child > div:last-child{color:#94a3b8 !important}
-[data-theme='dark'] .off-widget .off-legend{background:rgba(30,41,59,.6);border:1px solid rgba(148,163,184,.15)}
-[data-theme='dark'] .off-widget .off-legend div{color:#94a3b8 !important}
+[data-theme='dark'] .off-legend{background:rgba(30,41,59,.8);border:1px solid rgba(148,163,184,.15)}
+[data-theme='dark'] .off-legend-label, [data-theme='dark'] .off-legend-desc{color:#cbd5e1}
 [data-theme='dark'] .off-empty{color:#94a3b8}
 [data-theme='dark'] .allergen-tag{background:rgba(231,76,60,.15);border-color:rgba(231,76,60,.3);color:#fca5a5}
 </style>
@@ -50,12 +53,14 @@
   </div>
 
   <!-- Legend -->
-  <div class="off-legend" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:rgba(255,255,255,.5);border-radius:12px">
-    <div style="font-size:11px;font-weight:700;color:#6f7f74;text-transform:uppercase;align-self:center">Nutri-Score :</div>
-    <?php foreach(['A','B','C','D','E'] as $g): ?>
-    <span class="ns ns-<?= strtolower($g) ?>" style="width:28px;height:28px;font-size:14px"><?= $g ?></span>
-    <?php endforeach; ?>
-    <div style="font-size:11px;color:#6f7f74;align-self:center">A = Meilleur · E = Moins bon</div>
+  <div class="off-legend">
+    <div class="off-legend-label">Nutri-Score :</div>
+    <div style="display:flex;gap:6px">
+      <?php foreach(['A','B','C','D','E'] as $g): ?>
+      <span class="ns ns-<?= strtolower($g) ?>" style="width:28px;height:28px;font-size:14px"><?= $g ?></span>
+      <?php endforeach; ?>
+    </div>
+    <div class="off-legend-desc">A = Meilleur · E = Moins bon</div>
   </div>
 
   <div class="off-search-wrap">
