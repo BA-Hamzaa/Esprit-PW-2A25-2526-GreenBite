@@ -1572,6 +1572,14 @@ class NutritionController
         exit;
     }
 
+    function exportRepasPdfBack()
+    {
+        // PDF is now generated client-side (ghost-div + html2pdf)
+        // Redirect back to the list to avoid displaying the old PDF page
+        header('Location: ' . BASE_URL . '/?page=admin-nutrition&action=list');
+        exit;
+    }
+
     function listAliments()
     {
         $aliments = $this->AfficherAliments();
@@ -1642,6 +1650,14 @@ class NutritionController
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $this->SupprimerAliment($id);
         $_SESSION['success'] = "Aliment supprimé avec succès !";
+        header('Location: ' . BASE_URL . '/?page=admin-nutrition&action=aliments');
+        exit;
+    }
+
+    function exportAlimentsPdfBack()
+    {
+        // PDF is now generated client-side (ghost-div + html2pdf)
+        // Redirect back to the list to avoid displaying the old PDF page
         header('Location: ' . BASE_URL . '/?page=admin-nutrition&action=aliments');
         exit;
     }

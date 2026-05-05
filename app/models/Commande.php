@@ -42,5 +42,3 @@ class Commande {
     function setTotal(float $total)                   { $this->total = $total; }
     function setStatut(string $statut)                { $this->statut = $statut; }
 }
-?>
-?>

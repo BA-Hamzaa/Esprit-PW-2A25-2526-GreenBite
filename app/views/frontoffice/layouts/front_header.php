@@ -7,10 +7,78 @@
   <title>GreenBite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="<?= BASE_URL ?>/assets/js/validate.js"></script>
+  <style>
+    /* Fix for blurry text in dark mode */
+    [data-theme='dark'] body, 
+    [data-theme='dark'] .page-content * {
+      -webkit-font-smoothing: subpixel-antialiased !important;
+      -moz-osx-font-smoothing: auto !important;
+      text-shadow: none !important;
+    }
+    
+    [data-theme='dark'] .front-sidebar {
+      /* Disable backdrop-filter in dark mode to prevent webkit blur bug on text */
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* ===== FRONT SIDEBAR — same font & colors as admin sidebar ===== */
+    .front-sidebar .front-sidebar-zone-label,
+    .front-sidebar .sidebar-section-label {
+      color: rgba(255, 255, 255, 0.65) !important;
+      font-size: 0.68rem !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.5rem;
+      padding-left: 0.5rem;
+      font-family: 'DM Sans', 'Poppins', sans-serif;
+    }
+    .front-sidebar .sidebar-nav-item {
+      color: #ffffff !important;
+      border-radius: 0.75rem !important;
+      margin-bottom: 0.25rem !important;
+      padding: 0.65rem 1rem !important;
+      transition: all 0.3s ease !important;
+      font-family: 'DM Sans', 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .front-sidebar .sidebar-nav-item:hover {
+      background: rgba(255, 255, 255, 0.07) !important;
+      color: #fff !important;
+      transform: translateX(3px);
+    }
+    .front-sidebar .sidebar-nav-item.active {
+      background: linear-gradient(135deg, rgba(82,183,136,0.25), rgba(45,106,79,0.15)) !important;
+      color: #a7f3d0 !important;
+      border-left: 3px solid #52B788 !important;
+      box-shadow: inset 0 0 20px rgba(82,183,136,0.05);
+      font-weight: 600;
+    }
+    .front-sidebar .sidebar-nav-item i {
+      color: inherit !important;
+    }
+    .front-logo-text {
+      margin-left: 0.75rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .front-logo-text .logo-green {
+      color: #52B788;
+    }
+    .front-logo-text .logo-bite {
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff;
+    }
+  </style>
 </head>
 <body>
 <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
@@ -26,10 +94,10 @@
       <!-- Logo -->
       <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding:1.5rem 1.5rem 1.25rem;position:relative;z-index:1">
         <a href="<?= BASE_URL ?>/" style="display:flex;align-items:center;text-decoration:none;margin-bottom:0.4rem">
-          <div style="display:flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.75rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
-            <i data-lucide="leaf" style="width:1.35rem;height:1.35rem;color:#a7f3d0"></i>
+          <div style="display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border-radius:0.875rem;border:1px solid rgba(255,255,255,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0">
+            <i data-lucide="leaf" style="width:1.5rem;height:1.5rem;color:#a7f3d0"></i>
           </div>
-          <span style="margin-left:0.75rem;font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.02em;text-shadow:0 2px 4px rgba(0,0,0,0.1)">GreenBite</span>
+          <span class="front-logo-text"><span class="logo-green">Green</span><span class="logo-bite">Bite</span></span>
         </a>
 
         <span class="front-sidebar-zone-label">Espace Utilisateur</span>
@@ -242,6 +310,17 @@
 .bot-quick-btn:hover{background:rgba(82,183,136,0.22)}
 .bubble strong{font-weight:700}.bubble em{font-style:italic}.bubble ul{margin:0.25rem 0 0 1rem;padding:0}.bubble li{margin-bottom:0.15rem}
 @keyframes botFabPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.6}}
+
+/* Dark Mode Overrides for GreenBot */
+[data-theme="dark"] #greenbot-panel { background: #1e293b; box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1); }
+[data-theme="dark"] #bot-messages { background: #0f172a; }
+[data-theme="dark"] .bot-msg.bot .bubble { background: #1e293b; color: #f8fafc; border-color: rgba(255,255,255,0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+[data-theme="dark"] .bot-quick-actions { background: #1e293b; border-bottom-color: rgba(255,255,255,0.05); }
+[data-theme="dark"] .bot-quick-btn { background: rgba(82,183,136,0.15); color: #a7f3d0; border-color: rgba(82,183,136,0.3); }
+[data-theme="dark"] .bot-quick-btn:hover { background: rgba(82,183,136,0.25); }
+[data-theme="dark"] #bot-input-area { background: #1e293b; border-top-color: rgba(255,255,255,0.05); }
+[data-theme="dark"] #bot-input { background: #0f172a; border-color: rgba(255,255,255,0.1); color: #f8fafc; }
+[data-theme="dark"] #bot-input:focus { border-color: #52B788; }
 </style>
 
 <!-- FAB -->
@@ -256,8 +335,8 @@
   <div id="bot-header">
     <div class="bot-avatar">🌿</div>
     <div class="bot-info">
-      <h4>GreenBot <span class="bot-status"></span></h4>
-      <p>Assistant IA • GreenBite</p>
+      <h4><span style="color:#52B788;font-weight:800">Green</span><span style="font-weight:800;color:inherit">Bot</span> <span class="bot-status"></span></h4>
+      <p>Assistant IA • <span style="color:#52B788;font-weight:bold">Green</span><span style="font-weight:bold;color:inherit">Bite</span></p>
     </div>
     <button id="bot-close" onclick="toggleGreenBot()">✕</button>
   </div>
@@ -272,7 +351,7 @@
   <div id="bot-messages">
     <div class="bot-msg bot">
       <div class="bot-avatar-sm">🌿</div>
-      <div class="bubble">Bonjour ! 👋 Je suis <strong>GreenBot</strong>, votre assistant nutrition IA.<br><br>Créez des régimes, trouvez des recettes avec vos ingrédients, ou posez-moi n'importe quelle question sur GreenBite !</div>
+      <div class="bubble">Bonjour ! 👋 Je suis <strong><span style="color:#52B788">Green</span>Bot</strong>, votre assistant nutrition IA.<br><br>Créez des régimes, trouvez des recettes avec vos ingrédients, ou posez-moi n'importe quelle question sur <strong><span style="color:#52B788">Green</span>Bite</strong> !</div>
     </div>
   </div>
 

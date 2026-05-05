@@ -1,19 +1,18 @@
 <?php
-$plans = isset($plans) && is_array($plans) ? $plans : [];
-$statutLabels = ['accepte' => 'Accepte', 'en_attente' => 'En attente', 'refuse' => 'Refuse'];
-$objectifLabels = ['perte_poids' => 'Perte de poids', 'maintien' => 'Maintien', 'prise_masse' => 'Prise de masse'];
-$total     = count($plans);
-$acceptes  = count(array_filter($plans, fn($p) => ($p['statut'] ?? '') === 'accepte'));
-$enAttente = count(array_filter($plans, fn($p) => ($p['statut'] ?? '') === 'en_attente'));
-$refuses   = $total - $acceptes - $enAttente;
+$aliments = isset($aliments) && is_array($aliments) ? $aliments : [];
+$total     = count($aliments);
+$calMoy    = $total > 0 ? array_sum(array_column($aliments, 'calories')) / $total : 0;
+$protMoy   = $total > 0 ? array_sum(array_column($aliments, 'proteines')) / $total : 0;
+$glucMoy   = $total > 0 ? array_sum(array_column($aliments, 'glucides')) / $total : 0;
+$lipMoy    = $total > 0 ? array_sum(array_column($aliments, 'lipides')) / $total : 0;
 $dateStr   = date('d/m/Y H:i');
-$refNum    = 'GB-PLN-' . date('Ymd-Hi');
+$refNum    = 'GB-ALI-' . date('Ymd-Hi');
 ?>
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>GreenBite - Plans Nutritionnels</title>
+<title>GreenBite - Aliments</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -22,7 +21,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a2332;background:#f0f4f0;dis
 .download-overlay .spin-icon{width:56px;height:56px;border:3px solid rgba(82,183,136,0.3);border-top-color:#52B788;border-radius:50%;animation:spin 0.8s linear infinite}
 .download-overlay p{color:#a7f3d0;font-size:14px;font-weight:600;letter-spacing:0.5px}
 @keyframes spin{to{transform:rotate(360deg)}}
-#pdf-content{width:794px;background:#fff;margin:0 auto;box-shadow:0 8px 40px rgba(0,0,0,0.18)}
+#pdf-content{width:794px;background:#fff;margin:0 auto;box-shadow:0 8px 40px rgba(0,0,0,0.18);position:absolute;left:-9999px;top:-9999px;visibility:hidden}
 .pdf-header{background:linear-gradient(135deg,#1B4332 0%,#2D6A4F 60%,#40916C 100%);padding:26px 32px;display:flex;align-items:center;justify-content:space-between}
 .logo-wrap{display:flex;align-items:center;gap:14px}
 .logo-box{width:52px;height:52px;background:#1a2332;border-radius:13px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(82,183,136,0.5);flex-shrink:0}
@@ -50,15 +49,10 @@ tbody tr:nth-child(even){background:#f8fafc}
 tbody td{padding:8px 9px;vertical-align:middle;border-bottom:1px solid #f1f5f9}
 .c-id{font-weight:800;color:#2D6A4F;width:30px}
 .c-nom{font-weight:700;color:#1a2332}
-.c-reg{color:#2D6A4F;font-style:italic}
-.c-obj{color:#475569}
-.c-dur{font-weight:600;color:#334155;white-space:nowrap}
 .c-cal{font-weight:800;color:#d97706;white-space:nowrap}
-.c-usr{color:#2D6A4F;font-weight:600}
-.badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px}
-.b-acc{background:#dcfce7;color:#166534;border:1px solid #86efac}
-.b-att{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
-.b-ref{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.c-pro{color:#3b82f6;font-weight:700}
+.c-glu{color:#16a34a;font-weight:700}
+.c-lip{color:#b45309;font-weight:700}
 .pdf-footer{background:#1a2332;padding:13px 32px;display:flex;align-items:center;justify-content:space-between}
 .f-brand{font-size:12px;font-weight:800;color:#a7f3d0;display:flex;align-items:center;gap:8px}
 .f-meta{font-size:8.5px;color:#475569;text-align:center}
@@ -68,7 +62,7 @@ tbody td{padding:8px 9px;vertical-align:middle;border-bottom:1px solid #f1f5f9}
 <body>
 <div class="download-overlay" id="overlay">
   <div class="spin-icon"></div>
-  <p>Generation du PDF GreenBite...</p>
+  <p>Génération du PDF GreenBite...</p>
 </div>
 <div id="pdf-content">
   <div class="pdf-header">
@@ -86,56 +80,47 @@ tbody td{padding:8px 9px;vertical-align:middle;border-bottom:1px solid #f1f5f9}
     </div>
     <div class="contact-right">
       <div>&#9679; Elghazela, Arianna, Tunisie</div>
-      <div>&#9679; +216 02 54 148</div>
+      <div>&#9679; +216 70 875 569</div>
       <div>&#9679; www.greenbite.tn</div>
     </div>
   </div>
   <div class="green-bar"></div>
   <div class="doc-meta">
     <div>
-      <div class="doc-title">Rapport — Plans Nutritionnels</div>
+      <div class="doc-title">Rapport — Base de Données Aliments</div>
       <div class="doc-sub">Export officiel · Système GreenBite · Document Confidentiel</div>
     </div>
     <div class="doc-ref">
       <b>Généré le <?= $dateStr ?></b>
       Réf : <?= $refNum ?><br>
-      <?= $total ?> plan(s) au total
+      <?= $total ?> aliments au total
     </div>
   </div>
   <div class="stats-row">
-    <div class="stat-cell"><div class="stat-num" style="color:#2D6A4F"><?= $total ?></div><div class="stat-lbl">Total</div></div>
-    <div class="stat-cell"><div class="stat-num" style="color:#16a34a"><?= $acceptes ?></div><div class="stat-lbl">Acceptés</div></div>
-    <div class="stat-cell"><div class="stat-num" style="color:#d97706"><?= $enAttente ?></div><div class="stat-lbl">En Attente</div></div>
-    <div class="stat-cell"><div class="stat-num" style="color:#dc2626"><?= $refuses ?></div><div class="stat-lbl">Refusés</div></div>
+    <div class="stat-cell"><div class="stat-num" style="color:#2D6A4F"><?= $total ?></div><div class="stat-lbl">Aliments</div></div>
+    <div class="stat-cell"><div class="stat-num" style="color:#3b82f6"><?= number_format($protMoy, 1) ?>g</div><div class="stat-lbl">Protéines Moy.</div></div>
+    <div class="stat-cell"><div class="stat-num" style="color:#16a34a"><?= number_format($glucMoy, 1) ?>g</div><div class="stat-lbl">Glucides Moy.</div></div>
+    <div class="stat-cell"><div class="stat-num" style="color:#b45309"><?= number_format($lipMoy, 1) ?>g</div><div class="stat-lbl">Lipides Moy.</div></div>
   </div>
   <div class="table-wrap">
-    <div class="sec-lbl">Liste complète des plans nutritionnels</div>
+    <div class="sec-lbl">Liste complète des aliments</div>
     <table>
       <thead><tr>
-        <th>#</th><th>Nom du Plan</th><th>Régime lié</th>
-        <th>Objectif</th><th>Durée</th><th>Cal/j</th>
-        <th>Soumis par</th><th>Statut</th>
+        <th>#</th><th>Nom de l'Aliment</th>
+        <th>Calories (Kcal)</th><th>Protéines (g)</th><th>Glucides (g)</th><th>Lipides (g)</th>
       </tr></thead>
       <tbody>
-      <?php if (empty($plans)): ?>
-        <tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8;font-style:italic">Aucun plan trouvé.</td></tr>
+      <?php if (empty($aliments)): ?>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;font-style:italic">Aucun aliment trouvé.</td></tr>
       <?php else: ?>
-        <?php foreach ($plans as $p):
-          $statut   = $p['statut'] ?? 'en_attente';
-          $obj      = $p['type_objectif'] ?? '';
-          $objLbl   = $objectifLabels[$obj] ?? ucfirst(str_replace('_',' ',$obj));
-          $badgeCls = $statut === 'accepte' ? 'b-acc' : ($statut === 'refuse' ? 'b-ref' : 'b-att');
-          $badgeTxt = $statutLabels[$statut] ?? $statut;
-        ?>
+        <?php foreach ($aliments as $a): ?>
         <tr>
-          <td class="c-id"><?= (int)($p['id']??0) ?></td>
-          <td class="c-nom"><?= htmlspecialchars((string)($p['nom']??'')) ?></td>
-          <td class="c-reg"><?= htmlspecialchars((string)($p['regime_nom']??'—')) ?></td>
-          <td class="c-obj"><?= htmlspecialchars($objLbl) ?></td>
-          <td class="c-dur"><?= (int)($p['duree_jours']??0) ?> j</td>
-          <td class="c-cal"><?= number_format((int)($p['objectif_calories']??0)) ?> kcal</td>
-          <td class="c-usr"><?= htmlspecialchars((string)($p['soumis_par']??'—')) ?></td>
-          <td><span class="badge <?= $badgeCls ?>"><?= $badgeTxt ?></span></td>
+          <td class="c-id"><?= (int)($a['id']??0) ?></td>
+          <td class="c-nom"><?= htmlspecialchars((string)($a['nom']??'')) ?></td>
+          <td class="c-cal"><?= (int)($a['calories']??0) ?></td>
+          <td class="c-pro"><?= number_format((float)($a['proteines']??0), 1) ?></td>
+          <td class="c-glu"><?= number_format((float)($a['glucides']??0), 1) ?></td>
+          <td class="c-lip"><?= number_format((float)($a['lipides']??0), 1) ?></td>
         </tr>
         <?php endforeach; ?>
       <?php endif; ?>
@@ -157,14 +142,15 @@ tbody td{padding:8px 9px;vertical-align:middle;border-bottom:1px solid #f1f5f9}
     </div>
     <div class="f-contact">
       Elghazela, Arianna, Tunisie<br>
-      +216 02 54 148
+      +216 70 875 569
     </div>
   </div>
 </div>
 <script>
 window.addEventListener('load', function() {
   var element = document.getElementById('pdf-content');
-  var filename = 'GreenBite_Plans_<?= date('Y-m-d') ?>.pdf';
+  element.style.visibility = 'visible';
+  var filename = 'GreenBite_Aliments_<?= date('Y-m-d') ?>.pdf';
   var opt = {
     margin:       0,
     filename:     filename,
@@ -173,9 +159,7 @@ window.addEventListener('load', function() {
     jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' },
     pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
   };
-  html2pdf().set(opt).from(element).save().then(function() {
-    document.getElementById('overlay').style.display = 'none';
-  });
+  html2pdf().set(opt).from(element).save();
 });
 </script>
 </body>

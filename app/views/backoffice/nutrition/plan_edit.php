@@ -102,7 +102,7 @@ $activites = json_decode($plan['programme_activites'] ?? '[]', true) ?: [];
 $repasByDay = [];
 if (!empty($planRepas)) {
   foreach ($planRepas as $pr) {
-     $repasByDay[$pr['jour']][] = $pr['id'];
+     $repasByDay[$pr['jour']][] = $pr['repas_id'];
   }
 }
 ?>

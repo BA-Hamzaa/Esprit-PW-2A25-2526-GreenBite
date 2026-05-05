@@ -122,7 +122,7 @@
       </div>
 
       <h1 style="font-family:var(--font-heading);font-size:3rem;font-weight:900;color:#fff;margin-bottom:0.75rem;letter-spacing:-0.04em;line-height:1">
-        Nutri<span style="background:linear-gradient(90deg,#a7f3d0,#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Green</span>
+        <span style="color:#52B788">Green</span><span style="color:#ffffff">Bite</span>
       </h1>
       <p style="color:rgba(255,255,255,0.55);font-size:1rem;max-width:20rem;margin:0 auto 2.5rem;line-height:1.65">
         Votre compagnon intelligent pour une alimentation durable et un mode de vie sain. 🌱
