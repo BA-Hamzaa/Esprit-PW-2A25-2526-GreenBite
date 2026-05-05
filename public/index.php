@@ -225,6 +225,7 @@ switch ($page) {
             case 'edit':    $controller->editBack();    break;
             case 'delete':  $controller->deleteBack();  break;
             case 'publish': $controller->publishBack(); break;
+            case 'stats':   $controller->statsBack();   break;
             default:        $controller->listBack();    break;
         }
         break;

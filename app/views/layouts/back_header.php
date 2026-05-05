@@ -201,6 +201,11 @@ body {
               <i data-lucide="newspaper"></i><span>Communauté & Blog</span>
             </a>
           </li>
+          <li>
+            <a href="<?= BASE_URL ?>/?page=admin-article&action=stats" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'admin-article' && isset($_GET['action']) && $_GET['action'] === 'stats') ? 'active' : '' ?>">
+              <i data-lucide="bar-chart-2"></i><span>Statistiques</span>
+            </a>
+          </li>
         </ul>
 
         <!-- Gestion -->

@@ -573,6 +573,44 @@ class ArticleController
         exit;
     }
 
+    function getStatsSevenDays()
+    {
+        $db   = Database::getConnexion();
+        $days = [];
+        $articlesData    = [];
+        $commentairesData = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date   = date('Y-m-d', strtotime("-$i days"));
+            $label  = strftime('%a %d/%m', strtotime($date));
+            $days[] = $label;
+
+            // Articles publiés ce jour
+            $q = $db->prepare("SELECT COUNT(*) FROM article WHERE DATE(date_publication) = :date AND statut = 'publie'");
+            $q->execute(['date' => $date]);
+            $articlesData[] = (int)$q->fetchColumn();
+
+            // Commentaires postés ce jour
+            $q = $db->prepare("SELECT COUNT(*) FROM commentaire WHERE DATE(date_commentaire) = :date");
+            $q->execute(['date' => $date]);
+            $commentairesData[] = (int)$q->fetchColumn();
+        }
+
+        return [
+            'days'        => $days,
+            'articles'    => $articlesData,
+            'commentaires' => $commentairesData,
+        ];
+    }
+
+    function statsBack()
+    {
+        $stats = $this->getStatsSevenDays();
+        require_once BASE_PATH . '/app/views/layouts/back_header.php';
+        require_once BASE_PATH . '/app/views/back/article/stats.php';
+        require_once BASE_PATH . '/app/views/layouts/back_footer.php';
+    }
+
     function publishBack()
     {
         $id      = isset($_GET['id']) ? (int) $_GET['id'] : 0;
