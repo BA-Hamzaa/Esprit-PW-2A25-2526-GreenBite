@@ -436,70 +436,65 @@ $objectifColors = [
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div class="grid grid-cols-3 gap-6">
+        <?php foreach ($myRegimes as $mr): ?>
         <?php
-        $stConfig = [
-            'en_attente' => ['label'=>'En attente', 'color'=>'#f59e0b', 'bg'=>'rgba(245,158,11,0.1)', 'icon'=>'clock'],
-            'refuse'     => ['label'=>'Refusé',     'color'=>'#ef4444', 'bg'=>'rgba(239,68,68,0.1)',  'icon'=>'x-circle'],
-            'accepte'    => ['label'=>'Accepté',    'color'=>'#10b981', 'bg'=>'rgba(16,185,129,0.1)', 'icon'=>'check-circle'],
-        ];
-        foreach ($myRegimes as $mr):
-          $st     = $stConfig[$mr['statut']] ?? $stConfig['en_attente'];
-          $obj    = $objectifLabels[$mr['objectif']] ?? $mr['objectif'];
-          $ico    = $objectifIcons[$mr['objectif']]  ?? 'target';
-          $colors = $objectifColors[$mr['objectif']] ?? ['from'=>'#52B788','to'=>'#2D6A4F','bg'=>'rgba(82,183,136,0.08)'];
+          $config = [
+            'maintien'       => ['grad'=>'linear-gradient(135deg,var(--secondary),#40916C)',    'light'=>'rgba(82,183,136,0.08)', 'txt'=>'#16a34a', 'icon'=>'scale',        'label'=>'Maintien'],
+            'perte_poids'    => ['grad'=>'linear-gradient(135deg,#ef4444,#dc2626)',             'light'=>'rgba(239,68,68,0.07)',  'txt'=>'#dc2626', 'icon'=>'trending-down', 'label'=>'Perte de poids'],
+            'prise_masse'    => ['grad'=>'linear-gradient(135deg,#3b82f6,#2563eb)',             'light'=>'rgba(59,130,246,0.07)', 'txt'=>'#2563eb', 'icon'=>'trending-up',   'label'=>'Prise de masse'],
+            'sante_generale' => ['grad'=>'linear-gradient(135deg,#ec4899,#db2777)',             'light'=>'rgba(236,72,153,0.07)','txt'=>'#db2777', 'icon'=>'heart-pulse',   'label'=>'Santé générale'],
+          ];
+          $c = $config[$mr['objectif']] ?? $config['maintien'];
         ?>
-          <div class="card searchable-regime" style="padding:1.25rem;border:1px solid var(--border);transition:all 0.25s" onmouseover="this.style.transform='translateX(3px)'" onmouseout="this.style.transform='none'">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
-
-              <!-- Left: icon + info -->
-              <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $mr['id'] ?>" style="display:flex;align-items:center;gap:0.875rem;flex:1;min-width:0;text-decoration:none;transition:opacity 0.2s" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
-                <div style="width:2.5rem;height:2.5rem;border-radius:0.75rem;background:<?= $colors['bg'] ?>;border:1px solid <?= $colors['from'] ?>22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                  <i data-lucide="<?= $ico ?>" style="width:1.1rem;height:1.1rem;color:<?= $colors['from'] ?>"></i>
-                </div>
-                <div style="min-width:0">
-                  <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($mr['nom']) ?></div>
-                  <div style="font-size:0.72rem;color:var(--text-muted)"><?= $obj ?> · <?= (int)$mr['duree_semaines'] ?> semaines · <?= number_format((int)$mr['calories_jour']) ?> kcal/j</div>
-                </div>
-              </a>
-
-              <!-- Middle: status badge -->
-              <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0">
-                <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;border-radius:var(--radius-full);background:<?= $st['bg'] ?>;color:<?= $st['color'] ?>;font-size:0.72rem;font-weight:700">
-                  <i data-lucide="<?= $st['icon'] ?>" style="width:0.75rem;height:0.75rem"></i>
-                  <?= $st['label'] ?>
+        <div class="card card-interactive" style="position:relative;overflow:hidden;display:flex;flex-direction:column;padding:0;border:1px solid var(--border)">
+          <div style="height:4px;background:<?= $c['grad'] ?>"></div>
+          <div style="padding:1.25rem 1.5rem 0.875rem;background:<?= $c['light'] ?>;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem">
+              <div style="flex:1;min-width:0">
+                <h3 style="font-family:var(--font-heading);font-weight:800;color:var(--text-primary);font-size:1.05rem;line-height:1.25;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><?= htmlspecialchars($mr['nom']) ?></h3>
+                <span style="display:inline-flex;align-items:center;gap:0.3rem;margin-top:0.35rem;padding:0.2rem 0.6rem;background:<?= $c['grad'] ?>;color:#fff;border-radius:var(--radius-full);font-size:0.68rem;font-weight:700">
+                  <i data-lucide="<?= $c['icon'] ?>" style="width:0.6rem;height:0.6rem"></i>
+                  <?= $c['label'] ?>
                 </span>
-
-                <?php if ($mr['statut'] === 'refuse' && !empty($mr['commentaire_admin'])): ?>
-                  <div style="font-size:0.72rem;color:var(--text-muted);font-style:italic;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= htmlspecialchars($mr['commentaire_admin']) ?>">
-                    "<?= htmlspecialchars(mb_substr($mr['commentaire_admin'], 0, 55)) ?>"
-                  </div>
-                <?php endif; ?>
-
-                <!-- Edit button -->
-                <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-edit&id=<?= $mr['id'] ?>"
-                   style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.35rem 0.9rem;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s"
-                   onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(45,106,79,0.3)'"
-                   onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-                  <i data-lucide="edit-3" style="width:0.75rem;height:0.75rem"></i> Modifier
-                </a>
-
-                <!-- Delete button (hidden if accepted to prevent errors) -->
-                <?php if ($mr['statut'] !== 'accepte'): ?>
-                <button type="button"
-                   onclick="openDeleteConfirm('<?= BASE_URL ?>/?page=nutrition&action=regime-delete&id=<?= $mr['id'] ?>', '<?= addslashes(htmlspecialchars($mr['nom'])) ?>')"
-                   style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);cursor:pointer;transition:all 0.2s;flex-shrink:0"
-                   onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
-                   onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.transform='none'"
-                   title="Supprimer ma proposition">
-                  <i data-lucide="trash-2" style="width:0.75rem;height:0.75rem"></i>
-                </button>
-                <?php else: ?>
-                <div style="width:2rem;height:2rem;flex-shrink:0"></div>
+              </div>
+              <div style="display:flex;gap:0.25rem;flex-shrink:0">
+                <?php if ($mr['statut'] === 'en_attente'): ?>
+                  <span style="font-size:0.65rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:1rem;background:#fef3c7;color:#b45309;border:1px solid #fde68a">
+                    <i data-lucide="clock" style="width:0.6rem;height:0.6rem;display:inline-block;margin-right:2px"></i> En attente
+                  </span>
+                <?php elseif ($mr['statut'] === 'refuse'): ?>
+                  <span style="font-size:0.65rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:1rem;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca" title="<?= htmlspecialchars($mr['commentaire_admin'] ?? '') ?>">
+                    <i data-lucide="x-circle" style="width:0.6rem;height:0.6rem;display:inline-block;margin-right:2px"></i> Refusé
+                  </span>
                 <?php endif; ?>
               </div>
             </div>
           </div>
+          <div style="padding:1rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;flex:1">
+             <div style="padding:0.75rem;background:var(--muted);border-radius:0.875rem;border:1px solid var(--border)">
+               <div style="font-size:0.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.2rem;display:flex;align-items:center;gap:0.3rem">
+                 <i data-lucide="calendar" style="width:0.65rem;height:0.65rem"></i> Durée
+               </div>
+               <div style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--text-primary)"><?= (int)$mr['duree_semaines'] ?> <span style="font-size:0.72rem;font-weight:500;color:var(--text-muted)">semaines</span></div>
+             </div>
+             <div style="padding:0.75rem;background:var(--muted);border-radius:0.875rem;border:1px solid var(--border)">
+               <div style="font-size:0.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.2rem;display:flex;align-items:center;gap:0.3rem">
+                 <i data-lucide="flame" style="width:0.65rem;height:0.65rem"></i> Objectif
+               </div>
+               <div style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--accent-orange)"><?= number_format((int)$mr['calories_jour']) ?> <span style="font-size:0.72rem;font-weight:500;color:var(--text-muted)">kcal/j</span></div>
+             </div>
+          </div>
+          <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface-hover);gap:0.5rem">
+            <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-detail&id=<?= $mr['id'] ?>" class="btn btn-sm" style="flex:1;background:<?= $c['grad'] ?>;color:#fff;border:none;border-radius:var(--radius-full);padding:0.35rem 0.9rem;font-size:0.75rem;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.12);text-align:center;">
+              Voir le détail <i data-lucide="chevron-right" style="width:0.8rem;height:0.8rem"></i>
+            </a>
+            <?php if ($mr['statut'] !== 'accepte'): ?>
+              <a href="<?= BASE_URL ?>/?page=nutrition&action=regime-edit&id=<?= $mr['id'] ?>" class="btn btn-outline-primary btn-sm" style="border-radius:var(--radius-full);padding:0.35rem;width:2.2rem;height:2.2rem;display:flex;align-items:center;justify-content:center" title="Modifier"><i data-lucide="edit-3" style="width:1rem;height:1rem"></i></a>
+              <button type="button" onclick="openDeleteConfirm('<?= BASE_URL ?>/?page=nutrition&action=regime-delete&id=<?= $mr['id'] ?>', '<?= addslashes(htmlspecialchars($mr['nom'])) ?>')" class="btn btn-sm" style="border:1px solid #fecaca;color:#dc2626;background:#fef2f2;border-radius:var(--radius-full);padding:0.35rem;width:2.2rem;height:2.2rem;display:flex;align-items:center;justify-content:center" title="Supprimer"><i data-lucide="trash-2" style="width:1rem;height:1rem"></i></button>
+            <?php endif; ?>
+          </div>
+        </div>
         <?php endforeach; ?>
       </div>
     </div>
