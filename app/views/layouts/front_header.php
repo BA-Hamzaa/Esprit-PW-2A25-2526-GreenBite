@@ -392,8 +392,13 @@
         <div class="sidebar-section-label">Social</div>
         <ul style="list-style:none;padding:0;margin:0">
           <li>
-            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'article') ? 'active' : '' ?>">
+            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'article' && ($_GET['action'] ?? '') !== 'mes-activites') ? 'active' : '' ?>">
               <i data-lucide="newspaper" style="width:1.1rem;height:1.1rem"></i><span>Communauté & Blog</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?= BASE_URL ?>/?page=article&action=mes-activites" class="sidebar-nav-item <?= (isset($_GET['action']) && $_GET['action'] === 'mes-activites') ? 'active' : '' ?>">
+              <i data-lucide="folder-open" style="width:1.1rem;height:1.1rem"></i><span>Mes activités</span>
             </a>
           </li>
         </ul>

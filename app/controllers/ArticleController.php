@@ -976,5 +976,122 @@ class ArticleController
         header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
         exit;
     }
+        
+    //==========================================================================
+    // TRADUCTION — API LibreTranslate
+    //==========================================================================
+    function apiTranslateArticle()
+    {
+        header('Content-Type: application/json');
+
+        $contenu  = trim($_POST['contenu'] ?? '');
+        $langue   = trim($_POST['langue'] ?? 'en');
+
+        if ($contenu === '' || mb_strlen($contenu) < 10) {
+            echo json_encode(['success' => false, 'error' => 'Contenu trop court.']);
+            exit;
+        }
+
+        $allowed = ['en', 'ar', 'fr'];
+        if (!in_array($langue, $allowed)) {
+            echo json_encode(['success' => false, 'error' => 'Langue non supportée.']);
+            exit;
+        }
+
+        // Google Translate (unofficial, no API key needed)
+        $url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' . urlencode($langue) . '&dt=t&q=' . urlencode($contenu);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$response) {
+            echo json_encode(['success' => false, 'error' => 'Erreur API Google.']);
+            exit;
+        }
+
+        $result = json_decode($response, true);
+
+        // Google returns an array of arrays. Extract the translated text.
+        $traduction = '';
+        if (isset($result[0]) && is_array($result[0])) {
+            foreach ($result[0] as $segment) {
+                if (isset($segment[0])) {
+                    $traduction .= $segment[0];
+                }
+            }
+        }
+
+        if ($traduction !== '') {
+            echo json_encode(['success' => true, 'traduction' => $traduction]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Aucune traduction reçue.']);
+        }
+        exit;
+    }
+    
+    //==========================================================================
+    // RÉSUMÉ AUTOMATIQUE — OpenAI API
+    //==========================================================================
+
+    function apiResumeArticle()
+    {
+        header('Content-Type: application/json');
+
+        $contenu = trim($_POST['contenu'] ?? '');
+
+        if ($contenu === '' || mb_strlen($contenu) < 500) {
+            echo json_encode(['success' => false, 'error' => 'Article trop court (min 500 caractères).']);
+            exit;
+        }
+
+        // Limit content
+        $contenu = mb_substr($contenu, 0, 2000);
+
+        // Use textprocessing.com — completely free, no API key
+        $url = 'https://textprocessing.com/api/summarize/';
+
+        $data = [
+            'text'    => $contenu,
+            'percent' => 20,
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$response) {
+            // Fallback: simple PHP summary (first 2 sentences)
+            $phrases = preg_split('/[.!?]+/', $contenu, -1, PREG_SPLIT_NO_EMPTY);
+            $resume = trim(implode('. ', array_slice($phrases, 0, 2))) . '.';
+            echo json_encode(['success' => true, 'resume' => $resume]);
+            exit;
+        }
+
+        $result = json_decode($response, true);
+        $summary = $result['summary'] ?? '';
+        $summary = strip_tags($summary);
+
+        if (mb_strlen($summary) > 20) {
+            echo json_encode(['success' => true, 'resume' => trim($summary)]);
+        } else {
+            // Fallback: first 2 sentences
+            $phrases = preg_split('/[.!?]+/', $contenu, -1, PREG_SPLIT_NO_EMPTY);
+            $resume = trim(implode('. ', array_slice($phrases, 0, 2))) . '.';
+            echo json_encode(['success' => true, 'resume' => $resume]);
+        }
+        exit;
+    }
 }
 ?>

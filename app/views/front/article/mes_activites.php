@@ -3,12 +3,7 @@ $articles      = $mesArticles ?? [];
 $commentaires  = $mesCommentaires ?? [];
 $auteur        = htmlspecialchars($auteurSaisi ?? '');
 $pin           = htmlspecialchars($pinSaisi ?? '');
-// L'utilisateur est-il déjà connecté (formulaire validé ou session existante) ?
 $dejaConnecte  = (!empty($mesArticles) || !empty($mesCommentaires)) || (!empty($_SESSION['mes_activites_auteur']));
-// Si la session existe mais qu'aucune donnée n'a été chargée, forcer le chargement (ne devrait pas arriver)
-if (!$dejaConnecte && !empty($_SESSION['mes_activites_auteur'])) {
-    // on recharge (le contrôleur l'a déjà fait normalement)
-}
 ?>
 
 <div style="padding:2rem;max-width:1000px;margin:0 auto">
@@ -19,7 +14,7 @@ if (!$dejaConnecte && !empty($_SESSION['mes_activites_auteur'])) {
       </div>
       <div>
         <h1 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:800;color:var(--text-primary);margin:0">📂 Mes activités</h1>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin:3px 0 0 0">Retrouvez vos articles et commentaires</p>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin:3px 0 0 0">Retrouvez vos articles, commentaires et favoris</p>
       </div>
     </div>
     <a href="<?= BASE_URL ?>/?page=article&action=list" class="btn" style="border-radius:var(--radius-full);background:rgba(45,106,79,0.06);border:1px solid rgba(45,106,79,0.15);color:var(--primary)">
@@ -52,9 +47,10 @@ if (!$dejaConnecte && !empty($_SESSION['mes_activites_auteur'])) {
     </form>
   <?php else: ?>
     <!-- ACTIVITÉS -->
-    <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem">
+    <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
       <button onclick="switchTab('articles')" id="tab-btn-articles" class="btn" style="border-radius:var(--radius-full);background:var(--primary);color:#fff;border:none;font-weight:700">📝 Mes articles (<?= count($articles) ?>)</button>
       <button onclick="switchTab('commentaires')" id="tab-btn-commentaires" class="btn" style="border-radius:var(--radius-full);background:rgba(45,106,79,0.06);color:var(--text-secondary);border:1px solid var(--border);font-weight:600">💬 Mes commentaires (<?= count($commentaires) ?>)</button>
+      <button onclick="switchTab('favoris')" id="tab-btn-favoris" class="btn" style="border-radius:var(--radius-full);background:rgba(45,106,79,0.06);color:var(--text-secondary);border:1px solid var(--border);font-weight:600">⭐ Mes favoris</button>
     </div>
 
     <!-- Articles -->
@@ -113,18 +109,88 @@ if (!$dejaConnecte && !empty($_SESSION['mes_activites_auteur'])) {
         </div>
       <?php endif; ?>
     </div>
+
+    <!-- Favoris -->
+    <div id="tab-favoris" style="display:none">
+      <div id="favoris-container" style="display:flex;flex-direction:column;gap:0.75rem">
+        <div class="card" style="padding:3rem;text-align:center;color:var(--text-muted)" id="favoris-empty">Chargement de vos favoris...</div>
+      </div>
+    </div>
   <?php endif; ?>
 </div>
 
 <script>
+// ==================== SWITCH TABS ====================
 function switchTab(tab) {
   document.getElementById('tab-articles').style.display = (tab === 'articles') ? 'block' : 'none';
   document.getElementById('tab-commentaires').style.display = (tab === 'commentaires') ? 'block' : 'none';
-  document.getElementById('tab-btn-articles').style.background = (tab === 'articles') ? 'var(--primary)' : 'rgba(45,106,79,0.06)';
-  document.getElementById('tab-btn-articles').style.color = (tab === 'articles') ? '#fff' : 'var(--text-secondary)';
-  document.getElementById('tab-btn-articles').style.border = (tab === 'articles') ? 'none' : '1px solid var(--border)';
-  document.getElementById('tab-btn-commentaires').style.background = (tab === 'commentaires') ? 'var(--primary)' : 'rgba(45,106,79,0.06)';
-  document.getElementById('tab-btn-commentaires').style.color = (tab === 'commentaires') ? '#fff' : 'var(--text-secondary)';
-  document.getElementById('tab-btn-commentaires').style.border = (tab === 'commentaires') ? 'none' : '1px solid var(--border)';
+  document.getElementById('tab-favoris').style.display = (tab === 'favoris') ? 'block' : 'none';
+
+  ['articles','commentaires','favoris'].forEach(function(t) {
+    const btn = document.getElementById('tab-btn-' + t);
+    if (t === tab) {
+      btn.style.background = 'var(--primary)';
+      btn.style.color = '#fff';
+      btn.style.border = 'none';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.style.background = 'rgba(45,106,79,0.06)';
+      btn.style.color = 'var(--text-secondary)';
+      btn.style.border = '1px solid var(--border)';
+      btn.style.fontWeight = '600';
+    }
+  });
+
+  if (tab === 'favoris') loadFavorisTab();
+}
+
+// ==================== FAVORIS (load by session name + PIN) ====================
+const FAVORIS_NAME = '<?= addslashes($auteur) ?>';
+const FAVORIS_PIN  = '<?= addslashes($pin) ?>';
+
+function getFavorisKey(name, pin) {
+  return 'greenbite_favoris_' + name.toLowerCase().trim() + '_' + pin;
+}
+
+function getFavoris(name, pin) {
+  try { return JSON.parse(localStorage.getItem(getFavorisKey(name, pin)) || '[]'); } catch(e) { return []; }
+}
+
+function loadFavorisTab() {
+  const container = document.getElementById('favoris-container');
+  const favoris = getFavoris(FAVORIS_NAME, FAVORIS_PIN);
+
+  if (favoris.length === 0) {
+    container.innerHTML = '<div class="card" style="padding:3rem;text-align:center;color:var(--text-muted)">Aucun favori pour le moment. Cliquez sur ⭐ depuis un article pour en ajouter.</div>';
+    return;
+  }
+
+  let html = '';
+  favoris.forEach(function(id) {
+    html += `
+      <div class="card" style="padding:1rem 1.25rem;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:800;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Article #${id}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.2rem">Ajouté aux favoris</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-shrink:0;margin-left:1rem">
+          <a href="<?= BASE_URL ?>/?page=article&action=detail&id=${id}" class="btn" style="border-radius:var(--radius-full);padding:0.35rem 0.8rem;font-size:0.75rem;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);color:#3b82f6">👁️ Voir</a>
+          <button onclick="removeFavori(${id})" class="btn" style="border-radius:var(--radius-full);padding:0.35rem 0.8rem;font-size:0.75rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#ef4444;cursor:pointer">🗑️ Retirer</button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function removeFavori(id) {
+  const key = getFavorisKey(FAVORIS_NAME, FAVORIS_PIN);
+  const favoris = getFavoris(FAVORIS_NAME, FAVORIS_PIN);
+  const idx = favoris.indexOf(id);
+  if (idx !== -1) {
+    favoris.splice(idx, 1);
+    localStorage.setItem(key, JSON.stringify(favoris));
+    loadFavorisTab();
+  }
 }
 </script>

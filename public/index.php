@@ -195,7 +195,7 @@ switch ($page) {
         }
         break;
 
-       // ---- MODULE BLOG / ARTICLES (Front) ----
+    // ---- MODULE BLOG / ARTICLES (Front) ----
     case 'article':
         $controller = new ArticleController();
         switch ($action) {
@@ -203,10 +203,11 @@ switch ($page) {
             case 'add':                 $controller->addFront();               break;
             case 'detail':              $controller->detailFront();            break;
             case 'comment-add':         $controller->addCommentFront();        break;
-            case 'comment-edit':        $controller->editCommentFront();       break;  // ✅ NOUVEAU
-            case 'comment-delete':      $controller->deleteCommentFront();     break;  // ✅ NOUVEAU
-            case 'comment-report':      $controller->reportCommentFront();     break;  // ✅ NOUVEAU
-            case 'mes-activites':       $controller->mesActivitesFront();      break;
+            case 'comment-edit':        $controller->editCommentFront();       break;
+            case 'comment-delete':      $controller->deleteCommentFront();     break;
+            case 'comment-report':      $controller->reportCommentFront();     break;
+            case 'translate':            $controller->apiTranslateArticle();    break;
+            case 'resume':               $controller->apiResumeArticle();          break;
             case 'mes-activites':       $controller->mesActivitesFront();      break;
             case 'edit-mes-commentaires':      $controller->editMesCommentairesFront();      break;
             case 'delete-mes-commentaires':    $controller->deleteMesCommentairesFront();    break;
@@ -215,6 +216,7 @@ switch ($page) {
             default:                    $controller->listFront();              break;
         }
         break;
+
     // ---- MODULE BLOG / ARTICLES (Back) ----
     case 'admin-article':
         $controller = new ArticleController();
@@ -241,6 +243,7 @@ switch ($page) {
             default:                  $controller->listBack();                break;
         }
         break;
+
     // ---- 404 ----
     default:
         http_response_code(404);
