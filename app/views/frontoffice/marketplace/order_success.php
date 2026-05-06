@@ -126,7 +126,12 @@ window.addEventListener('load', () => {
     </div>
 
     <!-- Actions -->
-    <div class="action-btns">
+    <div class="action-btns" style="flex-wrap: wrap;">
+      <?php if ($mode === 'carte'): ?>
+      <a href="<?= BASE_URL ?>/?page=marketplace&action=download-receipt&id=<?= $id ?>" target="_blank" class="btn" style="width:100%; background:var(--surface);border:1.5px solid var(--primary);color:var(--primary);border-radius:.875rem;padding:.875rem;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.25rem">
+        <i data-lucide="download" style="width:1rem;height:1rem"></i> Télécharger Reçu PDF
+      </a>
+      <?php endif; ?>
       <a href="<?= BASE_URL ?>/?page=marketplace&action=track-order&id=<?= $id ?>" class="btn flex-1" style="background:var(--surface);border:1.5px solid var(--border);color:var(--text-primary);border-radius:.875rem;padding:.875rem;display:flex;align-items:center;justify-content:center;gap:.5rem">
         <i data-lucide="map" style="width:1rem;height:1rem"></i> Suivre ma commande
       </a>

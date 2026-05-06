@@ -22,9 +22,16 @@
     <h1 class="text-2xl font-bold flex items-center gap-2" style="color:var(--text-primary)">
       <i data-lucide="map" style="width:1.5rem;height:1.5rem;color:var(--primary)"></i> Suivi de commande
     </h1>
-    <a href="<?= BASE_URL ?>/?page=marketplace" class="btn btn-sm" style="background:var(--surface);border:1px solid var(--border)">
-      Retour
-    </a>
+    <div style="display:flex;gap:.5rem">
+      <?php if ($commande && ($commande['mode_paiement'] ?? '') !== 'livraison'): ?>
+        <a href="<?= BASE_URL ?>/?page=marketplace&action=download-receipt&id=<?= $commande['id'] ?>" target="_blank" class="btn btn-sm" style="background:var(--surface);border:1px solid var(--primary);color:var(--primary)">
+          <i data-lucide="download" style="width:.9rem;height:.9rem;margin-right:.25rem"></i> Reçu PDF
+        </a>
+      <?php endif; ?>
+      <a href="<?= BASE_URL ?>/?page=marketplace" class="btn btn-sm" style="background:var(--surface);border:1px solid var(--border)">
+        Retour
+      </a>
+    </div>
   </div>
 
   <?php if (!$commande): ?>
@@ -41,6 +48,38 @@
       </form>
     </div>
   <?php else: ?>
+
+    <?php
+      $isLivraison = (($commande['mode_paiement'] ?? '') === 'livraison');
+      $canEdit     = $isLivraison && ($commande['statut'] === 'en_attente');
+    ?>
+
+    <?php if ($canEdit): ?>
+      <!-- Editable banner -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;border-radius:.875rem;margin-bottom:1.5rem;background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(251,191,36,.06));border:1px solid rgba(249,115,22,.25);flex-wrap:wrap">
+        <div style="display:flex;align-items:flex-start;gap:.75rem">
+          <i data-lucide="info" style="width:1.25rem;height:1.25rem;color:#f97316;flex-shrink:0;margin-top:.1rem"></i>
+          <div>
+            <div style="font-weight:700;color:#ea580c;font-size:.9rem">Commande modifiable</div>
+            <div style="font-size:.8rem;color:#9a3412">Votre commande est en attente. Vous pouvez encore la modifier tant que l'administrateur ne l'a pas confirmée.</div>
+          </div>
+        </div>
+        <a href="<?= BASE_URL ?>/?page=marketplace&action=edit-order&id=<?= $commande['id'] ?>"
+           style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.25rem;border-radius:.75rem;font-weight:700;font-size:.85rem;background:#f97316;color:#fff;text-decoration:none;white-space:nowrap;transition:all .2s;flex-shrink:0"
+           onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">
+          <i data-lucide="edit-3" style="width:.9rem;height:.9rem"></i> Modifier ma commande
+        </a>
+      </div>
+    <?php elseif ($isLivraison && $commande['statut'] !== 'en_attente' && $commande['statut'] !== 'annulee'): ?>
+      <!-- Locked banner -->
+      <div style="display:flex;align-items:flex-start;gap:.75rem;padding:1rem 1.25rem;border-radius:.875rem;margin-bottom:1.5rem;background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(79,70,229,.04));border:1px solid rgba(99,102,241,.2)">
+        <i data-lucide="lock" style="width:1.1rem;height:1.1rem;color:#6366f1;flex-shrink:0;margin-top:.1rem"></i>
+        <div>
+          <div style="font-weight:700;color:#4f46e5;font-size:.9rem">Commande confirmée — modification verrouillée</div>
+          <div style="font-size:.8rem;color:#4338ca">L'administrateur a confirmé votre commande. Contactez-nous si vous souhaitez y apporter des modifications.</div>
+        </div>
+      </div>
+    <?php endif; ?>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="md:col-span-2">
