@@ -204,7 +204,7 @@ async function loadInspiration() {
   var controller = new AbortController();
   var timer = setTimeout(function(){ controller.abort(); }, 8000);
   try {
-    var res = await fetch('https://www.themealdb.com/api/json/v1/1/random.php', { signal: controller.signal });
+    var res = await fetch('<?= THEMEALDB_BASE_URL ?>/random.php', { signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var data = await res.json();
