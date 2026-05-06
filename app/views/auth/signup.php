@@ -6,6 +6,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 }
 
 require_once BASE_PATH . '/app/controllers/UserController.php';
+require_once BASE_PATH . '/config/recaptcha.php';
 
 $error  = null;
 $success = null;
@@ -15,9 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email     = trim($_POST['email']);
     $password  = $_POST['password'];
     $confirm   = $_POST['confirm'];
+    $recaptchaResponse = isset($_POST['g-recaptcha-response']) ? $_POST['g-recaptcha-response'] : null;
 
-    // Vérifications PHP
-    if (empty($username) || empty($email) || empty($password)) {
+    // Vérifier reCAPTCHA
+    $recaptchaResult = verifyRecaptcha($recaptchaResponse);
+    if (!$recaptchaResult['success']) {
+        $error = $recaptchaResult['message'];
+    } elseif (empty($username) || empty($email) || empty($password)) {
         $error = 'Tous les champs sont obligatoires.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Adresse email invalide.';
@@ -54,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/fonts.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
@@ -167,8 +173,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </label>
   <span id="err-cgu" style="color:#dc2626;font-size:0.75rem;display:none;margin-top:-8px"></span>
 
+  <!-- reCAPTCHA -->
+  <div style="margin-top:0.5rem">
+    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="recaptchaCallback" data-expired-callback="recaptchaExpired"></div>
+  </div>
+
   <!-- Submit -->
-  <button type="submit" class="btn btn-primary btn-lg btn-block" style="border-radius:var(--radius-xl);padding:0.9rem;font-size:0.95rem">
+  <button type="submit" id="signupSubmitBtn" class="btn btn-primary btn-lg btn-block" style="border-radius:var(--radius-xl);padding:0.9rem;font-size:0.95rem" disabled>
     <i data-lucide="user-plus" style="width:1.125rem;height:1.125rem"></i> Créer mon compte
   </button>
 
@@ -363,7 +374,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   function setBorderById(inputId, valid) {
     const input = document.getElementById(inputId);
-    if (input) input.style.borderColor = valid ? 'var(--border)' : '#dc2626';
+    if (input) setBorder(input, valid);
+  }
+
+  // ==================== reCAPTCHA ====================
+  function recaptchaCallback(token) {
+    document.getElementById('signupSubmitBtn').disabled = false;
+  }
+  function recaptchaExpired() {
+    document.getElementById('signupSubmitBtn').disabled = true;
   }
 </script>
 </body>
