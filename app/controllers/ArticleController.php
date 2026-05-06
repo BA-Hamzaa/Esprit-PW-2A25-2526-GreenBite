@@ -1036,7 +1036,7 @@ class ArticleController
     }
     
     //==========================================================================
-    // RÉSUMÉ AUTOMATIQUE — OpenAI API
+    // RÉSUMÉ AUTOMATIQUE — Gemini API
     //==========================================================================
 
     function apiResumeArticle()
@@ -1050,47 +1050,78 @@ class ArticleController
             exit;
         }
 
-        // Limit content
-        $contenu = mb_substr($contenu, 0, 2000);
+        $contenu = mb_substr($contenu, 0, 3000);
 
-        // Use textprocessing.com — completely free, no API key
-        $url = 'https://textprocessing.com/api/summarize/';
+        // Try Gemini API
+        $apiKeyFile = BASE_PATH . '/config/api.php';
+        $geminiKey = '';
 
-        $data = [
-            'text'    => $contenu,
-            'percent' => 20,
-        ];
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode !== 200 || !$response) {
-            // Fallback: simple PHP summary (first 2 sentences)
-            $phrases = preg_split('/[.!?]+/', $contenu, -1, PREG_SPLIT_NO_EMPTY);
-            $resume = trim(implode('. ', array_slice($phrases, 0, 2))) . '.';
-            echo json_encode(['success' => true, 'resume' => $resume]);
-            exit;
+        if (file_exists($apiKeyFile)) {
+            require_once $apiKeyFile;
+            $geminiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
         }
 
-        $result = json_decode($response, true);
-        $summary = $result['summary'] ?? '';
-        $summary = strip_tags($summary);
+        if ($geminiKey !== '') {
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $geminiKey;
 
-        if (mb_strlen($summary) > 20) {
-            echo json_encode(['success' => true, 'resume' => trim($summary)]);
+            $data = json_encode([
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => 'Summarize this article in 2-3 sentences. Only return the summary. Article: ' . $contenu]
+                        ]
+                    ]
+                ]
+            ]);
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 429) {
+                sleep(3);
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+            }
+
+            if ($httpCode === 200 && $response) {
+                $result = json_decode($response, true);
+                $summary = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+                if (!empty($summary)) {
+                    echo json_encode(['success' => true, 'resume' => trim($summary)]);
+                    exit;
+                }
+            }
+        }
+
+        // Fallback: smart extractive summary
+        $phrases = preg_split('/(?<=[.!?])\s+/', $contenu, -1, PREG_SPLIT_NO_EMPTY);
+        $total = count($phrases);
+
+        if ($total >= 3) {
+            $resume = $phrases[0] . ' ' . $phrases[floor($total / 2)] . ' ' . $phrases[$total - 1];
+        } elseif ($total > 0) {
+            $resume = implode(' ', $phrases);
         } else {
-            // Fallback: first 2 sentences
-            $phrases = preg_split('/[.!?]+/', $contenu, -1, PREG_SPLIT_NO_EMPTY);
-            $resume = trim(implode('. ', array_slice($phrases, 0, 2))) . '.';
-            echo json_encode(['success' => true, 'resume' => $resume]);
+            $resume = $contenu;
         }
+
+        echo json_encode(['success' => true, 'resume' => trim($resume)]);
         exit;
     }
 }
