@@ -389,45 +389,84 @@ $pending = $ctrl->GetDemandesPending();
   </div>
 </div>
 
-<!-- Pie Chart - Users by Role -->
-<div class="card" style="padding:1rem;margin-top:1rem;margin-left:2rem;margin-bottom:2rem;max-width:520px;">
-  <h3 class="font-semibold flex items-center gap-2 mb-3" 
-      style="color:var(--text-primary);font-size:1rem;">
-    <i data-lucide="pie-chart" 
-       style="width:0.9rem;height:0.9rem;color:var(--primary)"></i>
-    Répartition par rôle
-  </h3>
+<!-- Charts Section -->
+<div style="display:flex;gap:1.5rem;margin-top:1rem;margin-left:2rem;margin-bottom:2rem;flex-wrap:wrap">
 
-  <div style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap">
-    
-    <div style="width:180px;height:180px">
-      <canvas id="roleChart"></canvas>
+  <!-- Pie Chart - Users by Role -->
+  <div class="card" style="padding:1rem;max-width:480px;flex:1;min-width:300px;">
+    <h3 class="font-semibold flex items-center gap-2 mb-3" 
+        style="color:var(--text-primary);font-size:1rem;">
+      <i data-lucide="pie-chart" 
+         style="width:0.9rem;height:0.9rem;color:var(--primary)"></i>
+      Répartition par rôle
+    </h3>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap">
+      
+      <div style="width:160px;height:160px">
+        <canvas id="roleChart"></canvas>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ea580c"></div>
+          <span style="font-size:0.8rem;color:var(--text-primary)">
+            ADMIN: <strong><?= $admins ?></strong>
+          </span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <div style="width:10px;height:10px;border-radius:50%;background:#7c3aed"></div>
+          <span style="font-size:0.8rem;color:var(--text-primary)">
+            COACH: <strong><?= $coachs ?></strong>
+          </span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <div style="width:10px;height:10px;border-radius:50%;background:#2563eb"></div>
+          <span style="font-size:0.8rem;color:var(--text-primary)">
+            USER: <strong><?= $regulars ?></strong>
+          </span>
+        </div>
+      </div>
+
     </div>
-
-    <div style="display:flex;flex-direction:column;gap:0.5rem">
-      <div style="display:flex;align-items:center;gap:0.4rem">
-        <div style="width:10px;height:10px;border-radius:50%;background:#ea580c"></div>
-        <span style="font-size:0.8rem;color:var(--text-primary)">
-          ADMIN: <strong><?= $admins ?></strong>
-        </span>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:0.4rem">
-        <div style="width:10px;height:10px;border-radius:50%;background:#7c3aed"></div>
-        <span style="font-size:0.8rem;color:var(--text-primary)">
-          COACH: <strong><?= $coachs ?></strong>
-        </span>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:0.4rem">
-        <div style="width:10px;height:10px;border-radius:50%;background:#2563eb"></div>
-        <span style="font-size:0.8rem;color:var(--text-primary)">
-          USER: <strong><?= $regulars ?></strong>
-        </span>
-      </div>
-    </div>
-
   </div>
+
+  <!-- Pie Chart - Users by Status -->
+  <div class="card" style="padding:1rem;max-width:480px;flex:1;min-width:300px;">
+    <h3 class="font-semibold flex items-center gap-2 mb-3" 
+        style="color:var(--text-primary);font-size:1rem;">
+      <i data-lucide="activity" 
+         style="width:0.9rem;height:0.9rem;color:var(--primary)"></i>
+      Répartition par statut
+    </h3>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap">
+      
+      <div style="width:160px;height:160px">
+        <canvas id="statusChart"></canvas>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <div style="width:10px;height:10px;border-radius:50%;background:#16a34a"></div>
+          <span style="font-size:0.8rem;color:var(--text-primary)">
+            Actifs: <strong><?= $actifs ?></strong>
+          </span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ef4444"></div>
+          <span style="font-size:0.8rem;color:var(--text-primary)">
+            Suspendus: <strong><?= $suspendus ?></strong>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- ==================== MODAL AJOUTER ==================== -->
@@ -787,6 +826,41 @@ $pending = $ctrl->GetDemandesPending();
         datasets: [{
           data: [<?= $admins ?>, <?= $coachs ?>, <?= $regulars ?>],
           backgroundColor: ['#ea580c', '#7c3aed', '#2563eb'],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((context.raw / total) * 100).toFixed(1);
+                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ==================== PIE CHART - USERS BY STATUS ====================
+  const statusCtx = document.getElementById('statusChart');
+  if (statusCtx && typeof Chart !== 'undefined') {
+    new Chart(statusCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Actifs', 'Suspendus'],
+        datasets: [{
+          data: [<?= $actifs ?>, <?= $suspendus ?>],
+          backgroundColor: ['#16a34a', '#ef4444'],
           borderWidth: 2,
           borderColor: '#fff'
         }]

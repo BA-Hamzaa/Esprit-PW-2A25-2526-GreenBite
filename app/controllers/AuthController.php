@@ -2,6 +2,7 @@
 require_once BASE_PATH . '/config/database.php';
 require_once BASE_PATH . '/config/google.php';
 require_once BASE_PATH . '/config/email.php';
+require_once BASE_PATH . '/config/recaptcha.php';
 require_once BASE_PATH . '/app/models/UserModel.php';
 require_once BASE_PATH . '/app/controllers/UserController.php';
 
@@ -24,7 +25,16 @@ class AuthController {
     }
 
 /////..............................Login............................../////
-    function Login($email, $password) {
+    function Login($email, $password, $recaptchaResponse = null) {
+        if ($recaptchaResponse === null) {
+            return ['error' => 'Veuillez cocher la case reCAPTCHA.'];
+        }
+
+        $recaptchaResult = verifyRecaptcha($recaptchaResponse);
+        if (!$recaptchaResult['success']) {
+            return ['error' => $recaptchaResult['message']];
+        }
+
         $sql = "SELECT * FROM users WHERE email = :email AND is_active = 1";
         $db = Database::getConnexion();
         try {

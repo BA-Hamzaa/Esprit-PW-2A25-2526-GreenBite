@@ -27,6 +27,7 @@ require_once BASE_PATH . '/app/controllers/NutritionController.php';
 require_once BASE_PATH . '/app/controllers/MarketplaceController.php';
 require_once BASE_PATH . '/app/controllers/RecettesController.php';
 require_once BASE_PATH . '/app/controllers/AuthController.php';
+require_once BASE_PATH . '/app/controllers/FaceAuthController.php';
 require_once BASE_PATH . '/app/controllers/UserController.php';
 require_once BASE_PATH . '/app/controllers/NutritionController.php';
 require_once BASE_PATH . '/app/controllers/MarketplaceController.php';
@@ -83,6 +84,47 @@ case 'forgot-password':
 case 'reset-password':
     require_once BASE_PATH . '/app/views/auth/reset-password.php';
     break;
+
+// ---- FACE ID API ROUTES ----
+case 'api-face-register':
+    header('Content-Type: application/json');
+    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+        echo json_encode(['error' => 'Non authentifié']);
+        exit();
+    }
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['descriptor'])) {
+        echo json_encode(['error' => 'Descripteur manquant']);
+        exit();
+    }
+    $ctrl = new FaceAuthController();
+    $result = $ctrl->registerFace($_SESSION['user_id'], json_encode($data['descriptor']));
+    echo json_encode($result);
+    exit();
+
+case 'api-face-login':
+    header('Content-Type: application/json');
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['descriptor'])) {
+        echo json_encode(['error' => 'Descripteur manquant']);
+        exit();
+    }
+    $ctrl = new FaceAuthController();
+    $result = $ctrl->loginFace(json_encode($data['descriptor']));
+    echo json_encode($result);
+    exit();
+
+// ---- FACE ID VIEWS ----
+case 'face-register':
+    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+        header('Location: ' . BASE_URL . '/?page=login');
+        exit();
+    }
+    require_once BASE_PATH . '/app/views/layouts/front_header.php';
+    require_once BASE_PATH . '/app/views/auth/face-register.php';
+    require_once BASE_PATH . '/app/views/layouts/front_footer.php';
+    break;
+
 
 // ---- UTILISATEURS (Back) ----
 case 'admin-users':

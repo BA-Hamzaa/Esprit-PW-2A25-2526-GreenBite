@@ -73,6 +73,9 @@
           <i data-lucide="moon" id="darkIcon"></i>
           <span id="darkLabel">Mode sombre</span>
         </button>
+        <a href="<?= BASE_URL ?>/?page=face-register" class="sidebar-nav-item" style="margin-top:4px">
+          <i data-lucide="scan-face"></i><span>Face ID</span>
+        </a>
         <a href="<?= BASE_URL ?>/" class="sidebar-nav-item" style="margin-top:4px"><i data-lucide="arrow-left"></i><span>Retour au site</span></a>
       </div>
     </nav>

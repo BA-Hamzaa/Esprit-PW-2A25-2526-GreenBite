@@ -337,6 +337,20 @@
         <span id="err-profile-password" style="color:#dc2626;font-size:0.75rem;display:none;margin-top:4px"></span>
       </div>
 
+      <!-- Face ID Setup -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem;border-radius:0.875rem;background:var(--surface);border:1px solid var(--border);margin-top:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#f0fdf4);display:flex;align-items:center;justify-content:center;color:var(--primary)">
+            <i data-lucide="scan-face" style="width:1.25rem;height:1.25rem"></i>
+          </div>
+          <div>
+            <h4 style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin:0">Face ID</h4>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin:0">Connexion biométrique</p>
+          </div>
+        </div>
+        <a href="<?= BASE_URL ?>/?page=face-register" class="btn btn-outline" style="padding:0.4rem 0.8rem;font-size:0.75rem;border-radius:var(--radius-full);text-decoration:none">Configurer</a>
+      </div>
+
       <!-- Confirm mot de passe -->
       <div id="confirmPwdWrap" style="display:none">
         <label style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:0.35rem">Confirmer le mot de passe</label>
