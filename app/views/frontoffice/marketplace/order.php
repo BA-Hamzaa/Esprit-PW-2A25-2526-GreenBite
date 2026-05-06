@@ -83,6 +83,10 @@
           <label class="form-label" for="f_email"><i data-lucide="mail" style="width:.75rem;height:.75rem"></i> Email</label>
           <input type="email" id="f_email" class="form-input" placeholder="ahmed@email.com" value="<?= htmlspecialchars($_POST['client_email'] ?? '') ?>">
         </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label" for="f_tel"><i data-lucide="phone" style="width:.75rem;height:.75rem"></i> Numéro de téléphone</label>
+          <input type="tel" id="f_tel" class="form-input" placeholder="21 345 678" value="<?= htmlspecialchars($_POST['client_telephone'] ?? '') ?>">
+        </div>
       </div>
 
       <!-- Mapbox Address -->
@@ -136,14 +140,42 @@
         <span style="font-size:.82rem;color:var(--text-muted)">👤</span>
         <span id="s2-nom" style="font-weight:600;font-size:.875rem;color:var(--text-primary)"></span>
         <span style="color:var(--border)">•</span>
+        <span style="color:var(--border)">•</span>
         <span id="s2-email" style="font-size:.82rem;color:var(--text-muted)"></span>
+        <span style="color:var(--border)">•</span>
+        <span id="s2-tel" style="font-size:.82rem;color:var(--text-muted)"></span>
         <span style="color:var(--border)">•</span>
         <span id="s2-addr" style="font-size:.82rem;color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:24rem"></span>
       </div>
     </div>
 
+    <!-- Payment Mode Selection -->
+    <div class="card mb-4" style="padding:1.5rem">
+      <h3 class="font-semibold mb-3 flex items-center gap-2" style="color:var(--text-primary)">
+        <i data-lucide="credit-card" style="width:1rem;height:1rem;color:var(--primary)"></i> Mode de paiement
+      </h3>
+      <div class="flex gap-4">
+        <label style="flex:1;border:1.5px solid var(--primary);border-radius:.75rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:.75rem;background:rgba(82,183,136,.05)" id="label_carte">
+          <input type="radio" name="pay_mode" value="carte" checked onchange="togglePaymentMode()">
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--text-primary)">Carte Bancaire</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">Paiement sécurisé via Stripe</div>
+          </div>
+          <i data-lucide="credit-card" style="width:1.25rem;height:1.25rem;color:var(--primary)"></i>
+        </label>
+        <label style="flex:1;border:1.5px solid var(--border);border-radius:.75rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:.75rem;transition:all .2s" id="label_livraison">
+          <input type="radio" name="pay_mode" value="livraison" onchange="togglePaymentMode()">
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--text-primary)">Paiement à la livraison</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">Payez en espèces au livreur</div>
+          </div>
+          <i data-lucide="truck" style="width:1.25rem;height:1.25rem;color:var(--text-muted)" id="icon_livraison"></i>
+        </label>
+      </div>
+    </div>
+
     <!-- Stripe card -->
-    <div class="card" style="padding:1.75rem">
+    <div class="card" style="padding:1.75rem" id="stripe_section">
       <h2 class="font-semibold mb-4 flex items-center gap-2" style="color:var(--text-primary)">
         <i data-lucide="lock" style="width:1rem;height:1rem;color:var(--secondary)"></i> Paiement sécurisé
         <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" style="height:1.1rem;margin-left:auto;opacity:.6">
@@ -185,13 +217,41 @@
         <span style="font-size:.72rem;color:var(--text-muted)">Date: toute date future · CVC: 3 chiffres quelconques</span>
       </div>
     </div>
+    
+    <!-- Livraison alternative -->
+    <div class="card" style="padding:1.75rem;display:none" id="livraison_section">
+      <h2 class="font-semibold mb-4 flex items-center gap-2" style="color:var(--text-primary)">
+        <i data-lucide="truck" style="width:1rem;height:1rem;color:var(--secondary)"></i> Paiement à la livraison
+      </h2>
+      <p style="color:var(--text-muted);font-size:.9rem;line-height:1.5">
+        Vous avez choisi de payer en espèces lors de la réception de votre commande.
+        Veuillez préparer le montant exact si possible.
+      </p>
+
+      <!-- Total -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding:1rem;background:var(--muted);border-radius:.75rem">
+        <div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.15rem"><?= $cartCount ?> article<?= $cartCount > 1 ? 's' : '' ?></div>
+          <div style="font-weight:800;font-size:1.1rem;color:var(--text-primary)">Total à payer au livreur</div>
+        </div>
+        <div style="font-weight:900;font-size:1.4rem;color:var(--primary)"><?= number_format($cartTotal, 2) ?> DT</div>
+      </div>
+
+      <button class="pay-btn" id="payLivraisonBtn" onclick="handleLivraisonPayment()">
+        <div class="spinner" id="livraisonSpinner"></div>
+        <i data-lucide="check-circle" style="width:1.1rem;height:1.1rem" id="livraisonIcon"></i>
+        <span id="livraisonBtnText">Confirmer ma commande</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Hidden form submitted after Stripe confirms -->
+  <!-- Hidden form submitted after Stripe confirms or Livraison selected -->
   <form id="confirmForm" method="POST" action="" style="display:none">
     <input type="hidden" name="stripe_payment_intent_id" id="h_pi_id">
+    <input type="hidden" name="mode_paiement"  id="h_pi_mode" value="carte">
     <input type="hidden" name="client_nom"     id="h_pi_nom">
     <input type="hidden" name="client_email"   id="h_pi_email">
+    <input type="hidden" name="client_telephone" id="h_pi_tel">
     <input type="hidden" name="client_adresse" id="h_pi_adresse">
     <input type="hidden" name="client_lat"     id="h_pi_lat">
     <input type="hidden" name="client_lng"     id="h_pi_lng">
@@ -271,6 +331,7 @@ marker.on('dragend', function() {
 function goToStep2() {
   const nom     = document.getElementById('f_nom').value.trim();
   const email   = document.getElementById('f_email').value.trim();
+  const tel     = document.getElementById('f_tel').value.trim();
   const adresse = document.getElementById('h_adresse').value.trim();
 
   let ok = true;
@@ -278,12 +339,14 @@ function goToStep2() {
 
   if (!nom)   { setErr('nom-err', 'Nom obligatoire.'); ok = false; }   else setErr('nom-err', '');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('email-err', 'Email invalide.'); ok = false; } else setErr('email-err', '');
+  if (!tel || tel.length < 4) { setErr('tel-err', 'Téléphone invalide.'); ok = false; } else setErr('tel-err', '');
   if (!adresse || adresse.length < 5) { document.getElementById('addr-error').style.display = 'block'; ok = false; }
 
   if (!ok) return;
 
   document.getElementById('s2-nom').textContent   = nom;
   document.getElementById('s2-email').textContent = email;
+  document.getElementById('s2-tel').textContent   = tel;
   document.getElementById('s2-addr').textContent  = adresse;
 
   document.getElementById('step1').style.display = 'none';
@@ -302,6 +365,34 @@ function goToStep1() {
   document.getElementById('si2').classList.remove('active');
   document.getElementById('si1').classList.remove('done'); document.getElementById('si1').classList.add('active');
   document.getElementById('sl1').classList.remove('active');
+}
+
+function togglePaymentMode() {
+  const mode = document.querySelector('input[name="pay_mode"]:checked').value;
+  const lCarte = document.getElementById('label_carte');
+  const lLivraison = document.getElementById('label_livraison');
+  
+  if (mode === 'carte') {
+    lCarte.style.border = '1.5px solid var(--primary)';
+    lCarte.style.background = 'rgba(82,183,136,.05)';
+    lLivraison.style.border = '1.5px solid var(--border)';
+    lLivraison.style.background = 'transparent';
+    document.getElementById('icon_livraison').style.color = 'var(--text-muted)';
+    
+    document.getElementById('stripe_section').style.display = 'block';
+    document.getElementById('livraison_section').style.display = 'none';
+    document.getElementById('h_pi_mode').value = 'carte';
+  } else {
+    lLivraison.style.border = '1.5px solid var(--primary)';
+    lLivraison.style.background = 'rgba(82,183,136,.05)';
+    lCarte.style.border = '1.5px solid var(--border)';
+    lCarte.style.background = 'transparent';
+    document.getElementById('icon_livraison').style.color = 'var(--primary)';
+    
+    document.getElementById('stripe_section').style.display = 'none';
+    document.getElementById('livraison_section').style.display = 'block';
+    document.getElementById('h_pi_mode').value = 'livraison';
+  }
 }
 
 // ============ STRIPE ============
@@ -387,6 +478,7 @@ async function handlePayment() {
       document.getElementById('h_pi_id').value      = paymentIntent.id;
       document.getElementById('h_pi_nom').value     = document.getElementById('f_nom').value.trim();
       document.getElementById('h_pi_email').value   = document.getElementById('f_email').value.trim();
+      document.getElementById('h_pi_tel').value     = document.getElementById('f_tel').value.trim();
       document.getElementById('h_pi_adresse').value = document.getElementById('h_adresse').value.trim();
       document.getElementById('h_pi_lat').value     = document.getElementById('h_lat').value;
       document.getElementById('h_pi_lng').value     = document.getElementById('h_lng').value;
@@ -404,10 +496,36 @@ async function handlePayment() {
   }
 }
 
+function handleLivraisonPayment() {
+  if (paymentInProgress) return;
+  paymentInProgress = true;
+  
+  const btn     = document.getElementById('payLivraisonBtn');
+  const spinner = document.getElementById('livraisonSpinner');
+  const icon    = document.getElementById('livraisonIcon');
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  icon.style.display = 'none';
+
+  // Fill hidden form
+  document.getElementById('h_pi_nom').value     = document.getElementById('f_nom').value.trim();
+  document.getElementById('h_pi_email').value   = document.getElementById('f_email').value.trim();
+  document.getElementById('h_pi_tel').value     = document.getElementById('f_tel').value.trim();
+  document.getElementById('h_pi_adresse').value = document.getElementById('h_adresse').value.trim();
+  document.getElementById('h_pi_lat').value     = document.getElementById('h_lat').value;
+  document.getElementById('h_pi_lng').value     = document.getElementById('h_lng').value;
+  
+  document.getElementById('livraisonBtnText').textContent = '✅ Commande en cours...';
+  document.getElementById('confirmForm').submit();
+}
+
 // inline error spans
 document.getElementById('f_nom').insertAdjacentHTML('afterend','<div id="nom-err" style="color:#dc2626;font-size:.78rem;margin-top:.25rem;display:none"></div>');
 document.getElementById('f_email').insertAdjacentHTML('afterend','<div id="email-err" style="color:#dc2626;font-size:.78rem;margin-top:.25rem;display:none"></div>');
+document.getElementById('f_tel').insertAdjacentHTML('afterend','<div id="tel-err" style="color:#dc2626;font-size:.78rem;margin-top:.25rem;display:none"></div>');
 
 document.getElementById('f_nom').addEventListener('input', () => { document.getElementById('nom-err').style.display='none'; });
 document.getElementById('f_email').addEventListener('input', () => { document.getElementById('email-err').style.display='none'; });
+document.getElementById('f_tel').addEventListener('input', () => { document.getElementById('tel-err').style.display='none'; });
 </script>
