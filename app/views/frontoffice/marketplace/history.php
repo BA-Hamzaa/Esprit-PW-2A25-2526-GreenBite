@@ -36,8 +36,9 @@
                 <th>N° Commande</th>
                 <th>Date</th>
                 <th>Total</th>
+                <th>Mode</th>
                 <th>Statut</th>
-                <th>Action</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -46,19 +47,45 @@
                 $statusLabels = ['en_attente'=>'En attente','confirmee'=>'Confirmée','en_preparation'=>'En préparation','expediee'=>'Expédiée','livree'=>'Livrée','annulee'=>'Annulée'];
               ?>
               <?php foreach ($commandes as $c): ?>
+                <?php $isLivraison = (($c['mode_paiement'] ?? '') === 'livraison'); ?>
+                <?php $canEdit    = $isLivraison && ($c['statut'] === 'en_attente'); ?>
                 <tr>
                   <td class="font-medium" style="color:var(--text-primary)">#<?= str_pad($c['id'], 5, '0', STR_PAD_LEFT) ?></td>
                   <td style="color:var(--text-secondary)"><?= date('d/m/Y H:i', strtotime($c['created_at'])) ?></td>
                   <td class="font-bold" style="color:var(--primary)"><?= number_format($c['total'], 2) ?> DT</td>
                   <td>
+                    <?php if ($isLivraison): ?>
+                      <span style="font-size:.75rem;display:flex;align-items:center;gap:.3rem;color:#f97316;font-weight:600">
+                        <i data-lucide="truck" style="width:.8rem;height:.8rem"></i> Livraison
+                      </span>
+                    <?php else: ?>
+                      <span style="font-size:.75rem;display:flex;align-items:center;gap:.3rem;color:#2D6A4F;font-weight:600">
+                        <i data-lucide="credit-card" style="width:.8rem;height:.8rem"></i> Carte
+                      </span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
                     <span class="badge <?= $statusBadges[$c['statut']] ?? 'badge-gray' ?>">
                       <?= $statusLabels[$c['statut']] ?? $c['statut'] ?>
                     </span>
                   </td>
-                  <td>
-                    <a href="<?= BASE_URL ?>/?page=marketplace&action=track-order&id=<?= $c['id'] ?>" class="btn btn-sm" style="background:var(--primary);color:#fff;font-size:0.75rem;padding:0.4rem 0.8rem">
+                  <td style="white-space:nowrap">
+                    <a href="<?= BASE_URL ?>/?page=marketplace&action=track-order&id=<?= $c['id'] ?>"
+                       class="btn btn-sm" style="background:var(--primary);color:#fff;font-size:0.75rem;padding:0.4rem 0.8rem">
                       Suivre <i data-lucide="arrow-right" style="width:0.8rem;height:0.8rem;margin-left:0.25rem"></i>
                     </a>
+                    <?php if ($canEdit): ?>
+                      <a href="<?= BASE_URL ?>/?page=marketplace&action=edit-order&id=<?= $c['id'] ?>"
+                         class="btn btn-sm" style="background:#f97316;color:#fff;font-size:0.75rem;padding:0.4rem 0.8rem;margin-left:0.3rem">
+                        <i data-lucide="edit-3" style="width:0.8rem;height:0.8rem;margin-right:0.2rem"></i> Modifier
+                      </a>
+                    <?php endif; ?>
+                    <?php if (!$isLivraison): ?>
+                      <a href="<?= BASE_URL ?>/?page=marketplace&action=download-receipt&id=<?= $c['id'] ?>" target="_blank"
+                         class="btn btn-sm" style="background:var(--surface);border:1px solid var(--primary);color:var(--primary);font-size:0.75rem;padding:0.4rem 0.8rem;margin-left:0.3rem">
+                        <i data-lucide="download" style="width:0.8rem;height:0.8rem;margin-right:0.2rem"></i> Reçu
+                      </a>
+                    <?php endif; ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
