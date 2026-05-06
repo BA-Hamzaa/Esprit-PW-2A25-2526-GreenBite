@@ -145,14 +145,34 @@ function renderSteps() {
     c.innerHTML = `<div style="min-width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem">${i+1}</div><div style="flex:1"><div style="font-weight:600;font-size:.9rem">${s.titre}</div><div style="font-size:.8rem;color:var(--text-muted)">${s.desc}</div></div><button type="button" onclick="editStep(${i})" class="icon-btn" style="color:#2563eb;width:1.75rem;height:1.75rem"><i data-lucide="pencil" style="width:.8rem;height:.8rem"></i></button><button type="button" onclick="removeStep(${i})" class="icon-btn" style="color:var(--destructive);width:1.75rem;height:1.75rem"><i data-lucide="trash-2" style="width:.8rem;height:.8rem"></i></button><input type="hidden" name="inst_titre[]" value="${s.titre.replace(/"/g,'&quot;')}"><input type="hidden" name="inst_description[]" value="${s.desc.replace(/"/g,'&quot;')}"><input type="hidden" name="inst_ordre[]" value="${i+1}">`;
     list.appendChild(c);
   });
+  // Clear steps section error when steps exist
+  if (steps.length > 0) clearSectionError('steps-list');
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
-function openStepModal(idx) { document.getElementById('step-edit-index').value=idx; document.getElementById('step-modal-title').textContent=idx>=0?'Modifier':'Ajouter une étape'; document.getElementById('step-titre').value=idx>=0?steps[idx].titre:''; document.getElementById('step-desc').value=idx>=0?steps[idx].desc:''; document.getElementById('step-modal').style.display='flex'; }
+function openStepModal(idx) { document.getElementById('step-edit-index').value=idx; document.getElementById('step-modal-title').textContent=idx>=0?'Modifier':'Ajouter une étape'; document.getElementById('step-titre').value=idx>=0?steps[idx].titre:''; document.getElementById('step-desc').value=idx>=0?steps[idx].desc:''; clearFE(document.getElementById('step-titre')); clearFE(document.getElementById('step-desc')); document.getElementById('step-modal').style.display='flex'; }
 function editStep(i){openStepModal(i)} function removeStep(i){steps.splice(i,1);renderSteps()}
 document.getElementById('btn-add-step').addEventListener('click',()=>openStepModal(-1));
 document.getElementById('step-cancel').addEventListener('click',()=>document.getElementById('step-modal').style.display='none');
-document.getElementById('step-save').addEventListener('click',()=>{const t=document.getElementById('step-titre').value.trim(),d=document.getElementById('step-desc').value.trim();if(!t||!d)return;const idx=parseInt(document.getElementById('step-edit-index').value);if(idx>=0)steps[idx]={titre:t,desc:d};else steps.push({titre:t,desc:d});document.getElementById('step-modal').style.display='none';renderSteps();});
+document.getElementById('step-save').addEventListener('click',()=>{
+  const tField = document.getElementById('step-titre');
+  const dField = document.getElementById('step-desc');
+  const t = tField.value.trim();
+  const d = dField.value.trim();
+  let valid = true;
+  if (!t) { showFE(tField, 'Le titre de l\'étape est obligatoire.'); valid = false; } else { clearFE(tField); }
+  if (!d) { showFE(dField, 'La description de l\'étape est obligatoire.'); valid = false; } else { clearFE(dField); }
+  if (!valid) return;
+  const idx=parseInt(document.getElementById('step-edit-index').value);
+  if(idx>=0)steps[idx]={titre:t,desc:d};else steps.push({titre:t,desc:d});
+  document.getElementById('step-modal').style.display='none';
+  renderSteps();
+});
+// Live validation inside step modal
+document.getElementById('step-titre').addEventListener('input', function() { if(this.value.trim()) clearFE(this); });
+document.getElementById('step-desc').addEventListener('input', function() { if(this.value.trim()) clearFE(this); });
+
 document.querySelectorAll('.materiel-chip').forEach(chip=>{chip.addEventListener('click',()=>{const cb=chip.querySelector('.mat-cb');cb.checked=!cb.checked;chip.style.background=cb.checked?'linear-gradient(135deg,#dcfce7,#f0fdf4)':'var(--muted)';chip.style.borderColor=cb.checked?'#22c55e':'var(--border)';chip.style.color=cb.checked?'#166534':'var(--text-secondary)';});});
+
 // ── Inline validation helpers ──
 function showFE(field, msg) {
   field.classList.add('is-invalid'); field.classList.remove('is-valid');
@@ -176,21 +196,36 @@ function showSectionError(sectionId, msg) {
 }
 function clearSectionError(sectionId) { const el = document.getElementById(sectionId+'-err'); if(el) el.classList.remove('show'); }
 
-// Live blur
+// Live blur validation for all fields
 const titreEl2 = document.getElementById('titre');
+const descEl2  = document.getElementById('description');
 const tempsEl2 = document.getElementById('temps_preparation');
 const diffEl2  = document.getElementById('difficulte');
+const catEl2   = document.getElementById('categorie');
+
 titreEl2.addEventListener('blur', () => { if(!titreEl2.value.trim()) showFE(titreEl2,"Le titre est obligatoire."); else clearFE(titreEl2); });
 titreEl2.addEventListener('input', () => { if(titreEl2.classList.contains('is-invalid') && titreEl2.value.trim()) clearFE(titreEl2); });
+
+descEl2.addEventListener('blur', () => { if(!descEl2.value.trim()) showFE(descEl2,"La description est obligatoire."); else clearFE(descEl2); });
+descEl2.addEventListener('input', () => { if(descEl2.classList.contains('is-invalid') && descEl2.value.trim()) clearFE(descEl2); });
+
 tempsEl2.addEventListener('blur', () => { if(!tempsEl2.value || parseInt(tempsEl2.value)<=0) showFE(tempsEl2,"Temps doit être > 0."); else clearFE(tempsEl2); });
+tempsEl2.addEventListener('input', () => { if(tempsEl2.classList.contains('is-invalid') && tempsEl2.value && parseInt(tempsEl2.value)>0) clearFE(tempsEl2); });
+
 diffEl2.addEventListener('change', () => { if(!diffEl2.value) showFE(diffEl2,"Choisissez une difficulté."); else clearFE(diffEl2); });
 
+catEl2.addEventListener('blur', () => { if(!catEl2.value.trim()) showFE(catEl2,"La catégorie est obligatoire."); else clearFE(catEl2); });
+catEl2.addEventListener('input', () => { if(catEl2.classList.contains('is-invalid') && catEl2.value.trim()) clearFE(catEl2); });
+
+// Submit validation
 document.getElementById('recetteForm').addEventListener('submit', function(e) {
   let valid = true;
   if (!titreEl2.value.trim()) { showFE(titreEl2,"Le titre est obligatoire."); valid=false; } else clearFE(titreEl2);
+  if (!descEl2.value.trim()) { showFE(descEl2,"La description est obligatoire."); valid=false; } else clearFE(descEl2);
   if (steps.length === 0) { showSectionError('steps-list',"Ajoutez au moins une étape."); valid=false; } else clearSectionError('steps-list');
   if (!tempsEl2.value || parseInt(tempsEl2.value)<=0) { showFE(tempsEl2,"Temps invalide."); valid=false; } else clearFE(tempsEl2);
   if (!diffEl2.value) { showFE(diffEl2,"Difficulté obligatoire."); valid=false; } else clearFE(diffEl2);
+  if (!catEl2.value.trim()) { showFE(catEl2,"Catégorie obligatoire."); valid=false; } else clearFE(catEl2);
   if (!valid) e.preventDefault();
 });
 </script>
