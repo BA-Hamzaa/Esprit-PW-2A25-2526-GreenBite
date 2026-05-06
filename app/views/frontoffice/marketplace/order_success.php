@@ -23,6 +23,7 @@ $email   = htmlspecialchars($orderData['client_email'] ?? '');
 $total   = number_format($orderData['total'] ?? 0, 2);
 $pi      = htmlspecialchars($orderData['payment_intent'] ?? '');
 $items   = (int)($orderData['items_count'] ?? 0);
+$mode    = $orderData['mode_paiement'] ?? 'carte';
 $colors  = ['#2D6A4F','#52B788','#95d5b2','#f97316','#fbbf24','#60a5fa','#c084fc'];
 ?>
 
@@ -52,7 +53,12 @@ window.addEventListener('load', () => {
       Commande confirmée ! 🎉
     </h1>
     <p style="color:var(--text-muted);font-size:.95rem;animation:fadeUp .4s .2s both">
-      Merci <strong><?= $nom ?></strong>, votre paiement a été accepté par Stripe.<br>
+      Merci <strong><?= $nom ?></strong>, votre commande a bien été enregistrée.<br>
+      <?php if ($mode === 'carte'): ?>
+        Votre paiement a été accepté par Stripe.
+      <?php else: ?>
+        Vous avez choisi le paiement à la livraison (en espèces).
+      <?php endif; ?><br>
       Un email de confirmation sera envoyé à <strong><?= $email ?></strong>.
     </p>
 
@@ -68,17 +74,26 @@ window.addEventListener('load', () => {
       </div>
       <div class="detail-row">
         <span class="label">Statut paiement</span>
-        <span class="value" style="color:#16a34a;display:flex;align-items:center;gap:.35rem">
-          <span style="width:.55rem;height:.55rem;background:#22c55e;border-radius:50%;display:inline-block;box-shadow:0 0 6px #22c55e"></span>
-          Paiement réussi (Stripe)
-        </span>
+        <?php if ($mode === 'carte'): ?>
+          <span class="value" style="color:#16a34a;display:flex;align-items:center;gap:.35rem">
+            <span style="width:.55rem;height:.55rem;background:#22c55e;border-radius:50%;display:inline-block;box-shadow:0 0 6px #22c55e"></span>
+            Paiement réussi (Stripe)
+          </span>
+        <?php else: ?>
+          <span class="value" style="color:#f97316;display:flex;align-items:center;gap:.35rem">
+            <span style="width:.55rem;height:.55rem;background:#fbbf24;border-radius:50%;display:inline-block;box-shadow:0 0 6px #fbbf24"></span>
+            À régler à la livraison
+          </span>
+        <?php endif; ?>
       </div>
+      <?php if ($mode === 'carte'): ?>
       <div class="detail-row">
         <span class="label">Référence Stripe</span>
         <span class="value" style="text-align:right"><code class="pi-badge"><?= $pi ?></code></span>
       </div>
+      <?php endif; ?>
       <div class="detail-row">
-        <span class="label" style="font-weight:700">Total payé</span>
+        <span class="label" style="font-weight:700">Total <?= $mode === 'carte' ? 'payé' : 'à payer' ?></span>
         <span class="value" style="color:var(--primary);font-size:1.25rem"><?= $total ?> DT</span>
       </div>
     </div>
@@ -104,15 +119,23 @@ window.addEventListener('load', () => {
           <span style="color:var(--text-muted);font-size:.6rem">·</span>
           <?php endif; ?>
         </div>
-        <div style="font-size:.72rem;font-weight:600;color:<?= $i < 2 ? 'var(--primary)' : 'var(--text-muted)' ?>"><?= $s[1] ?></div>
-        <div style="font-size:.65rem;color:<?= $i < 2 ? 'var(--secondary)' : 'var(--text-muted)' ?>"><?= $s[2] ?></div>
+        <div style="font-size:.72rem;font-weight:600;color:<?= $i < 2 && ($mode === 'carte' || $i !== 1) ? 'var(--primary)' : 'var(--text-muted)' ?>"><?= $s[1] ?></div>
+        <div style="font-size:.65rem;color:<?= $i < 2 && ($mode === 'carte' || $i !== 1) ? 'var(--secondary)' : 'var(--text-muted)' ?>"><?= $mode === 'livraison' && $i === 1 ? 'À la livraison' : $s[2] ?></div>
       </div>
       <?php endforeach; ?>
     </div>
 
     <!-- Actions -->
-    <div class="action-btns">
-      <a href="<?= BASE_URL ?>/?page=marketplace" class="btn btn-primary flex-1" style="background:linear-gradient(135deg,#2D6A4F,#52B788);border:none;border-radius:.875rem;padding:.875rem">
+    <div class="action-btns" style="flex-wrap: wrap;">
+      <?php if ($mode === 'carte'): ?>
+      <a href="<?= BASE_URL ?>/?page=marketplace&action=download-receipt&id=<?= $id ?>" target="_blank" class="btn" style="width:100%; background:var(--surface);border:1.5px solid var(--primary);color:var(--primary);border-radius:.875rem;padding:.875rem;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.25rem">
+        <i data-lucide="download" style="width:1rem;height:1rem"></i> Télécharger Reçu PDF
+      </a>
+      <?php endif; ?>
+      <a href="<?= BASE_URL ?>/?page=marketplace&action=track-order&id=<?= $id ?>" class="btn flex-1" style="background:var(--surface);border:1.5px solid var(--border);color:var(--text-primary);border-radius:.875rem;padding:.875rem;display:flex;align-items:center;justify-content:center;gap:.5rem">
+        <i data-lucide="map" style="width:1rem;height:1rem"></i> Suivre ma commande
+      </a>
+      <a href="<?= BASE_URL ?>/?page=marketplace" class="btn btn-primary flex-1" style="background:linear-gradient(135deg,#2D6A4F,#52B788);border:none;border-radius:.875rem;padding:.875rem;display:flex;align-items:center;justify-content:center;gap:.5rem">
         <i data-lucide="shopping-basket" style="width:1rem;height:1rem"></i> Continuer mes achats
       </a>
     </div>

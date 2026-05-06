@@ -58,13 +58,19 @@ CREATE TABLE commande (
     id INT AUTO_INCREMENT PRIMARY KEY,
     client_nom VARCHAR(100) NOT NULL,
     client_email VARCHAR(150) NOT NULL,
+    client_telephone VARCHAR(20) NOT NULL,
     client_adresse TEXT NOT NULL,
     latitude DECIMAL(10,7) NULL DEFAULT NULL,
     longitude DECIMAL(10,7) NULL DEFAULT NULL,
     total DECIMAL(8,2) DEFAULT 0,
-    statut ENUM('en_attente','confirmee','livree','annulee') DEFAULT 'en_attente',
+    statut ENUM('en_attente','confirmee','en_preparation','expediee','livree','annulee') DEFAULT 'en_attente',
+    mode_paiement ENUM('carte','livraison') DEFAULT 'carte',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migration (si table déjà existante) :
+-- ALTER TABLE commande ADD COLUMN mode_paiement ENUM('carte','livraison') DEFAULT 'carte' AFTER statut;
+-- ALTER TABLE commande MODIFY COLUMN statut ENUM('en_attente','confirmee','en_preparation','expediee','livree','annulee') DEFAULT 'en_attente';
 
 -- Migration (si table déjà existante) :
 -- ALTER TABLE commande ADD COLUMN latitude DECIMAL(10,7) NULL DEFAULT NULL AFTER client_adresse;
