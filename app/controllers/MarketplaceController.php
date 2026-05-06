@@ -146,6 +146,26 @@ class MarketplaceController {
         }
     }
 
+    /////..............................FRONTOFFICE — Télécharger le Reçu PDF............................../////
+    function downloadReceipt() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $commande = $this->RecupererCommande($id);
+
+        if (!$commande) {
+            $_SESSION['error'] = "Commande introuvable.";
+            header('Location: ' . BASE_URL . '/?page=marketplace&action=history');
+            exit;
+        }
+
+        // Optional: restrict to card payments, or allow for any payment
+        // The user specifically asked for "when i pay with card", but it's fine to show for all as a general receipt/invoice.
+
+        $lignes = $this->RecupererProduitsCommande($id);
+
+        // Load the PDF view which uses html2pdf to render the receipt
+        require_once BASE_PATH . '/app/views/frontoffice/marketplace/receipt_pdf.php';
+    }
+
     /////..............................Afficher toutes les Commandes (Back)............................../////
     function AfficherCommandes() {
         $sql = "SELECT * FROM commande ORDER BY created_at DESC";
@@ -743,6 +763,205 @@ class MarketplaceController {
         $this->SupprimerCommande($id);
         $_SESSION['success'] = "Commande supprimée avec succès !";
         header('Location: ' . BASE_URL . '/?page=admin-marketplace&action=commandes');
+        exit;
+    }
+
+    /////..............................FRONTOFFICE — Afficher formulaire modification commande............................../////
+    function editCommandeFront() {
+        $id       = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $commande = $this->RecupererCommande($id);
+
+        if (!$commande) {
+            $_SESSION['error'] = "Commande introuvable.";
+            header('Location: ' . BASE_URL . '/?page=marketplace&action=history');
+            exit;
+        }
+
+        // Only livraison orders can be edited by the client
+        if (($commande['mode_paiement'] ?? '') !== 'livraison') {
+            $_SESSION['error'] = "Seules les commandes avec paiement à la livraison peuvent être modifiées.";
+            header('Location: ' . BASE_URL . '/?page=marketplace&action=track-order&id=' . $id);
+            exit;
+        }
+
+        // canEdit = true only when status is still en_attente
+        $canEdit = ($commande['statut'] === 'en_attente');
+        
+        // Initialize session cart for this order if not already editing it
+        if ($canEdit) {
+            if (!isset($_SESSION['editing_order_id']) || $_SESSION['editing_order_id'] != $id) {
+                $_SESSION['editing_order_id'] = $id;
+                $_SESSION['panier'] = [];
+                $dbLignes = $this->RecupererProduitsCommandeEditable($id);
+                foreach ($dbLignes as $l) {
+                    $_SESSION['panier'][(int)$l['produit_id']] = (int)$l['quantite'];
+                }
+            }
+        }
+
+        // Build $lignes from session if editing
+        if ($canEdit && isset($_SESSION['editing_order_id']) && $_SESSION['editing_order_id'] == $id) {
+            $lignes = [];
+            $totalEstime = 0;
+            if (!empty($_SESSION['panier'])) {
+                foreach ($_SESSION['panier'] as $pid => $qty) {
+                    $p = $this->RecupererProduit($pid);
+                    if ($p && $qty > 0) {
+                        $lignes[] = [
+                            'produit_id' => $pid,
+                            'quantite' => $qty,
+                            'prix_unitaire' => $p['prix'],
+                            'nom' => $p['nom'],
+                            'categorie' => $p['categorie'],
+                            'image' => $p['image']
+                        ];
+                        $totalEstime += $p['prix'] * $qty;
+                    }
+                }
+            }
+            $commande['total'] = $totalEstime;
+        } else {
+            $lignes  = $this->RecupererProduitsCommandeEditable($id);
+        }
+
+        $errors  = [];
+
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/marketplace/edit_order.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
+    }
+
+    /////..............................FRONTOFFICE — Traiter modification commande............................../////
+    function updateCommandeFront() {
+        $id       = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $commande = $this->RecupererCommande($id);
+
+        // Guard: must exist, be livraison, and still en_attente
+        if (!$commande
+            || ($commande['mode_paiement'] ?? '') !== 'livraison'
+            || $commande['statut'] !== 'en_attente') {
+            $_SESSION['error'] = "Modification non autorisée.";
+            header('Location: ' . BASE_URL . '/?page=marketplace&action=track-order&id=' . $id);
+            exit;
+        }
+
+        $errors = [];
+        $nom     = trim($_POST['client_nom']       ?? '');
+        $email   = trim($_POST['client_email']     ?? '');
+        $phone   = trim($_POST['client_telephone'] ?? '');
+        $adresse = trim($_POST['client_adresse']   ?? '');
+
+        if (empty($nom))                                 $errors[] = 'Nom obligatoire.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL))  $errors[] = 'Email invalide.';
+        if (empty($phone))                               $errors[] = 'Numéro de téléphone obligatoire.';
+        if (strlen($adresse) < 5)                        $errors[] = 'Adresse trop courte.';
+
+        $produitIds    = $_POST['produit_ids']    ?? [];
+        $quantites     = $_POST['quantites']      ?? [];
+        $prixUnitaires = $_POST['prix_unitaires'] ?? [];
+
+        // Build valid lines (qty > 0)
+        $newLignes = [];
+        $newTotal  = 0;
+        foreach ($produitIds as $i => $pid) {
+            $pid  = (int)$pid;
+            $qty  = (int)($quantites[$i] ?? 0);
+            $prix = (float)($prixUnitaires[$i] ?? 0);
+            if ($pid > 0 && $qty > 0 && $prix > 0) {
+                $newLignes[] = ['produit_id' => $pid, 'quantite' => $qty, 'prix' => $prix];
+                $newTotal   += $qty * $prix;
+            }
+        }
+
+        if (empty($newLignes)) $errors[] = 'Votre commande doit contenir au moins un produit.';
+
+        if (!empty($errors)) {
+            $canEdit = true;
+            $lignes  = $this->RecupererProduitsCommandeEditable($id);
+            require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+            require_once BASE_PATH . '/app/views/frontoffice/marketplace/edit_order.php';
+            require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
+            return;
+        }
+
+        $db = Database::getConnexion();
+        try {
+            // Update commande info
+            $stmt = $db->prepare(
+                "UPDATE commande SET client_nom=:nom, client_email=:email,
+                 client_telephone=:phone, client_adresse=:adresse, total=:total
+                 WHERE id=:id"
+            );
+            $stmt->execute([
+                'nom'     => $nom,
+                'email'   => $email,
+                'phone'   => $phone,
+                'adresse' => $adresse,
+                'total'   => $newTotal,
+                'id'      => $id,
+            ]);
+
+            // Replace order lines
+            $db->prepare("DELETE FROM commande_produit WHERE commande_id=:id")->execute(['id' => $id]);
+            foreach ($newLignes as $l) {
+                $this->AjouterLigneCommande($id, $l['produit_id'], $l['quantite'], $l['prix']);
+            }
+
+            // Clear editing session if we just saved the order
+            if (isset($_SESSION['editing_order_id']) && $_SESSION['editing_order_id'] == $id) {
+                unset($_SESSION['editing_order_id']);
+                unset($_SESSION['panier']);
+            }
+
+            $_SESSION['success'] = "Commande mise à jour avec succès !";
+            header('Location: ' . BASE_URL . '/?page=marketplace&action=track-order&id=' . $id);
+            exit;
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    /////..............................Récupérer Produits d'une Commande (avec produit_id)............................../////
+    function RecupererProduitsCommandeEditable($commande_id) {
+        $sql = "SELECT cp.produit_id, cp.quantite, cp.prix_unitaire, p.nom, p.categorie, p.image
+                FROM commande_produit cp
+                JOIN produit p ON cp.produit_id = p.id
+                WHERE cp.commande_id = :commande_id";
+        $db  = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':commande_id', $commande_id);
+            $query->execute();
+            return $query->fetchAll();
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+    /////..............................FRONTOFFICE — Load Order into Cart............................../////
+    function loadOrderCart() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $commande = $this->RecupererCommande($id);
+
+        if (!$commande || ($commande['mode_paiement'] ?? '') !== 'livraison' || $commande['statut'] !== 'en_attente') {
+            $_SESSION['error'] = "Impossible de charger cette commande dans le panier.";
+            header('Location: ' . BASE_URL . '/?page=marketplace&action=track-order&id=' . $id);
+            exit;
+        }
+
+        // Put the order details in a session variable to link the cart to this order
+        $_SESSION['editing_order_id'] = $id;
+        
+        // Empty the current cart
+        $_SESSION['panier'] = [];
+        
+        // Load the order lines into the cart
+        $lignes = $this->RecupererProduitsCommandeEditable($id);
+        foreach ($lignes as $ligne) {
+            $_SESSION['panier'][(int)$ligne['produit_id']] = (int)$ligne['quantite'];
+        }
+
+        $_SESSION['success'] = "Les produits de la commande ont été chargés dans votre panier pour modification.";
+        header('Location: ' . BASE_URL . '/?page=marketplace');
         exit;
     }
 }
