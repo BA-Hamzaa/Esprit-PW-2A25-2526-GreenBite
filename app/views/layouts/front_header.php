@@ -543,3 +543,6 @@
     if (inp) inp.style.borderColor = '#dc2626';
   }
 </script>
+
+<!-- Chatbot Widget -->
+<?php require_once BASE_PATH . '/app/views/components/chatbot_widget.php'; ?>

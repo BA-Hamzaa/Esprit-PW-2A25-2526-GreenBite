@@ -32,6 +32,7 @@ require_once BASE_PATH . '/app/controllers/UserController.php';
 require_once BASE_PATH . '/app/controllers/NutritionController.php';
 require_once BASE_PATH . '/app/controllers/MarketplaceController.php';
 require_once BASE_PATH . '/app/controllers/RecettesController.php';
+require_once BASE_PATH . '/app/controllers/ChatbotController.php';
 // Récupérer la page et l'action depuis l'URL
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
@@ -113,6 +114,22 @@ case 'api-face-login':
     $result = $ctrl->loginFace(json_encode($data['descriptor']));
     echo json_encode($result);
     exit();
+
+// ---- CHATBOT API ROUTES ----
+case 'api-chatbot':
+    $chatbot = new ChatbotController();
+    switch ($action) {
+        case 'response':
+            $chatbot->getResponse();
+            exit();
+        case 'suggestions':
+            $chatbot->getSuggestions();
+            exit();
+        default:
+            http_response_code(404);
+            echo json_encode(['error' => 'Action non trouvée']);
+            exit();
+    }
 
 // ---- FACE ID VIEWS ----
 case 'face-register':
