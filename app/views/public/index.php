@@ -38,11 +38,15 @@ require_once BASE_PATH . '/app/models/InstructionRecette.php';
 require_once BASE_PATH . '/app/models/Materiel.php';
 require_once BASE_PATH . '/app/models/PlanNutritionnel.php';
 require_once BASE_PATH . '/app/models/RegimeAlimentaire.php';
+require_once BASE_PATH . '/app/models/Article.php';
+require_once BASE_PATH . '/app/models/Commentaire.php';
 
 // Charger tous les contrôleurs
 require_once BASE_PATH . '/app/controllers/NutritionController.php';
 require_once BASE_PATH . '/app/controllers/MarketplaceController.php';
 require_once BASE_PATH . '/app/controllers/RecettesController.php';
+require_once BASE_PATH . '/app/controllers/ArticleController.php';
+require_once BASE_PATH . '/app/controllers/CommentController.php';
 
 // Récupérer la page et l'action depuis l'URL
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
@@ -69,11 +73,31 @@ switch ($page) {
         require_once BASE_PATH . '/app/views/frontoffice/auth/signup.php';
         break;
 
-    // ---- COMMUNAUTÉ & BLOG (Front - Static) ----
+    // ---- COMMUNAUTÉ & BLOG (Front) — alias → article list ----
     case 'community':
-        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
-        require_once BASE_PATH . '/app/views/frontoffice/community/front_list.php';
-        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
+        header('Location: ' . BASE_URL . '/?page=article&action=list');
+        exit;
+
+    // ---- MODULE BLOG / ARTICLES (Front) ----
+    case 'article':
+        $controller = new ArticleController();
+        switch ($action) {
+            case 'list':                    $controller->listFront();                break;
+            case 'detail':                  $controller->detailFront();              break;
+            case 'add':                     $controller->addFront();                 break;
+            case 'comment':                 $controller->addCommentFront();          break;
+            case 'edit-comment':            $controller->editCommentFront();         break;
+            case 'delete-comment':          $controller->deleteCommentFront();       break;
+            case 'report-comment':          $controller->reportCommentFront();       break;
+            case 'mes-activites':           $controller->mesActivitesFront();        break;
+            case 'edit-mes-articles':       $controller->editMesArticlesFront();     break;
+            case 'delete-mes-articles':     $controller->deleteMesArticlesFront();   break;
+            case 'edit-mes-commentaires':   $controller->editMesCommentairesFront(); break;
+            case 'delete-mes-commentaires': $controller->deleteMesCommentairesFront(); break;
+            case 'translate':               $controller->apiTranslateArticle();      break;
+            case 'resume':                  $controller->apiResumeArticle();         break;
+            default:                        $controller->listFront();                break;
+        }
         break;
 
     // ---- STATISTIQUES (Back) ----
@@ -196,11 +220,36 @@ switch ($page) {
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
         break;
 
-    // ---- COMMUNAUTÉ (Back - Static) ----
+    // ---- COMMUNAUTÉ (Back) — alias → admin-article ----
     case 'admin-community':
-        require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
-        require_once BASE_PATH . '/app/views/backoffice/community/back_list.php';
-        require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
+        header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
+        exit;
+
+    // ---- MODULE BLOG / ARTICLES (Back) ----
+    case 'admin-article':
+        $controller = new ArticleController();
+        switch ($action) {
+            case 'list':    $controller->listBack();    break;
+            case 'add':     $controller->addBack();     break;
+            case 'edit':    $controller->editBack();    break;
+            case 'delete':  $controller->deleteBack();  break;
+            case 'pending': $controller->pendingBack();  break;
+            case 'publish': $controller->publishBack();  break;
+            case 'stats':   $controller->statsBack();    break;
+            default:        $controller->listBack();    break;
+        }
+        break;
+
+    // ---- MODULE COMMENTAIRES (Back) ----
+    case 'admin-comment':
+        $controller = new CommentController();
+        switch ($action) {
+            case 'list':             $controller->listBack();             break;
+            case 'delete':           $controller->deleteBack();           break;
+            case 'ignorer':          $controller->ignorerBack();          break;
+            case 'supprimer-bannir': $controller->supprimerEtBannirBack(); break;
+            default:                 $controller->listBack();             break;
+        }
         break;
 
     // ---- MODULE NUTRITION (Front) ----
