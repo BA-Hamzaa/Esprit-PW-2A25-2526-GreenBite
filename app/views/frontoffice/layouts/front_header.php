@@ -187,8 +187,8 @@
         <div class="sidebar-section-label">Social</div>
         <ul class="space-y-1 mb-5">
           <li>
-            <a href="<?= BASE_URL ?>/?page=community" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'community') ? 'active' : '' ?>">
-              <i data-lucide="message-circle"></i><span>Communauté & Blog</span>
+            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && in_array($_GET['page'], ['article','community'])) ? 'active' : '' ?>">
+              <i data-lucide="message-circle"></i><span>Communauté &amp; Blog</span>
             </a>
           </li>
         </ul>
