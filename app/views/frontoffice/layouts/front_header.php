@@ -156,6 +156,11 @@
               <?php endif; ?>
             </a>
           </li>
+          <li>
+            <a href="<?= BASE_URL ?>/?page=marketplace&action=history" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'marketplace' && isset($_GET['action']) && in_array($_GET['action'], ['history', 'track-order'])) ? 'active' : '' ?>">
+              <i data-lucide="package"></i><span>Mes Commandes</span>
+            </a>
+          </li>
         </ul>
 
         <!-- Section: Recettes -->
