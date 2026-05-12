@@ -1,245 +1,260 @@
-# 🌱 GreenBite - Application PHP MVC
+# 🌱 GreenBite — Application Web PHP MVC
 
-Application web complète développée en PHP MVC (Modèle-Vue-Contrôleur).
+> Plateforme de nutrition durable développée en PHP MVC pur (sans framework) dans le cadre du module **Programmation Web 2A** à l'ESPRIT.
 
 ---
 
-## 🚀 Installation & Lancement (Comment exécuter le projet sur un autre environnement)
+## 📦 Modules du Projet
 
-Pour exécuter ce projet localement ou le partager avec une autre équipe, suivez ces étapes :
+| # | Module | Description |
+|---|--------|-------------|
+| 1 | **Blog & Articles** | Publication, modération et commentaires d'articles |
+| 2 | **Suivi Nutritionnel** | Gestion des repas, aliments, plans et régimes alimentaires |
+| 3 | **Marketplace** | Boutique de produits bio avec commandes et paiement Stripe |
+| 4 | **Recettes Durables** | Création, recherche et notation de recettes éco-responsables |
+| 5 | **Communauté** | Espace communautaire et échanges entre utilisateurs |
 
-### 1. Prérequis
-Vous aurez besoin d'un environnement serveur avec **PHP 7.4+** et **MySQL** (par exemple : **XAMPP**, **WAMP**, **MAMP**, ou simplement PHP CLI).
+---
 
-### 2. Configuration de la Base de données
-1. Ouvrez phpMyAdmin (ou votre client MySQL) et créez une nouvelle base de données nommée `nutrigreen`.
-2. Importez le script SQL `database.sql` (situé à la racine du projet) dans cette base de données pour créer les tables et les données par défaut.
-3. Le projet est préconfiguré pour fonctionner avec l'utilisateur `root` sans mot de passe. Si vos identifiants locaux sont différents, modifiez-les dans le fichier `config/database.php`.
+## 🚀 Installation & Lancement
 
-### 3. Démarrer le serveur local
+### Prérequis
 
-**▶️ Option A : Sous Windows (Le plus rapide)**
-Double-cliquez simplement sur le fichier `start.bat` situé à la racine du projet. Le serveur se lancera et votre application sera disponible sur `http://localhost:8000`.
+- **PHP 7.4+** (ou PHP 8.x recommandé)
+- **MySQL 5.7+** ou MariaDB
+- Un serveur local : **XAMPP**, **WAMP**, ou **MAMP**
 
-**▶️ Option B : En ligne de commande (Mac / Linux / Windows)**
-Ouvrez un terminal à la racine du projet et tapez la commande suivante :
+---
+
+### 1. Cloner le dépôt
+
 ```bash
-php -S localhost:8000 -t public
+git clone https://github.com/BA-Hamzaa/Esprit-PW-2A25-2526-GreenBite.git
+cd Esprit-PW-2A25-2526-GreenBite
 ```
-Rendez-vous ensuite sur `http://localhost:8000` via votre navigateur.
-
-**▶️ Option C : Serveur Apache (XAMPP / WAMP)**
-Placez le dossier du projet dans votre répertoire `htdocs` (XAMPP) ou `www` (WAMP). Accédez-y ensuite via `http://localhost/CheminVersLeDossier/public/`.
 
 ---
 
-## 📁 Project Structure
+### 2. Configurer la base de données
+
+1. Ouvrez **phpMyAdmin** et créez une base nommée `greenbite`
+2. Importez le fichier `database.sql` situé à la **racine du projet**
+3. Les paramètres par défaut sont :
+   - **Host** : `localhost`
+   - **DB** : `greenbite`
+   - **User** : `root`
+   - **Password** : *(vide)*
+
+> Si vos identifiants diffèrent, modifiez `config/database.php`.
+
+---
+
+### 3. Démarrer le serveur
+
+**▶️ Option A — Windows (le plus rapide)**
+
+Double-cliquez sur **`start.bat`** à la racine du projet.  
+Le serveur démarre et ouvre automatiquement `http://localhost:8000`.
+
+**▶️ Option B — Ligne de commande**
+
+```bash
+php -S localhost:8000 -t app/views/public
+```
+
+Puis ouvrez : `http://localhost:8000`
+
+**▶️ Option C — Apache (XAMPP / WAMP)**
+
+Placez le dossier dans `htdocs/` (XAMPP) ou `www/` (WAMP) et accédez via :  
+`http://localhost/Esprit-PW-2A25-2526-GreenBite/app/views/public/`
+
+---
+
+## 📁 Structure du Projet
 
 ```
-PHP Greenbite/
-├── assets/
-│   ├── css/
-│   │   ├── fonts.css        ← Google Fonts (Inter + Poppins)
-│   │   ├── variables.css    ← CSS custom properties (design tokens)
-│   │   └── style.css        ← Main stylesheet (imports fonts + variables)
-│   └── js/
-│       └── main.js          ← Icons, password toggles, filters, sidebar
-├── pages/                   ← HTML templates (→ become PHP views)
-│   ├── landing.html         ← Home / Landing page
-│   ├── login.html           ← Login form
-│   ├── signup.html          ← Registration form
-│   ├── dashboard.html       ← User dashboard (with sidebar)
-│   ├── nutrition.html       ← Nutrition tracking page
-│   ├── marketplace.html     ← Product marketplace
-│   ├── recipes.html         ← Recipe browser
-│   ├── community.html       ← Community forum
-│   ├── admin-dashboard.html ← Admin overview
-│   ├── admin-users.html     ← Admin user management
-│   ├── admin-stats.html     ← Admin statistics
-│   └── 404.html             ← Not found page
+Esprit-PW-2A25-2526-GreenBite/
+│
+├── app/
+│   ├── controllers/
+│   │   ├── ArticleController.php       ← Blog : articles + modération
+│   │   ├── CommentController.php       ← Blog : commentaires
+│   │   ├── MarketplaceController.php   ← Boutique, commandes, Stripe
+│   │   ├── NutritionController.php     ← Repas, aliments, plans, régimes
+│   │   └── RecettesController.php      ← Recettes, ingrédients, matériels
+│   │
+│   ├── models/
+│   │   ├── Article.php
+│   │   ├── Commentaire.php
+│   │   ├── CommentaireRecette.php
+│   │   ├── Aliment.php
+│   │   ├── Repas.php
+│   │   ├── PlanNutritionnel.php
+│   │   ├── RegimeAlimentaire.php
+│   │   ├── Produit.php
+│   │   ├── Commande.php
+│   │   ├── Recette.php
+│   │   ├── Ingredient.php
+│   │   ├── InstructionRecette.php
+│   │   ├── Materiel.php
+│   │   └── MediaHelper.php
+│   │
+│   └── views/
+│       ├── backoffice/                 ← Interface d'administration
+│       │   ├── admin/
+│       │   ├── article/
+│       │   ├── comment/
+│       │   ├── community/
+│       │   ├── marketplace/
+│       │   ├── nutrition/
+│       │   ├── recettes/
+│       │   └── layouts/
+│       │
+│       ├── frontoffice/                ← Interface utilisateur
+│       │   ├── article/
+│       │   ├── auth/
+│       │   ├── community/
+│       │   ├── marketplace/
+│       │   ├── nutrition/
+│       │   ├── recettes/
+│       │   ├── layouts/
+│       │   └── home.php
+│       │
+│       └── public/                     ← Point d'entrée web
+│           ├── index.php               ← Front controller (routeur)
+│           ├── home.php                ← Page d'accueil publique
+│           ├── ai-proxy.php            ← Proxy IA (OpenRouter multi-modèle)
+│           ├── nutrition-api.php       ← API nutrition externe
+│           ├── stripe-intent.php       ← Paiement Stripe (PaymentIntent)
+│           ├── .htaccess               ← Réécriture d'URL Apache
+│           ├── assets/                 ← CSS, JS, images
+│           ├── auth/
+│           ├── community/
+│           └── layouts/
+│
+├── config/
+│   ├── database.php                    ← Singleton PDO
+│   ├── citations.php                   ← Citations motivationnelles
+│   ├── nutrition_apis.php              ← Clés API nutrition
+│   ├── stripe.php                      ← Clé secrète Stripe
+│   └── bannis.json                     ← Mots bannis (modération)
+│
+├── database.sql                        ← Script SQL complet (toutes les tables)
+├── start.bat                           ← Lanceur Windows (serveur + navigateur)
 └── README.md
 ```
 
 ---
 
-## 🚀 How to Use with PHP MVC
+## 🗄️ Base de Données
 
-### 1. Copy assets into your PHP project
+Le fichier `database.sql` contient la totalité du schéma et des données d'exemple.
 
-```
-your-php-project/
-├── public/
-│   ├── assets/
-│   │   ├── css/     ← Copy css/ folder here
-│   │   └── js/      ← Copy js/ folder here
-│   └── index.php    ← Front controller
-├── app/
-│   ├── controllers/
-│   ├── models/
-│   └── views/       ← Convert HTML pages to PHP views here
-└── ...
-```
+### Tables principales
 
-### 2. Convert HTML pages to PHP views
+| Module | Tables |
+|--------|--------|
+| **Blog** | `article`, `commentaire` |
+| **Nutrition** | `repas`, `aliment`, `repas_aliment`, `plan_nutritionnel`, `plan_repas` |
+| **Régimes** | `regime_alimentaire` |
+| **Marketplace** | `produit`, `commande`, `commande_produit` |
+| **Recettes** | `recette`, `ingredient`, `recette_ingredient`, `commentaire_recette`, `instruction_recette`, `materiel`, `recette_materiel` |
 
-Each HTML file in `pages/` maps to a PHP view file. Example for `dashboard.html`:
+> Toutes les connexions utilisent **PDO** (singleton `Database::getConnexion()`). Aucune utilisation de `mysqli` ou `mysql_connect`.
 
-```php
-<!-- views/dashboard/index.php -->
-<?php include __DIR__ . '/../partials/header.php'; ?>
-<?php include __DIR__ . '/../partials/sidebar.php'; ?>
+---
 
-<div class="page-content">
-  <div class="topbar">
-    <h1 class="text-3xl font-bold" style="color:var(--primary)">
-      Bonjour, <?= htmlspecialchars($user->name) ?> 👋
-    </h1>
-  </div>
-  <!-- ... rest of page content ... -->
-</div>
+## 🤖 Assistant IA — GreenBot
 
-<?php include __DIR__ . '/../partials/footer.php'; ?>
-```
+L'application intègre **GreenBot**, un assistant IA spécialisé en nutrition durable, via `ai-proxy.php`.
 
-### 3. Extract reusable partials
+- **Provider** : [OpenRouter](https://openrouter.ai) (accès multi-modèle)
+- **Fallback** : 8 modèles gratuits en cascade (Llama, GPT, Gemma, Qwen…)
+- **Fonctionnalités** :
+  - Chat nutritionnel en français
+  - Génération automatique de régimes alimentaires personnalisés
+  - Suggestions de recettes
 
-The sidebar is repeated across pages. Extract it into a partial:
+**Configuration** : Définissez la variable d'environnement `OPENROUTER_API_KEY` sur votre serveur.  
+Aucune clé n'est codée en dur dans le projet.
 
-```php
-<!-- views/partials/sidebar.php -->
-<nav class="sidebar">
-  <div class="sidebar-logo">
-    <a href="<?= BASE_URL ?>/">
-      <span data-icon="leaf"></span>
-      <span class="logo-text">GreenBite</span>
-    </a>
-  </div>
-  <!-- ... -->
-  <div class="sidebar-nav">
-    <ul class="space-y-1">
-      <li>
-        <a href="<?= BASE_URL ?>/dashboard"
-           class="sidebar-nav-item <?= $currentPage === 'dashboard' ? 'active' : '' ?>">
-          <span data-icon="home"></span>
-          <span>Tableau de bord</span>
-        </a>
-      </li>
-      <!-- more items... -->
-    </ul>
-  </div>
-</nav>
-```
+---
 
-### 4. Replace static data with PHP variables
+## 💳 Paiement — Stripe
 
-Throughout the templates you'll find comments like:
-```html
-<!-- PHP: foreach($meals as $meal): -->
-<!-- PHP: <?= $user->name ?> -->
-```
+Le module Marketplace intègre **Stripe** pour les paiements sécurisés.
 
-These mark where to replace static HTML with dynamic PHP data.
-
-### 5. Update asset paths
-
-In your PHP layout/header partial, update CSS/JS paths:
-
-```php
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
-<script src="<?= BASE_URL ?>/assets/js/main.js"></script>
-```
+- `stripe-intent.php` crée un `PaymentIntent` côté serveur
+- La clé secrète Stripe est dans `config/stripe.php`
+- Le paiement côté client utilise **Stripe.js**
 
 ---
 
 ## 🎨 Design System
 
-### Color Palette (CSS Variables)
+### Palette de couleurs (variables CSS)
 
-| Variable | Color | Usage |
-|----------|-------|-------|
-| `--primary` | `#2D6A4F` | Dark green, primary brand |
-| `--secondary` | `#52B788` | Light green, accents |
-| `--muted` | `#F4F1DE` | Beige backgrounds |
-| `--accent-orange` | `#E76F51` | Orange accent / alerts |
-| `--success-green` | `#40C057` | Success states |
-| `--charcoal` | `#2D2D2D` | Dark text / footer |
+| Variable | Valeur | Usage |
+|----------|--------|-------|
+| `--primary` | `#2D6A4F` | Vert foncé — couleur principale |
+| `--secondary` | `#52B788` | Vert clair — accents |
+| `--muted` | `#F4F1DE` | Beige — arrière-plans |
+| `--accent-orange` | `#E76F51` | Orange — alertes |
+| `--success-green` | `#40C057` | Vert — succès |
+| `--charcoal` | `#2D2D2D` | Gris foncé — texte |
 
-### Typography
+### Typographie
 
-- **Headings**: Poppins (600-700 weight)
-- **Body**: Inter (300-600 weight)
-- Loaded via Google Fonts CDN
-
-### Component Classes
-
-| Class | Description |
-|-------|-------------|
-| `.btn .btn-primary` | Primary green button |
-| `.btn .btn-secondary` | Light green button |
-| `.btn .btn-outline` | Border-only button |
-| `.btn .btn-lg` / `.btn-sm` | Size variants |
-| `.card` | White card with shadow |
-| `.badge .badge-*` | Status/tag badges |
-| `.form-input` | Styled input field |
-| `.form-input-icon` | Input with left icon |
-| `.progress` + `.progress-bar` | Progress bars |
-| `.filter-pill` | Filterable pill buttons |
-| `.sidebar` | Dashboard sidebar |
-| `.admin-sidebar` | Admin sidebar (dark) |
-| `.avatar .avatar-sm/md/lg` | User avatar circles |
-
-### Icons
-
-Icons are rendered via inline SVGs defined in `main.js`. Use them with:
-
-```html
-<span data-icon="leaf"></span>
-<span data-icon="home"></span>
-<span data-icon="users"></span>
-```
-
-Available icons: `leaf`, `home`, `utensils`, `shopping-basket`, `book-open`, `message-circle`, `settings`, `log-out`, `mail`, `lock`, `user`, `users`, `eye`, `eye-off`, `check`, `flame`, `droplets`, `globe`, `target`, `plus`, `map-pin`, `search`, `filter`, `clock`, `heart`, `share`, `thumbs-up`, `edit`, `trash`, `bar-chart`, `shopping-cart`, `dollar-sign`, `trending-up`
+- **Titres** : Poppins (600–700)
+- **Corps** : Inter (300–600)
+- Chargées via **Google Fonts CDN**
 
 ---
 
-## 📄 Page → Route Mapping
+## 🔗 Routes Principales
 
-| HTML Template | Suggested PHP Route | Controller |
-|--------------|-------------------|------------|
-| `landing.html` | `/` | `HomeController@index` |
-| `login.html` | `/login` | `AuthController@login` |
-| `signup.html` | `/signup` | `AuthController@register` |
-| `dashboard.html` | `/dashboard` | `DashboardController@index` |
-| `nutrition.html` | `/nutrition` | `NutritionController@index` |
-| `marketplace.html` | `/marketplace` | `MarketplaceController@index` |
-| `recipes.html` | `/recipes` | `RecipeController@index` |
-| `community.html` | `/community` | `CommunityController@index` |
-| `admin-dashboard.html` | `/admin` | `AdminController@dashboard` |
-| `admin-users.html` | `/admin/users` | `AdminController@users` |
-| `admin-stats.html` | `/admin/stats` | `AdminController@stats` |
-| `404.html` | `*` (fallback) | `ErrorController@notFound` |
-
----
-
-## 📊 Charts
-
-The admin pages have placeholder areas for charts. For your PHP project, integrate **Chart.js**:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-```
-
-Then replace the placeholder divs with `<canvas>` elements and initialize charts with your PHP-rendered data.
+| Route | Contrôleur | Description |
+|-------|-----------|-------------|
+| `/` | — | Page d'accueil publique |
+| `/?page=blog` | `ArticleController` | Liste des articles |
+| `/?page=blog&action=show&id=X` | `ArticleController` | Détail d'un article |
+| `/?page=nutrition` | `NutritionController` | Suivi nutritionnel |
+| `/?page=marketplace` | `MarketplaceController` | Boutique produits |
+| `/?page=recettes` | `RecettesController` | Catalogue recettes |
+| `/?page=admin` | — | Tableau de bord admin |
+| `/?page=admin&module=articles` | `ArticleController` | Modération articles |
+| `/?page=admin&module=nutrition` | `NutritionController` | Gestion nutrition (admin) |
+| `/?page=admin&module=marketplace` | `MarketplaceController` | Gestion commandes |
+| `/?page=admin&module=recettes` | `RecettesController` | Gestion recettes |
 
 ---
 
-## ✅ No Build Tools Required
+## ✅ Stack Technique
 
-This template uses:
-- ✅ Plain HTML
-- ✅ Vanilla CSS (no Tailwind, no SASS)
-- ✅ Vanilla JavaScript (no React, no npm)
-- ✅ Google Fonts CDN
-- ✅ No build step needed
+| Technologie | Rôle |
+|-------------|------|
+| PHP 7.4+ | Backend MVC (aucun framework) |
+| MySQL / PDO | Base de données |
+| HTML5 / CSS3 | Structure et styles (Vanilla) |
+| JavaScript (ES6) | Interactivité côté client |
+| Chart.js | Graphiques nutritionnels |
+| Stripe.js | Paiement en ligne |
+| OpenRouter API | Assistant IA multi-modèle |
+| Google Fonts | Typographie (Inter + Poppins) |
 
-Just copy the files and start coding your PHP backend!
+> **Aucun outil de build requis.** Pas de npm, pas de Composer, pas de framework.
+
+---
+
+## 👥 Équipe
+
+Projet réalisé dans le cadre du module **Programmation Web — 2ème année** à **ESPRIT School of Engineering**, année académique 2025–2026.
+
+**Groupe** : GreenBite — 2A25-2526
+
+---
+
+## 📄 Licence
+
+Projet académique — usage interne ESPRIT uniquement.
