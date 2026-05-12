@@ -319,7 +319,13 @@ switch ($page) {
             case 'list':             $controller->listFront(); break;
             case 'detail':           $controller->detailFront(); break;
             case 'order':            $controller->orderFront(); break;
-            case 'order-success':    $controller->orderSuccess(); break;
+            case 'order-success':    $controller->orderSuccessFront(); break;
+            case 'history':          $controller->historyFront(); break;
+            case 'track-order':      $controller->trackOrderFront(); break;
+            case 'edit-order':       $controller->editCommandeFront(); break;
+            case 'update-order':     $controller->updateCommandeFront(); break;
+            case 'download-receipt': $controller->downloadReceipt(); break;
+            case 'load-order-cart':  $controller->loadOrderCart(); break;
             case 'add-to-cart':      $controller->addToCart(); break;
             case 'remove-from-cart': $controller->removeFromCart(); break;
             case 'update-cart':      $controller->updateCart(); break;
@@ -327,6 +333,7 @@ switch ($page) {
             default:                 $controller->listFront(); break;
         }
         break;
+
 
     // ---- MODULE MARKETPLACE (Back) ----
     case 'admin-marketplace':
