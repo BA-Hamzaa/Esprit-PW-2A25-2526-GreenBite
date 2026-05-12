@@ -7,8 +7,8 @@
 // See .env.example for the required variables
 
 // Stripe (Test Mode)
-define('STRIPE_PUBLISHABLE_KEY', getenv('STRIPE_PUBLISHABLE_KEY') ?: '');
-define('STRIPE_SECRET_KEY',      getenv('STRIPE_SECRET_KEY') ?: '');
+define('STRIPE_PUBLISHABLE_KEY', '');
+define('STRIPE_SECRET_KEY', '');
 
 // Mapbox
-define('MAPBOX_TOKEN', getenv('MAPBOX_TOKEN') ?: '');
+define('MAPBOX_TOKEN', '');
