@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     /* Login page specific overrides */
     body { overflow: hidden; }
@@ -181,7 +182,17 @@
       </div>
 
       <!-- Form -->
-      <form novalidate id="loginForm" style="display:flex;flex-direction:column;gap:1.25rem">
+      <?php if (isset($_SESSION['error'])): ?>
+          <div style="background: rgba(239,68,68,0.1); border-left: 4px solid #ef4444; color: #ef4444; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.875rem;">
+              <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+          </div>
+      <?php endif; ?>
+      <?php if (isset($_SESSION['success'])): ?>
+          <div style="background: rgba(16,185,129,0.1); border-left: 4px solid #10b981; color: #10b981; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.875rem;">
+              <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+          </div>
+      <?php endif; ?>
+      <form novalidate id="loginForm" method="POST" action="<?= BASE_URL ?>/?page=login" style="display:flex;flex-direction:column;gap:1.25rem">
 
         <!-- Email -->
         <div>
@@ -190,7 +201,7 @@
           </label>
           <div class="input-wrapper">
             <i data-lucide="at-sign" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);width:1rem;height:1rem;color:var(--text-muted);pointer-events:none"></i>
-            <input type="email" id="login-email" class="form-input" placeholder="votre@email.com" style="padding:0.875rem 1rem 0.875rem 2.75rem;border-radius:var(--radius-xl)">
+            <input type="email" id="login-email" name="email" class="form-input" placeholder="votre@email.com" style="padding:0.875rem 1rem 0.875rem 2.75rem;border-radius:var(--radius-xl)">
           </div>
         </div>
 
@@ -201,7 +212,7 @@
           </label>
           <div class="input-wrapper">
             <i data-lucide="lock" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);width:1rem;height:1rem;color:var(--text-muted);pointer-events:none"></i>
-            <input type="password" id="login-password" class="form-input" placeholder="••••••••" style="padding:0.875rem 3rem 0.875rem 2.75rem;border-radius:var(--radius-xl)">
+            <input type="password" id="login-password" name="password" class="form-input" placeholder="••••••••" style="padding:0.875rem 3rem 0.875rem 2.75rem;border-radius:var(--radius-xl)">
             <button type="button" onclick="togglePwd('login-password', this)" style="position:absolute;right:0.875rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.25rem;transition:color 0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
               <i data-lucide="eye" style="width:1rem;height:1rem"></i>
             </button>
@@ -213,8 +224,11 @@
           <label style="display:flex;align-items:center;gap:0.5rem;color:var(--text-secondary);cursor:pointer;user-select:none">
             <input type="checkbox" style="accent-color:var(--primary);width:1rem;height:1rem;border-radius:4px"> Se souvenir de moi
           </label>
-          <a href="#" style="color:var(--secondary);font-weight:600;text-decoration:none;transition:all 0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--secondary)'">Mot de passe oublié ?</a>
+          <a href="index.php?page=forgot-password" style="color:var(--secondary);font-weight:600;text-decoration:none;transition:all 0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--secondary)'">Mot de passe oublié ?</a>
         </div>
+
+        <!-- reCAPTCHA -->
+        <div class="g-recaptcha" data-sitekey="<?= RECAPTCHA_SITE_KEY ?>"></div>
 
         <!-- Submit -->
         <button type="submit" class="btn btn-primary btn-lg btn-block" style="border-radius:var(--radius-xl);padding:1rem;font-size:0.95rem;margin-top:0.25rem;letter-spacing:0.02em">
@@ -230,15 +244,21 @@
       </div>
 
       <!-- Social buttons -->
-      <button class="social-btn" onclick="showToast('success', 'Connexion Google en cours...')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        Continuer avec Google
-      </button>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <button type="button" class="social-btn" onclick="showToast('success', 'Connexion Google en cours...'); setTimeout(() => window.location.href='index.php?page=google-auth', 300);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continuer avec Google
+        </button>
+        <button type="button" class="social-btn" onclick="openFaceIdModal()" style="border-color:var(--primary);color:var(--primary)">
+          <i data-lucide="scan-face" style="width:1.25rem;height:1.25rem"></i>
+          Connexion Face ID
+        </button>
+      </div>
 
       <!-- Sign up link -->
       <p style="text-align:center;font-size:0.875rem;color:var(--text-muted);margin-top:1.5rem">
@@ -251,6 +271,31 @@
 
 <!-- Toast container -->
 <div id="toastContainer"></div>
+
+<!-- Face ID Modal -->
+<div id="faceIdModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--background);border-radius:1.5rem;padding:2rem;width:100%;max-width:28rem;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.3);position:relative;animation:fadeInUp 0.3s ease">
+    <button type="button" onclick="closeFaceIdModal()" style="position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;cursor:pointer;color:var(--text-muted);transition:color 0.2s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
+      <i data-lucide="x" style="width:1.5rem;height:1.5rem"></i>
+    </button>
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:4rem;height:4rem;border-radius:50%;background:rgba(82,183,136,0.15);color:var(--primary);margin-bottom:1.5rem">
+      <i data-lucide="scan-face" style="width:2rem;height:2rem"></i>
+    </div>
+    <h3 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-primary)">Connexion Face ID</h3>
+    <p style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:1.5rem">Placez votre visage au centre de la caméra pour vous connecter.</p>
+    
+    <div id="face-video-container" style="position:relative;margin:0 auto 1.5rem;width:100%;max-width:320px;border-radius:1rem;overflow:hidden;background:#000;aspect-ratio:4/3">
+      <div id="face-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface);z-index:10">
+        <i data-lucide="loader-2" class="animate-spin" style="width:2rem;height:2rem;color:var(--primary);margin-bottom:0.5rem"></i>
+        <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary)">Chargement de l'IA...</span>
+      </div>
+      <video id="face-video" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover"></video>
+      <canvas id="face-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:20;pointer-events:none"></canvas>
+    </div>
+    
+    <p id="face-status" style="font-size:0.875rem;font-weight:600;color:var(--primary);min-height:1.5rem"></p>
+  </div>
+</div>
 
 <script>
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -313,7 +358,19 @@
     else clearFE(emailEl);
     if (!pwdEl.value) { showFE(pwdEl, "Le mot de passe est obligatoire."); valid = false; }
     else clearFE(pwdEl);
-    if (valid) showToast('success', 'Connexion réussie ! Redirection...');
+
+    if (typeof grecaptcha !== 'undefined') {
+      const recaptchaResponse = grecaptcha.getResponse();
+      if(recaptchaResponse.length === 0) {
+          showToast('error', 'Veuillez cocher la case reCAPTCHA.');
+          valid = false;
+      }
+    }
+
+    if (valid) {
+      showToast('success', 'Connexion en cours...');
+      setTimeout(() => { e.target.submit(); }, 300);
+    }
   });
   function showToast(type, msg) {
     const cont = document.getElementById('toastContainer');
@@ -323,6 +380,134 @@
     cont.appendChild(t);
     lucide.createIcons();
     setTimeout(() => { t.classList.add('hiding'); setTimeout(() => t.remove(), 300); }, 3200);
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+  let faceIdInterval;
+  let faceIdStream;
+  let faceModelsLoaded = false;
+  let faceModelsLoading = false;
+
+  // Pre-load models silently in the background immediately after page load
+  const MODEL_URL = '<?= BASE_URL ?>/assets/models/face-api';
+  async function preloadFaceModels() {
+    if (faceModelsLoaded || faceModelsLoading) return;
+    faceModelsLoading = true;
+    try {
+      await Promise.all([
+        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+      ]);
+      faceModelsLoaded = true;
+    } catch(e) {
+      console.warn('Face models preload failed, will retry on open.', e);
+    } finally {
+      faceModelsLoading = false;
+    }
+  }
+  // Start loading right away (non-blocking)
+  window.addEventListener('load', () => setTimeout(preloadFaceModels, 500));
+
+  async function openFaceIdModal() {
+    document.getElementById('faceIdModal').style.display = 'flex';
+    const video = document.getElementById('face-video');
+    const overlay = document.getElementById('face-overlay');
+    const statusMsg = document.getElementById('face-status');
+    const loading = document.getElementById('face-loading');
+
+    statusMsg.textContent = "Initialisation...";
+    statusMsg.style.color = "var(--text-secondary)";
+
+    try {
+      // If models aren't loaded yet, show spinner and wait
+      if (!faceModelsLoaded) {
+        loading.style.display = 'flex';
+        const loadTimeout = setTimeout(() => {
+          loading.innerHTML = '<p style="color:red;font-size:0.75rem;font-weight:bold;text-align:center">Délai dépassé.<br>Veuillez rafraîchir.</p>';
+        }, 30000);
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        clearTimeout(loadTimeout);
+        faceModelsLoaded = true;
+      }
+
+      loading.style.display = 'none';
+      faceIdStream = await navigator.mediaDevices.getUserMedia({ video: {} });
+      video.srcObject = faceIdStream;
+
+      video.onplay = () => {
+          const displaySize = { width: video.videoWidth || 320, height: video.videoHeight || 240 };
+          faceapi.matchDimensions(overlay, displaySize);
+          
+          statusMsg.textContent = "Analyse en cours...";
+
+          faceIdInterval = setInterval(async () => {
+              if (video.paused || video.ended) return;
+              try {
+                  const detections = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+                  const ctx = overlay.getContext('2d');
+                  ctx.clearRect(0, 0, overlay.width, overlay.height);
+                  
+                  if (detections) {
+                      const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                      faceapi.draw.drawDetections(overlay, resizedDetections);
+                      
+                      clearInterval(faceIdInterval);
+                      statusMsg.textContent = "Visage détecté ! Vérification...";
+                      statusMsg.style.color = "var(--primary)";
+                      
+                      const descriptor = Array.from(detections.descriptor);
+                      fetch('index.php?page=api-face-login', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ descriptor })
+                      })
+                      .then(async r => {
+                          if (!r.ok) throw new Error("Network error");
+                          const text = await r.text();
+                          try { return JSON.parse(text); } catch(e) { throw new Error("Invalid JSON"); }
+                      })
+                      .then(data => {
+                          if(data && data.success) {
+                              statusMsg.textContent = "Connexion réussie !";
+                              statusMsg.style.color = "green";
+                              setTimeout(() => window.location.href = 'index.php', 1000);
+                          } else {
+                              statusMsg.textContent = (data && data.error) ? data.error : "Visage non reconnu.";
+                              statusMsg.style.color = "red";
+                              setTimeout(closeFaceIdModal, 2000);
+                          }
+                      })
+                      .catch(err => {
+                          console.error(err);
+                          statusMsg.textContent = "Erreur de communication.";
+                          statusMsg.style.color = "red";
+                          setTimeout(closeFaceIdModal, 2000);
+                      });
+                  }
+              } catch(e) {
+                  console.error("Face detection error:", e);
+              }
+          }, 500);
+      };
+    } catch (err) {
+      console.error(err);
+      statusMsg.textContent = "Erreur d'initialisation de la caméra ou de l'IA.";
+      statusMsg.style.color = "red";
+    }
+  }
+
+  function closeFaceIdModal() {
+    document.getElementById('faceIdModal').style.display = 'none';
+    if (faceIdInterval) clearInterval(faceIdInterval);
+    if (faceIdStream) {
+        faceIdStream.getTracks().forEach(track => track.stop());
+    }
   }
 </script>
 </body>

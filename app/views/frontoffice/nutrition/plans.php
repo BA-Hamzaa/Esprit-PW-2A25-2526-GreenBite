@@ -335,7 +335,7 @@
 <!-- Scripts pour la Recherche Dynamique -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById('globalSearchInput');
+  const searchInput = document.getElementById('frontSearchInput');
   const filterButtons = document.querySelectorAll('.plan-filter-btn');
   const planCards = document.querySelectorAll('.searchable-plan');
   let activeType = 'all';

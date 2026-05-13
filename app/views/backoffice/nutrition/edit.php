@@ -25,6 +25,7 @@
       <div class="form-group">
         <label class="form-label" for="nom"><i data-lucide="type" style="width:0.875rem;height:0.875rem"></i> Nom du repas <span style="color:#ef4444">*</span></label>
         <input type="text" name="nom" id="nom" class="form-input" value="<?= htmlspecialchars($_POST['nom'] ?? $repas['nom']) ?>">
+        <div class="field-error" id="nom-fe"></div>
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">

@@ -43,7 +43,18 @@
         </button>
       </div>
 
-      <form novalidate id="signupForm" style="display:flex;flex-direction:column;gap:1rem">
+      <?php if (isset($_SESSION['error'])): ?>
+          <div style="background: rgba(239,68,68,0.1); border-left: 4px solid #ef4444; color: #ef4444; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.875rem;">
+              <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+          </div>
+      <?php endif; ?>
+      <?php if (isset($_SESSION['success'])): ?>
+          <div style="background: rgba(16,185,129,0.1); border-left: 4px solid #10b981; color: #10b981; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.875rem;">
+              <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+          </div>
+      <?php endif; ?>
+      <form novalidate id="signupForm" method="POST" action="<?= BASE_URL ?>/?page=signup" style="display:flex;flex-direction:column;gap:1rem">
+        <input type="hidden" name="username" id="hidden-username">
         <div class="grid grid-cols-2 gap-3">
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label"><i data-lucide="user" style="width:0.75rem;height:0.75rem"></i> Prénom</label>
@@ -56,11 +67,11 @@
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label"><i data-lucide="mail" style="width:0.75rem;height:0.75rem"></i> Adresse email</label>
-          <input type="email" class="form-input" placeholder="ahmed@email.com" style="padding:0.8rem 1rem;border-radius:var(--radius-xl)">
+          <input type="email" name="email" class="form-input" placeholder="ahmed@email.com" style="padding:0.8rem 1rem;border-radius:var(--radius-xl)">
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label"><i data-lucide="lock" style="width:0.75rem;height:0.75rem"></i> Mot de passe</label>
-          <input type="password" id="signup-pwd" class="form-input" placeholder="Min. 8 caractères" style="padding:0.8rem 1rem;border-radius:var(--radius-xl)">
+          <input type="password" id="signup-pwd" name="password" class="form-input" placeholder="Min. 8 caractères" style="padding:0.8rem 1rem;border-radius:var(--radius-xl)">
           <div class="flex gap-1 mt-2" id="pwdStrength">
             <div style="flex:1;height:3px;border-radius:4px;background:var(--border);transition:all 0.3s"></div>
             <div style="flex:1;height:3px;border-radius:4px;background:var(--border);transition:all 0.3s"></div>
@@ -147,7 +158,12 @@
     if (!confirmS.value) { showFE(confirmS,'Confirmation obligatoire.'); valid=false; } else if(confirmS.value!==pwdS.value){ showFE(confirmS,'Les mots de passe ne correspondent pas.'); valid=false; } else clearFE(confirmS);
     const terms = this.querySelector('input[type="checkbox"]');
     if (terms && !terms.checked) { showToast('error',"Acceptez les conditions d'utilisation."); valid=false; }
-    if (valid) showToast('success', 'Compte créé ! Redirection...');
+    
+    if (valid) {
+      document.getElementById('hidden-username').value = prenom.value.trim() + ' ' + nom.value.trim();
+      showToast('success', 'Création en cours...');
+      setTimeout(() => { e.target.submit(); }, 300);
+    }
   });
 
 
