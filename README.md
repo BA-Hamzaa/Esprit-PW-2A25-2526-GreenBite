@@ -13,12 +13,11 @@
 
 | # | Module | Responsable | Description |
 |---|--------|-------------|-------------|
-| 1 | **Authentification & Utilisateurs** | — | Inscription, connexion, Google OAuth, Face ID, récupération mot de passe |
-| 2 | **Blog & Articles** | — | Publication, modération et commentaires d'articles |
-| 3 | **Suivi Nutritionnel** | — | Gestion des repas, aliments, plans et régimes alimentaires |
-| 4 | **Marketplace** | — | Boutique de produits bio avec commandes et paiement Stripe |
-| 5 | **Recettes Durables** | — | Création, recherche, notation et modération de recettes |
-| 6 | **Communauté** | — | Espace social et échanges entre utilisateurs |
+| 1 | **Authentification & Utilisateurs** | Mouhib Dalou | Inscription, connexion, Google OAuth, Face ID, récupération mot de passe |
+| 2 | **Blog & Communauté** | Ben Hmida Azia | Publication, modération, commentaires d'articles et espace communautaire |
+| 3 | **Suivi Nutritionnel** | Ben Abdallah Hamza | Gestion des repas, aliments, plans et régimes alimentaires |
+| 4 | **Marketplace** | Dridi Baha | Boutique de produits bio avec commandes et paiement Stripe |
+| 5 | **Recettes Durables** | Ben Ayed Rached | Création, recherche, notation et modération de recettes |
 
 ---
 
@@ -315,20 +314,19 @@ Le module Marketplace intègre **Stripe** pour les paiements sécurisés.
 
 ---
 
-## 🌿 Branches Git
-
-| Branche | Description |
-|---------|-------------|
-| `main` | Branche principale — code stable |
-| `user-final` | Dernière version utilisateur — fix notifications 3 états |
-
----
-
 ## 👥 Équipe
 
 Projet réalisé dans le cadre du module **Programmation Web — 2ème année** à **ESPRIT School of Engineering**, année académique **2025–2026**.
 
 **Groupe** : GreenBite — 2A25-2526
+
+| # | Nom | Module |
+|---|-----|--------|
+| 1 | **Mouhib Dalou** | Authentification & Utilisateurs |
+| 2 | **Ben Hmida Azia** | Blog & Communauté |
+| 3 | **Ben Abdallah Hamza** | Suivi Nutritionnel |
+| 4 | **Dridi Baha** | Marketplace |
+| 5 | **Ben Ayed Rached** | Recettes Durables |
 
 ---
 
