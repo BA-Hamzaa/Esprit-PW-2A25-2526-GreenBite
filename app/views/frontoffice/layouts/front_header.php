@@ -444,8 +444,19 @@
                 $_uUnread++;
               }
 
-              // 8. Régime(s) actuellement suivi(s) — session['followed_regimes'] est clé par regime_id
-              $followedRegimes = $_SESSION['followed_regimes'] ?? [];
+              // 8. Régime(s) actuellement suivi(s) — chargé depuis DB pour les utilisateurs connectés
+              $followedRegimes = [];
+              if (!empty($_SESSION['user_id'])) {
+                  try {
+                      if (!class_exists('NutritionController')) {
+                          require_once BASE_PATH . '/app/controllers/NutritionController.php';
+                      }
+                      $ncH = new NutritionController();
+                      $followedRegimes = $ncH->getFollowedRegimesDB((int)$_SESSION['user_id']);
+                  } catch (Exception $_ncE) {
+                      $followedRegimes = $_SESSION['followed_regimes'] ?? [];
+                  }
+              }
               if (!empty($followedRegimes) && is_array($followedRegimes)) {
                 foreach ($followedRegimes as $regId => $frData) {
                   $regId = (int)$regId;

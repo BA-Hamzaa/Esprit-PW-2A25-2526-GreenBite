@@ -16,12 +16,9 @@ class NutritionController
         }
         $db = Database::getConnexion();
         try {
-            // Runtime check: if the column exists, use it immediately.
             $db->query("SELECT regime_id FROM plan_nutritionnel LIMIT 1");
             $this->hasPlanRegimeColumn = true;
         } catch (Exception $e) {
-            // Schema fallback: auto-create the optional relation column once
-            // when older local databases were initialized without it.
             try {
                 $db->exec("ALTER TABLE plan_nutritionnel ADD COLUMN regime_id INT NULL");
                 $this->hasPlanRegimeColumn = true;
@@ -30,6 +27,109 @@ class NutritionController
             }
         }
         return $this->hasPlanRegimeColumn;
+    }
+
+    //==========================================================================
+    // SUIVI PERSISTANT (DB) — Plans & Régimes
+    //==========================================================================
+
+    private function ensureSuiviTables()
+    {
+        $db = Database::getConnexion();
+        $db->exec("CREATE TABLE IF NOT EXISTS user_plan_suivi (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            plan_id INT NOT NULL,
+            date_debut DATE NOT NULL,
+            followed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_user_plan (user_id, plan_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $db->exec("CREATE TABLE IF NOT EXISTS user_regime_suivi (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            regime_id INT NOT NULL,
+            date_debut DATE NOT NULL,
+            followed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            source_plan_id INT NULL,
+            UNIQUE KEY uq_user_regime (user_id, regime_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    private function followPlanDB(int $userId, int $planId, string $dateDebut, ?int $regimeId = null): void
+    {
+        $this->ensureSuiviTables();
+        $db = Database::getConnexion();
+        $st = $db->prepare("INSERT INTO user_plan_suivi (user_id, plan_id, date_debut, followed_at)
+                            VALUES (:uid, :pid, :dd, NOW())
+                            ON DUPLICATE KEY UPDATE date_debut=:dd2, followed_at=NOW()");
+        $st->execute([':uid'=>$userId,':pid'=>$planId,':dd'=>$dateDebut,':dd2'=>$dateDebut]);
+        if ($regimeId && $regimeId > 0) {
+            $st2 = $db->prepare("INSERT INTO user_regime_suivi (user_id, regime_id, date_debut, followed_at, source_plan_id)
+                                 VALUES (:uid, :rid, :dd, NOW(), :spid)
+                                 ON DUPLICATE KEY UPDATE date_debut=:dd2, followed_at=NOW(), source_plan_id=:spid2");
+            $st2->execute([':uid'=>$userId,':rid'=>$regimeId,':dd'=>$dateDebut,':spid'=>$planId,':dd2'=>$dateDebut,':spid2'=>$planId]);
+        }
+    }
+
+    private function unfollowPlanDB(int $userId, int $planId, ?int $regimeId = null): void
+    {
+        $this->ensureSuiviTables();
+        $db = Database::getConnexion();
+        $db->prepare("DELETE FROM user_plan_suivi WHERE user_id=? AND plan_id=?")->execute([$userId,$planId]);
+        if ($regimeId && $regimeId > 0) {
+            // Only remove regime suivi if no other followed plan links to same regime
+            $st = $db->prepare("SELECT COUNT(*) FROM user_plan_suivi ups
+                                JOIN plan_nutritionnel p ON p.id=ups.plan_id
+                                WHERE ups.user_id=? AND p.regime_id=?");
+            $st->execute([$userId,$regimeId]);
+            if ((int)$st->fetchColumn() === 0) {
+                $db->prepare("DELETE FROM user_regime_suivi WHERE user_id=? AND regime_id=?")->execute([$userId,$regimeId]);
+            }
+        }
+    }
+
+    private function unfollowRegimeDB(int $userId, int $regimeId): int
+    {
+        $this->ensureSuiviTables();
+        $db = Database::getConnexion();
+        // Find all plans linked to this regime that user follows
+        $st = $db->prepare("SELECT ups.plan_id FROM user_plan_suivi ups
+                            JOIN plan_nutritionnel p ON p.id=ups.plan_id
+                            WHERE ups.user_id=? AND p.regime_id=?");
+        $st->execute([$userId,$regimeId]);
+        $planIds = $st->fetchAll(PDO::FETCH_COLUMN);
+        if (!empty($planIds)) {
+            $in = implode(',', array_map('intval', $planIds));
+            $db->exec("DELETE FROM user_plan_suivi WHERE user_id={$userId} AND plan_id IN ({$in})");
+        }
+        $db->prepare("DELETE FROM user_regime_suivi WHERE user_id=? AND regime_id=?")->execute([$userId,$regimeId]);
+        return count($planIds);
+    }
+
+    public function getFollowedPlansDB(int $userId): array
+    {
+        $this->ensureSuiviTables();
+        $db = Database::getConnexion();
+        $st = $db->prepare("SELECT plan_id, date_debut, followed_at FROM user_plan_suivi WHERE user_id=?");
+        $st->execute([$userId]);
+        $result = [];
+        foreach ($st->fetchAll() as $row) {
+            $result[(int)$row['plan_id']] = ['date_debut'=>$row['date_debut'],'followed_at'=>$row['followed_at']];
+        }
+        return $result;
+    }
+
+    public function getFollowedRegimesDB(int $userId): array
+    {
+        $this->ensureSuiviTables();
+        $db = Database::getConnexion();
+        $st = $db->prepare("SELECT regime_id, date_debut, followed_at, source_plan_id FROM user_regime_suivi WHERE user_id=?");
+        $st->execute([$userId]);
+        $result = [];
+        foreach ($st->fetchAll() as $row) {
+            $result[(int)$row['regime_id']] = ['date_debut'=>$row['date_debut'],'followed_at'=>$row['followed_at'],'source_plan_id'=>$row['source_plan_id']];
+        }
+        return $result;
     }
 
     //==========================================================================
@@ -1219,6 +1319,11 @@ class NutritionController
     /////..............................FRONTOFFICE — Suivre un Plan (choisir date)............................../////
     function followPlan()
     {
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            $_SESSION['error'] = '🔒 Vous devez être connecté pour suivre un plan.';
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit;
+        }
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $plan = $this->RecupererPlan($id);
         if (!$plan) {
@@ -1238,25 +1343,10 @@ class NutritionController
                 header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
                 exit;
             }
-            // Store in session: the user's chosen start date for this plan
-            if (!isset($_SESSION['followed_plans'])) {
-                $_SESSION['followed_plans'] = [];
-            }
-            $_SESSION['followed_plans'][$id] = [
-                'date_debut' => $dateDebut,
-                'followed_at' => date('Y-m-d H:i:s'),
-            ];
+            $userId    = (int)$_SESSION['user_id'];
             $linkedRegimeId = (int)($plan['regime_id'] ?? 0);
-            if ($linkedRegimeId > 0) {
-                if (!isset($_SESSION['followed_regimes']) || !is_array($_SESSION['followed_regimes'])) {
-                    $_SESSION['followed_regimes'] = [];
-                }
-                $_SESSION['followed_regimes'][$linkedRegimeId] = [
-                    'date_debut' => $dateDebut,
-                    'followed_at' => date('Y-m-d H:i:s'),
-                    'source_plan_id' => $id,
-                ];
-            }
+            // Persist to DB
+            $this->followPlanDB($userId, $id, $dateDebut, $linkedRegimeId > 0 ? $linkedRegimeId : null);
             $_SESSION['success'] = "Vous suivez maintenant ce plan ! Il commence le " . date('d/m/Y', strtotime($dateDebut)) . ".";
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plan-detail&id=' . $id);
             exit;
@@ -1269,33 +1359,20 @@ class NutritionController
     /////..............................FRONTOFFICE — Ne plus suivre un Plan............................../////
     function unfollowPlan()
     {
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            header('Location: ' . BASE_URL . '/?page=login'); exit;
+        }
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $plan = $this->RecupererPlan($id);
-        if (!$plan || ($plan['statut'] ?? '') !== 'accepte') {
+        if (!$plan) {
             $_SESSION['error'] = "Ce plan n'est pas disponible.";
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
             exit;
         }
-        if (isset($_SESSION['followed_plans'][$id])) {
-            unset($_SESSION['followed_plans'][$id]);
-        }
+        $userId = (int)$_SESSION['user_id'];
         $linkedRegimeId = (int)($plan['regime_id'] ?? 0);
-        if ($linkedRegimeId > 0 && isset($_SESSION['followed_regimes'][$linkedRegimeId])) {
-            $hasAnotherFollowedPlanForRegime = false;
-            $followedPlans = $_SESSION['followed_plans'] ?? [];
-            foreach ($followedPlans as $planId => $planData) {
-                $otherPlan = $this->RecupererPlan((int)$planId);
-                if ($otherPlan && (int)($otherPlan['regime_id'] ?? 0) === $linkedRegimeId) {
-                    $hasAnotherFollowedPlanForRegime = true;
-                    break;
-                }
-            }
-            if (!$hasAnotherFollowedPlanForRegime) {
-                unset($_SESSION['followed_regimes'][$linkedRegimeId]);
-            }
-        }
+        $this->unfollowPlanDB($userId, $id, $linkedRegimeId > 0 ? $linkedRegimeId : null);
         $_SESSION['success'] = "Vous ne suivez plus ce plan.";
-        // Redirect back to the referring page, or plan detail
         $referer = $_SERVER['HTTP_REFERER'] ?? '';
         if (strpos($referer, 'page=home') !== false || (strpos($referer, 'page=') === false && strpos($referer, 'action=') === false)) {
             header('Location: ' . BASE_URL . '/');
@@ -1308,6 +1385,9 @@ class NutritionController
     /////..............................FRONTOFFICE — Ne plus suivre un Régime (et ses plans liés)............................../////
     function unfollowRegime()
     {
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            header('Location: ' . BASE_URL . '/?page=login'); exit;
+        }
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $regime = $this->RecupererRegime($id);
         if (!$regime) {
@@ -1315,28 +1395,13 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
             exit;
         }
-
-        $removedPlans = 0;
-        $followedPlans = $_SESSION['followed_plans'] ?? [];
-        if (is_array($followedPlans)) {
-            foreach ($followedPlans as $planId => $planData) {
-                $linkedPlan = $this->RecupererPlan((int)$planId);
-                if ($linkedPlan && (int)($linkedPlan['regime_id'] ?? 0) === $id) {
-                    unset($_SESSION['followed_plans'][$planId]);
-                    $removedPlans++;
-                }
-            }
-        }
-        if (isset($_SESSION['followed_regimes'][$id])) {
-            unset($_SESSION['followed_regimes'][$id]);
-        }
-
+        $userId = (int)$_SESSION['user_id'];
+        $removedPlans = $this->unfollowRegimeDB($userId, $id);
         if ($removedPlans > 0) {
             $_SESSION['success'] = "Suivi du régime arrêté, ainsi que {$removedPlans} plan(s) lié(s).";
         } else {
             $_SESSION['success'] = "Suivi du régime arrêté.";
         }
-
         $referer = $_SERVER['HTTP_REFERER'] ?? '';
         if (strpos($referer, 'page=home') !== false || (strpos($referer, 'page=') === false && strpos($referer, 'action=') === false)) {
             header('Location: ' . BASE_URL . '/');
