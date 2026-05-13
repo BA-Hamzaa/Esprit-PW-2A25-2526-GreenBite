@@ -309,13 +309,13 @@
           $_uUnread = 0;
           $isAdmin  = isset($_SESSION['role']) && $_SESSION['role'] === 'ADMIN';
 
-          if (!$isAdmin && isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && isset($_SESSION['username'])) {
+          if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && isset($_SESSION['username'])) {
             $_uDb    = Database::getConnexion();
             $_uNom   = $_SESSION['username'];
             $_uEmail = $_SESSION['email'] ?? '';
 
             try {
-              // 1. Régimes soumis → accepté / refusé
+              // 1. Régimes soumis → en attente / accepté / refusé
               $st = $_uDb->prepare("SELECT nom, statut, commentaire_admin, created_at FROM regime_alimentaire WHERE soumis_par = ? AND statut IN ('accepte','refuse','en_attente') ORDER BY created_at DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
@@ -328,8 +328,8 @@
                 $_uUnread++;
               }
 
-              // 2. Plans soumis → accepté / refusé
-              $st = $_uDb->prepare("SELECT nom, statut, commentaire_admin, created_at FROM plan_nutritionnel WHERE soumis_par = ? AND statut IN ('accepte','refuse') ORDER BY created_at DESC LIMIT 8");
+              // 2. Plans soumis → en attente / accepté / refusé
+              $st = $_uDb->prepare("SELECT nom, statut, commentaire_admin, created_at FROM plan_nutritionnel WHERE soumis_par = ? AND statut IN ('accepte','refuse','en_attente') ORDER BY created_at DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
                 $_uNotifs[] = [
@@ -341,14 +341,16 @@
                 $_uUnread++;
               }
 
-              // 3. Recettes soumises → acceptée / refusée
+              // 3. Recettes soumises → en attente / acceptée / refusée
               $st = $_uDb->prepare("SELECT titre, statut, created_at FROM recette WHERE soumis_par = ? AND statut IN ('acceptee','refusee','en_attente') ORDER BY created_at DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
-                $ok = ($r['statut'] === 'acceptee');
+                if ($r['statut'] === 'acceptee')      { $st_norm = 'accepte'; }
+                elseif ($r['statut'] === 'refusee')   { $st_norm = 'refuse'; }
+                else                                  { $st_norm = 'en_attente'; }
                 $_uNotifs[] = [
                   'type'=>'recette','icon'=>'chef-hat','bg_ok'=>'#dcfce7','bg_ko'=>'#fee2e2','color_ok'=>'#16a34a','color_ko'=>'#dc2626',
-                  'label'=>'Recette : '.$r['titre'], 'statut'=>$ok?'accepte':'refuse', 'ok_val'=>'accepte',
+                  'label'=>'Recette : '.$r['titre'], 'statut'=>$st_norm, 'ok_val'=>'accepte',
                   'msg_ok'=>'Votre recette a été acceptée !', 'msg_ko'=>null, 'admin_comment'=>null,
                   'created_at'=>$r['created_at'], 'url'=>BASE_URL.'/?page=recettes'
                 ];
@@ -356,8 +358,8 @@
               }
 
               
-              // 3b. Repas soumis
-              $st = $_uDb->prepare("SELECT nom, statut, admin_comment, date_repas as created_at FROM repas WHERE soumis_par = ? AND statut IN ('accepte','refuse') ORDER BY created_at DESC LIMIT 8");
+              // 3b. Repas soumis → en attente / accepté / refusé
+              $st = $_uDb->prepare("SELECT nom, statut, admin_comment, date_repas as created_at FROM repas WHERE soumis_par = ? AND statut IN ('accepte','refuse','en_attente') ORDER BY created_at DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
                 $_uNotifs[] = [
@@ -369,15 +371,17 @@
                 $_uUnread++;
               }
 
-              // 4. Commentaires article → validé / signalé
-              $st = $_uDb->prepare("SELECT c.contenu, c.statut, c.date_commentaire, a.titre FROM commentaire c LEFT JOIN article a ON a.id = c.article_id WHERE c.pseudo = ? AND c.statut IN ('valide','signale') ORDER BY c.date_commentaire DESC LIMIT 8");
+              // 4. Commentaires article → en attente / validé / signalé
+              $st = $_uDb->prepare("SELECT c.contenu, c.statut, c.date_commentaire, a.titre FROM commentaire c LEFT JOIN article a ON a.id = c.article_id WHERE c.pseudo = ? AND c.statut IN ('valide','signale','en_attente') ORDER BY c.date_commentaire DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
-                $ok = ($r['statut'] === 'valide');
+                if ($r['statut'] === 'valide')        { $st_norm = 'accepte'; }
+                elseif ($r['statut'] === 'signale')   { $st_norm = 'refuse'; }
+                else                                  { $st_norm = 'en_attente'; }
                 $_uNotifs[] = [
                   'type'=>'commentaire','icon'=>'message-circle','bg_ok'=>'#dcfce7','bg_ko'=>'#fef3c7','color_ok'=>'#16a34a','color_ko'=>'#d97706',
                   'label'=>'Commentaire sur « '.mb_substr($r['titre'] ?? 'article', 0, 25).'... »',
-                  'statut'=>$ok?'accepte':'refuse', 'ok_val'=>'accepte',
+                  'statut'=>$st_norm, 'ok_val'=>'accepte',
                   'msg_ok'=>'Votre commentaire a été validé et publié !',
                   'msg_ko'=>'Votre commentaire a été signalé et masqué.',
                   'admin_comment'=>null,
@@ -386,15 +390,17 @@
                 $_uUnread++;
               }
 
-              // 5. Commentaires recette → approuvé / refusé
-              $st = $_uDb->prepare("SELECT cr.commentaire, cr.statut, cr.created_at, r.titre FROM commentaire_recette cr LEFT JOIN recette r ON r.id = cr.recette_id WHERE cr.auteur = ? AND cr.statut IN ('approuve','refuse') ORDER BY cr.created_at DESC LIMIT 8");
+              // 5. Commentaires recette → en attente / approuvé / refusé
+              $st = $_uDb->prepare("SELECT cr.commentaire, cr.statut, cr.created_at, r.titre FROM commentaire_recette cr LEFT JOIN recette r ON r.id = cr.recette_id WHERE cr.auteur = ? AND cr.statut IN ('approuve','refuse','en_attente') ORDER BY cr.created_at DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
-                $ok = ($r['statut'] === 'approuve');
+                if ($r['statut'] === 'approuve')      { $st_norm = 'accepte'; }
+                elseif ($r['statut'] === 'refuse')    { $st_norm = 'refuse'; }
+                else                                  { $st_norm = 'en_attente'; }
                 $_uNotifs[] = [
                   'type'=>'commentaire_recette','icon'=>'star','bg_ok'=>'#fef3c7','bg_ko'=>'#fee2e2','color_ok'=>'#d97706','color_ko'=>'#dc2626',
                   'label'=>'Avis sur « '.mb_substr($r['titre'] ?? 'recette', 0, 25).'... »',
-                  'statut'=>$ok?'accepte':'refuse', 'ok_val'=>'accepte',
+                  'statut'=>$st_norm, 'ok_val'=>'accepte',
                   'msg_ok'=>'Votre avis a été approuvé et publié !',
                   'msg_ko'=>'Votre avis a été refusé.',
                   'admin_comment'=>null,
@@ -403,7 +409,7 @@
                 $_uUnread++;
               }
 
-              // 6. Commandes — changements de statut (pas en_attente)
+              // 6. Commandes — tous les statuts
               if ($_uEmail) {
                 $st = $_uDb->prepare("SELECT id, total, statut, created_at FROM commande WHERE client_email = ? AND statut IN ('en_attente','confirmee','livree','annulee') ORDER BY created_at DESC LIMIT 8");
                 $st->execute([$_uEmail]);
@@ -416,7 +422,7 @@
                   $_uNotifs[] = [
                     'type'=>'commande','icon'=>$s['icon'],'bg_ok'=>$s['bg'],'bg_ko'=>$s['bg'],'color_ok'=>$s['color'],'color_ko'=>$s['color'],
                     'label'=>'Commande #'.$r['id'].' — '.number_format((float)$r['total'],2,',','.').' DT',
-                    'statut'=>($r['statut']==='annulee'?'refuse':'accepte'), 'ok_val'=>'accepte',
+                    'statut'=>($r['statut']==='annulee'?'refuse':($r['statut']==='en_attente'?'en_attente':'accepte')), 'ok_val'=>'accepte',
                     'msg_ok'=>$s['msg'], 'msg_ko'=>$s['msg'], 'admin_comment'=>null,
                     'badge_override'=>$s['label'],
                     'created_at'=>$r['created_at'], 'url'=>BASE_URL.'/?page=marketplace&action=history'
@@ -425,8 +431,8 @@
                 }
               }
 
-              // 7. Matériels proposés → accepté / refusé
-              $st = $_uDb->prepare("SELECT nom, statut, motif_refus, created_at FROM materiel WHERE propose_par = ? AND statut IN ('accepte','refuse') ORDER BY created_at DESC LIMIT 8");
+              // 7. Matériels proposés → en attente / accepté / refusé
+              $st = $_uDb->prepare("SELECT nom, statut, motif_refus, created_at FROM materiel WHERE propose_par = ? AND statut IN ('accepte','refuse','en_attente') ORDER BY created_at DESC LIMIT 8");
               $st->execute([$_uNom]);
               foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
                 $_uNotifs[] = [
@@ -436,6 +442,30 @@
                   'created_at'=>$r['created_at'], 'url'=>BASE_URL.'/?page=recettes'
                 ];
                 $_uUnread++;
+              }
+
+              // 8. Régime(s) actuellement suivi(s) — session['followed_regimes'] est clé par regime_id
+              $followedRegimes = $_SESSION['followed_regimes'] ?? [];
+              if (!empty($followedRegimes) && is_array($followedRegimes)) {
+                foreach ($followedRegimes as $regId => $frData) {
+                  $regId = (int)$regId;
+                  if ($regId <= 0) continue;
+                  $rq = $_uDb->prepare("SELECT nom, objectif, calories_jour FROM regime_alimentaire WHERE id = ? LIMIT 1");
+                  $rq->execute([$regId]);
+                  $reg = $rq->fetch(PDO::FETCH_ASSOC);
+                  if (!$reg) continue;
+                  $startedAt = (is_array($frData) ? ($frData['followed_at'] ?? $frData['date_debut'] ?? null) : null);
+                  if (!$startedAt) $startedAt = date('Y-m-d H:i:s');
+                  $_uNotifs[] = [
+                    'type'=>'regime_actif','icon'=>'leaf','bg_ok'=>'#dcfce7','bg_ko'=>'#fee2e2','color_ok'=>'#16a34a','color_ko'=>'#dc2626',
+                    'label'=>'Régime suivi : '.$reg['nom'], 'statut'=>'accepte', 'ok_val'=>'accepte',
+                    'msg_ok'=>'Vous suivez actuellement ce régime ('.(int)$reg['calories_jour'].' kcal/jour).',
+                    'msg_ko'=>null, 'admin_comment'=>null,
+                    'badge_override'=>'★ Actif',
+                    'created_at'=>$startedAt, 'url'=>BASE_URL.'/?page=nutrition&action=regime-detail&id='.$regId
+                  ];
+                  $_uUnread++;
+                }
               }
 
               // Sort newest first
@@ -452,10 +482,10 @@
                     onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)';this.style.color='var(--text-secondary)'"
                     title="Notifications">
               <i data-lucide="bell" style="width:0.95rem;height:0.95rem"></i>
-              <?php if ($isAdmin): // Admin badge — links to backoffice notif count ?>
-              <span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;border:2px solid var(--card);animation:bellPulse 2s infinite"></span>
-              <?php elseif ($_uUnread > 0): ?>
-              <span style="position:absolute;top:-4px;right:-4px;min-width:1rem;height:1rem;padding:0 0.2rem;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:0.55rem;font-weight:700;border-radius:999px;border:2px solid var(--card);display:flex;align-items:center;justify-content:center;animation:bellPulse 2s infinite"><?= $_uUnread > 9 ? '9+' : $_uUnread ?></span>
+              <?php if ($_uUnread > 0): ?>
+              <span id="frontNotifBellCount" style="position:absolute;top:-4px;right:-4px;min-width:1rem;height:1rem;padding:0 0.2rem;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:0.55rem;font-weight:700;border-radius:999px;border:2px solid var(--card);display:flex;align-items:center;justify-content:center;animation:bellPulse 2s infinite"><?= $_uUnread > 9 ? '9+' : $_uUnread ?></span>
+              <?php elseif ($isAdmin): ?>
+              <span id="frontNotifBellDot" style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;border:2px solid var(--card);animation:bellPulse 2s infinite"></span>
               <?php endif; ?>
             </button>
 
@@ -467,8 +497,10 @@
                 <div style="display:flex;align-items:center;gap:0.5rem">
                   <i data-lucide="bell" style="width:0.875rem;height:0.875rem;color:var(--secondary)"></i>
                   <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary)">Notifications</span>
-                  <?php if ($isAdmin || $_uUnread > 0): ?>
-                  <span style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:0.58rem;font-weight:700;padding:0.12rem 0.4rem;border-radius:999px"><?= $isAdmin ? '!' : $_uUnread ?></span>
+                  <?php if ($_uUnread > 0): ?>
+                  <span id="frontNotifPanelCount" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:0.58rem;font-weight:700;padding:0.12rem 0.4rem;border-radius:999px"><?= $_uUnread ?></span>
+                  <?php elseif ($isAdmin): ?>
+                  <span style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:0.58rem;font-weight:700;padding:0.12rem 0.4rem;border-radius:999px">!</span>
                   <?php endif; ?>
                 </div>
                 <button onclick="closeFrontNotif()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.2rem;border-radius:0.35rem">
@@ -477,8 +509,8 @@
               </div>
 
               <?php if ($isAdmin): ?>
-              <!-- Admin: redirect to admin panel -->
-              <a href="<?= BASE_URL ?>/?page=admin-stats" style="display:flex;align-items:center;gap:0.75rem;padding:1rem 1.1rem;text-decoration:none;transition:background 0.15s" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='transparent'">
+              <!-- Admin panel link (always shown for admins) -->
+              <a href="<?= BASE_URL ?>/?page=admin-stats" style="display:flex;align-items:center;gap:0.75rem;padding:1rem 1.1rem;text-decoration:none;transition:background 0.15s;border-bottom:1px solid var(--border)" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='transparent'">
                 <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#f0fdf4);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <i data-lucide="shield-check" style="width:1.1rem;height:1.1rem;color:var(--primary)"></i>
                 </div>
@@ -487,8 +519,9 @@
                   <div style="font-size:0.72rem;color:var(--text-muted)">Voir les éléments en attente de validation →</div>
                 </div>
               </a>
+              <?php endif; ?>
 
-              <?php elseif (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true): ?>
+              <?php if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true): ?>
               <!-- Guest -->
               <div style="padding:1.75rem 1rem;text-align:center;color:var(--text-muted);font-size:0.82rem">
                 <i data-lucide="lock" style="width:2rem;height:2rem;color:var(--text-muted);display:block;margin:0 auto 0.5rem"></i>
@@ -547,6 +580,9 @@
                 }
               ?>
               <a href="<?= htmlspecialchars($_n['url']) ?>"
+                 class="front-notif-item"
+                 data-ts="<?= (int)strtotime($_n['created_at']) ?>"
+                 data-persistent="<?= ($_n['type'] === 'regime_actif') ? '1' : '0' ?>"
                  style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.85rem 1.1rem;border-bottom:1px solid var(--border);text-decoration:none;transition:background 0.15s"
                  onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='transparent'">
 
@@ -575,6 +611,18 @@
                 </div>
               </a>
               <?php endforeach; ?>
+
+              <!-- Footer: Clear all button -->
+              <div id="frontNotifFooter" style="position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--border);padding:0.55rem 0.75rem;display:flex;justify-content:flex-end;z-index:1">
+                <button type="button" onclick="clearAllFrontNotifs(event)"
+                        style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.85rem;background:linear-gradient(135deg,#fee2e2,#fecaca);color:#b91c1c;border:1px solid #fecaca;border-radius:999px;font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s"
+                        onmouseover="this.style.background='linear-gradient(135deg,#fecaca,#fca5a5)';this.style.borderColor='#f87171'"
+                        onmouseout="this.style.background='linear-gradient(135deg,#fee2e2,#fecaca)';this.style.borderColor='#fecaca'"
+                        title="Effacer toutes les notifications">
+                  <i data-lucide="trash-2" style="width:0.78rem;height:0.78rem"></i>
+                  Tout effacer
+                </button>
+              </div>
               <?php endif; ?>
             </div>
           </div>
@@ -597,6 +645,52 @@
             const btn = document.getElementById('frontNotifBtn');
             if (btn && !btn.contains(e.target)) closeFrontNotif();
           });
+
+          // ----- Clear-all + localStorage hide logic -----
+          (function(){
+            const KEY = 'gb_notif_cleared_at';
+            function applyClearedFilter() {
+              const ts = parseInt(localStorage.getItem(KEY) || '0', 10);
+              const items = document.querySelectorAll('.front-notif-item');
+              let visible = 0;
+              items.forEach(function(it){
+                const its = parseInt(it.getAttribute('data-ts') || '0', 10);
+                const persistent = it.getAttribute('data-persistent') === '1';
+                if (!persistent && ts && its <= ts) { it.style.display = 'none'; }
+                else { visible++; }
+              });
+              updateBadges(visible);
+              if (visible === 0) showEmptyState();
+            }
+            function updateBadges(n) {
+              const bellCount  = document.getElementById('frontNotifBellCount');
+              const panelCount = document.getElementById('frontNotifPanelCount');
+              if (bellCount)  { if (n > 0) bellCount.textContent = (n > 9 ? '9+' : n); else bellCount.style.display = 'none'; }
+              if (panelCount) { if (n > 0) panelCount.textContent = n; else panelCount.style.display = 'none'; }
+            }
+            function showEmptyState() {
+              const panel = document.getElementById('frontNotifPanel');
+              const footer = document.getElementById('frontNotifFooter');
+              if (footer) footer.style.display = 'none';
+              if (!panel || panel.querySelector('.gb-notif-empty')) return;
+              const div = document.createElement('div');
+              div.className = 'gb-notif-empty';
+              div.style.cssText = 'padding:1.75rem 1rem;text-align:center;color:var(--text-muted);font-size:0.82rem';
+              div.innerHTML = '<i data-lucide="bell-off" style="width:2rem;height:2rem;display:block;margin:0 auto 0.5rem;opacity:0.4"></i>'
+                + '<div style="font-weight:600;color:var(--text-primary);margin-bottom:0.25rem">Aucune notification</div>'
+                + 'Vos soumissions et commandes apparaîtront ici une fois traitées.';
+              panel.appendChild(div);
+              if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+            window.clearAllFrontNotifs = function(e) {
+              if (e) e.stopPropagation();
+              localStorage.setItem(KEY, String(Math.floor(Date.now() / 1000) + 60));
+              applyClearedFilter();
+            };
+            document.addEventListener('DOMContentLoaded', applyClearedFilter);
+            // also run immediately in case DOM is already parsed
+            if (document.readyState !== 'loading') applyClearedFilter();
+          })();
           </script>
 
           <!-- User -->
