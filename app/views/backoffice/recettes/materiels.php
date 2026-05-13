@@ -19,16 +19,16 @@
       <i data-lucide="plus-circle" style="width:1.125rem;height:1.125rem;color:#d97706"></i>
       <h3 class="font-bold" style="color:var(--text-primary)">Ajouter un matériel</h3>
     </div>
-    <form method="POST" action="<?= BASE_URL ?>/?page=admin-recettes&action=materiel-add" id="mat-add-form" class="flex gap-3 items-start flex-wrap">
+    <form method="POST" action="<?= BASE_URL ?>/?page=admin-recettes&action=materiel-add" class="flex gap-3 items-end flex-wrap">
       <div class="form-group mb-0" style="flex:1;min-width:180px">
         <label class="form-label text-xs">Nom <span style="color:var(--destructive)">*</span></label>
         <input type="text" name="nom" id="mat-add-nom" class="form-input" placeholder="Ex: Spatule en silicone">
       </div>
       <div class="form-group mb-0" style="flex:2;min-width:200px">
-        <label class="form-label text-xs">Description <span style="color:var(--destructive)">*</span></label>
-        <input type="text" name="description" id="mat-add-desc" class="form-input" placeholder="Brève description...">
+        <label class="form-label text-xs">Description</label>
+        <input type="text" name="description" class="form-input" placeholder="Brève description...">
       </div>
-      <button type="submit" class="btn btn-primary" style="height:2.5rem;border-radius:var(--radius-xl);background:linear-gradient(135deg,#d97706,#f59e0b);border:none;margin-top:1.35rem">
+      <button type="submit" class="btn btn-primary" style="height:2.5rem;border-radius:var(--radius-xl);background:linear-gradient(135deg,#d97706,#f59e0b);border:none">
         <i data-lucide="plus" style="width:.875rem;height:.875rem"></i> Ajouter
       </button>
     </form>
@@ -129,9 +129,9 @@
                         <i data-lucide="x" style="width:.7rem;height:.7rem"></i> Refuser
                       </button>
                     <?php endif; ?>
-                    <button type="button" class="btn btn-sm btn-delete-materiel" data-id="<?= $mat['id'] ?>" data-nom="<?= htmlspecialchars($mat['nom']) ?>" style="background:#fee2e2;color:#991b1b;border:none;border-radius:var(--radius-xl);font-size:.75rem;padding:.35rem .65rem" title="Supprimer">
+                    <a href="<?= BASE_URL ?>/?page=admin-recettes&action=materiel-delete&id=<?= $mat['id'] ?>" class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:none;border-radius:var(--radius-xl);font-size:.75rem;padding:.35rem .65rem" onclick="return confirm('Supprimer définitivement ce matériel ?')" title="Supprimer">
                       <i data-lucide="trash-2" style="width:.7rem;height:.7rem"></i>
-                    </button>
+                    </a>
                   </div>
                 </td>
               </tr>
@@ -171,32 +171,23 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="delete-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center">
-  <div style="background:var(--card-bg,#fff);border-radius:var(--radius-xl);padding:2rem;width:95%;max-width:420px;box-shadow:0 25px 60px rgba(0,0,0,.3);border:1px solid var(--border)">
-    <div class="flex items-center gap-3 mb-5">
-      <div style="width:2.5rem;height:2.5rem;border-radius:var(--radius-xl);background:linear-gradient(135deg,#fee2e2,#fef2f2);display:flex;align-items:center;justify-content:center">
-        <i data-lucide="trash-2" style="width:1.25rem;height:1.25rem;color:#dc2626"></i>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold" style="color:var(--text-primary)">Supprimer le matériel</h3>
-        <p id="delete-mat-name" class="text-sm" style="color:var(--text-muted)"></p>
-      </div>
-    </div>
-    <p style="font-size:.9rem;color:var(--text-secondary);margin-bottom:1.5rem;padding:.75rem 1rem;background:#fef2f2;border-radius:var(--radius);border:1px solid #fecaca">
-      <i data-lucide="alert-triangle" style="width:.875rem;height:.875rem;display:inline;vertical-align:middle;color:#dc2626"></i>
-      Cette action est irréversible. Le matériel sera définitivement supprimé.
-    </p>
-    <div class="flex gap-3">
-      <a href="#" id="delete-confirm-link" class="btn flex-1" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:var(--radius-xl);text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.5rem">
-        <i data-lucide="trash-2" style="width:.875rem;height:.875rem"></i> Supprimer
-      </a>
-      <button type="button" id="delete-cancel" class="btn btn-outline-primary" style="border-radius:var(--radius-xl)">Annuler</button>
-    </div>
-  </div>
-</div>
-
 <script>
+// Refuse modal
+document.querySelectorAll('.btn-refuse-materiel').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    const nom = btn.dataset.nom;
+    document.getElementById('refuse-mat-id').value = id;
+    document.getElementById('refuse-mat-name').textContent = '« ' + nom + ' »';
+    document.getElementById('refuse-motif').value = '';
+    document.getElementById('refuse-form').action = '<?= BASE_URL ?>/?page=admin-recettes&action=materiel-refuse';
+    document.getElementById('refuse-modal').style.display = 'flex';
+  });
+});
+document.getElementById('refuse-cancel').addEventListener('click', () => {
+  document.getElementById('refuse-modal').style.display = 'none';
+});
+
 // ── Shared inline validation helper ──
 const _EI = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
 function _showFE(field, msg) {
@@ -213,24 +204,25 @@ function _clearFE(field) {
   if (el) el.classList.remove('show');
 }
 
-// ── Refuse modal ──
-document.querySelectorAll('.btn-refuse-materiel').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const id = btn.dataset.id;
-    const nom = btn.dataset.nom;
-    document.getElementById('refuse-mat-id').value = id;
-    document.getElementById('refuse-mat-name').textContent = '« ' + nom + ' »';
-    document.getElementById('refuse-motif').value = '';
-    // Clear previous errors
-    const motifField = document.getElementById('refuse-motif');
-    _clearFE(motifField);
-    document.getElementById('refuse-form').action = '<?= BASE_URL ?>/?page=admin-recettes&action=materiel-refuse';
-    document.getElementById('refuse-modal').style.display = 'flex';
+// ── Add-materiel form validation ──
+const matAddForm = document.querySelector('form[action*="materiel-add"]');
+if (matAddForm) {
+  const matNomInput = document.getElementById('mat-add-nom');
+  matNomInput?.addEventListener('blur', () => {
+    if (!matNomInput.value.trim()) _showFE(matNomInput, 'Le nom est obligatoire.');
+    else _clearFE(matNomInput);
   });
-});
-document.getElementById('refuse-cancel').addEventListener('click', () => {
-  document.getElementById('refuse-modal').style.display = 'none';
-});
+  matNomInput?.addEventListener('input', () => {
+    if (matNomInput.value.trim()) _clearFE(matNomInput);
+  });
+  matAddForm.addEventListener('submit', function(e) {
+    const nom = document.getElementById('mat-add-nom');
+    if (!nom || !nom.value.trim()) {
+      _showFE(nom, 'Le nom est obligatoire.');
+      e.preventDefault();
+    }
+  });
+}
 
 // ── Refuse modal validation ──
 document.getElementById('refuse-form').addEventListener('submit', function(e) {
@@ -242,58 +234,5 @@ document.getElementById('refuse-form').addEventListener('submit', function(e) {
 });
 document.getElementById('refuse-motif').addEventListener('input', function() {
   if (this.value.trim()) _clearFE(this);
-});
-
-// ── Delete modal ──
-document.querySelectorAll('.btn-delete-materiel').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const id = btn.dataset.id;
-    const nom = btn.dataset.nom;
-    document.getElementById('delete-mat-name').textContent = '« ' + nom + ' »';
-    document.getElementById('delete-confirm-link').href = '<?= BASE_URL ?>/?page=admin-recettes&action=materiel-delete&id=' + id;
-    document.getElementById('delete-modal').style.display = 'flex';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  });
-});
-document.getElementById('delete-cancel').addEventListener('click', () => {
-  document.getElementById('delete-modal').style.display = 'none';
-});
-
-// ── Add-materiel form validation (nom + description) ──
-const matAddForm = document.getElementById('mat-add-form');
-const matNomInput = document.getElementById('mat-add-nom');
-const matDescInput = document.getElementById('mat-add-desc');
-
-// Blur validation
-matNomInput?.addEventListener('blur', () => {
-  if (!matNomInput.value.trim()) _showFE(matNomInput, 'Le nom est obligatoire.');
-  else _clearFE(matNomInput);
-});
-matNomInput?.addEventListener('input', () => {
-  if (matNomInput.value.trim()) _clearFE(matNomInput);
-});
-
-matDescInput?.addEventListener('blur', () => {
-  if (!matDescInput.value.trim()) _showFE(matDescInput, 'La description est obligatoire.');
-  else _clearFE(matDescInput);
-});
-matDescInput?.addEventListener('input', () => {
-  if (matDescInput.value.trim()) _clearFE(matDescInput);
-});
-
-// Submit validation
-matAddForm?.addEventListener('submit', function(e) {
-  let valid = true;
-  if (!matNomInput || !matNomInput.value.trim()) {
-    _showFE(matNomInput, 'Le nom est obligatoire.');
-    valid = false;
-  } else { _clearFE(matNomInput); }
-  
-  if (!matDescInput || !matDescInput.value.trim()) {
-    _showFE(matDescInput, 'La description est obligatoire.');
-    valid = false;
-  } else { _clearFE(matDescInput); }
-  
-  if (!valid) e.preventDefault();
 });
 </script>

@@ -547,8 +547,7 @@
 (async function() {
   const title  = <?= json_encode($recette['titre']) ?>;
   const storedCal = <?= (int)($recette['calories_total'] ?? 0) ?>;
-  const apiKey = '<?= SPOONACULAR_API_KEY ?>';
-  const spoonBaseUrl = '<?= SPOONACULAR_BASE_URL ?>';
+  const apiKey = 'b3fc0d49128842d891296aa0bd1b0053';
   const loading = document.getElementById('spoon-loading');
   const content = document.getElementById('spoon-content');
   const status  = document.getElementById('spoon-status');
@@ -637,7 +636,7 @@
     Object.keys(frToEn).forEach(function(fr) {
       translatedTitle = translatedTitle.replace(new RegExp(fr, 'gi'), frToEn[fr]);
     });
-    const res = await fetch(`${spoonBaseUrl}/recipes/guessNutrition?title=${encodeURIComponent(translatedTitle)}&apiKey=${apiKey}`);
+    const res = await fetch(`https://api.spoonacular.com/recipes/guessNutrition?title=${encodeURIComponent(translatedTitle)}&apiKey=${apiKey}`);
     if (res.status === 402 || res.status === 429) { localFallback(); return; }
     if (!res.ok) { localFallback(); return; }
     const d = await res.json();

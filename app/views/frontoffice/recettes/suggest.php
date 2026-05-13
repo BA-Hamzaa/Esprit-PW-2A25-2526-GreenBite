@@ -426,28 +426,11 @@ const _ecoCache = {};
 function estimateEcoGrade(name) {
   const n = name.toLowerCase();
   if (/beef|boeuf|veal|veau|lamb|agneau|mutton|mouton|bison|venison/.test(n)) return 'e';
-  if (/chicken|poulet|pork|porc|turkey|dinde|duck|canard|bacon|sausage|saucisse|ham|jambon|tuna|thon|salmon|saumon|shrimp|crevette|prawn/.test(n)) return 'd';
+  if (/chicken|poulet|pork|porc|turkey|dinde|duck|canard|bacon|sausage|ham|jambon|tuna|thon|salmon|saumon|shrimp|crevette|prawn/.test(n)) return 'd';
   if (/milk|lait|butter|beurre|cream|cr.me|cheese|fromage|egg|oeuf|flour|farine|sugar|sucre|oil|huile|pasta|p.tes|bread|pain|rice|riz/.test(n)) return 'c';
   if (/apple|pomme|banana|banane|orange|lemon|citron|berry|grain|cereal|nut|noix|seed|graine|oat|avoine|quinoa|almond|amande|walnut|cashew|fruit/.test(n)) return 'b';
   // vegetables, herbs, legumes, spices default to A
   return 'a';
-}
-
-function updateScoreCarbone() {
-  const co2El = document.getElementById('score_carbone');
-  if (!co2El) return;
-  const ecoPoints = { a: 0.2, b: 0.6, c: 1.2, d: 2.5, e: 4.5 };
-  let total = 0, count = 0;
-  document.querySelectorAll('#ingredients-container .ingredient-row select').forEach(sel => {
-    const txt = sel.options[sel.selectedIndex]?.text;
-    if (sel.value && txt) {
-      const grade = _ecoCache[txt.split('(')[0].trim()];
-      if (grade) { total += ecoPoints[grade] || 1.0; count++; }
-    }
-  });
-  if (count > 0) {
-    co2El.value = ((total / count) + 0.3).toFixed(2);
-  }
 }
 
 async function fetchEcoScore(ingredientName) {
@@ -456,7 +439,7 @@ async function fetchEcoScore(ingredientName) {
   try {
     const q = encodeURIComponent(ingredientName);
     const res = await fetch(
-      `<?= OFF_BASE_URL ?>/cgi/search.pl?search_terms=${q}&json=1&page_size=3&fields=ecoscore_grade,product_name`,
+      `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${q}&json=1&page_size=3&fields=ecoscore_grade,product_name`,
       { signal: AbortSignal.timeout(4000) }
     );
     const data = await res.json();
@@ -490,7 +473,6 @@ function attachEcoScore(select) {
     badge.textContent = ECO_LABELS[grade] || '🔵 Eco ?';
     badge.className = `eco-score-badge eco-badge ${ECO_CLASSES[grade] || ''}`;
     if (!ECO_CLASSES[grade]) badge.style.cssText += ';background:rgba(59,130,246,0.08);color:#2563eb;border-color:#93c5fd';
-    updateScoreCarbone();
   });
 }
 
@@ -861,8 +843,8 @@ document.getElementById('suggestForm').addEventListener('submit', function(e) {
   // ── 5. Auto-fill calories from Spoonacular, with fallback estimate ──
   if (titre) {
     try {
-      var apiKey = '<?= SPOONACULAR_API_KEY ?>';
-      var spRes = await fetch('<?= SPOONACULAR_BASE_URL ?>/recipes/guessNutrition?title=' + encodeURIComponent(titre) + '&apiKey=' + apiKey);
+      var apiKey = 'b3fc0d49128842d891296aa0bd1b0053';
+      var spRes = await fetch('https://api.spoonacular.com/recipes/guessNutrition?title=' + encodeURIComponent(titre) + '&apiKey=' + apiKey);
       if (spRes.ok) {
         var spData = await spRes.json();
         var cal = Math.round(spData.calories && spData.calories.value ? spData.calories.value : 0);

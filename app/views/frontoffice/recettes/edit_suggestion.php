@@ -195,7 +195,7 @@
                        value="<?= $ri['quantite'] ?>">
                 <button type="button" class="icon-btn"
                         style="width:2rem;height:2rem;color:var(--destructive);flex-shrink:0"
-                        onclick="this.closest('.ingredient-row').remove(); if(typeof updateScoreCarbone==='function') updateScoreCarbone();">
+                        onclick="this.closest('.ingredient-row').remove()">
                   <i data-lucide="trash-2" style="width:0.875rem;height:0.875rem"></i>
                 </button>
               </div>
@@ -213,7 +213,7 @@
                      style="width:120px" placeholder="Quantité" >
               <button type="button" class="icon-btn"
                       style="width:2rem;height:2rem;color:var(--destructive);flex-shrink:0"
-                      onclick="this.closest('.ingredient-row').remove(); if(typeof updateScoreCarbone==='function') updateScoreCarbone();">
+                      onclick="this.closest('.ingredient-row').remove()">
                 <i data-lucide="trash-2" style="width:0.875rem;height:0.875rem"></i>
               </button>
             </div>
@@ -281,46 +281,14 @@ document.getElementById('add-ingredient-btn').addEventListener('click', function
 const ECO_LABELS = {a:'🟢 Eco A',b:'🟡 Eco B',c:'🟠 Eco C',d:'🔴 Eco D',e:'⛔ Eco E'};
 const ECO_CLASSES = {a:'eco-a',b:'eco-b',c:'eco-c',d:'eco-d',e:'eco-e'};
 const _ecoCache = {};
-
-function estimateEcoGrade(name) {
-  const n = name.toLowerCase();
-  if (/beef|boeuf|veal|veau|lamb|agneau|mutton|mouton|bison|venison/.test(n)) return 'e';
-  if (/chicken|poulet|pork|porc|turkey|dinde|duck|canard|bacon|sausage|saucisse|ham|jambon|tuna|thon|salmon|saumon|shrimp|crevette|prawn/.test(n)) return 'd';
-  if (/milk|lait|butter|beurre|cream|cr.me|cheese|fromage|egg|oeuf|flour|farine|sugar|sucre|oil|huile|pasta|p.tes|bread|pain|rice|riz/.test(n)) return 'c';
-  if (/apple|pomme|banana|banane|orange|lemon|citron|berry|grain|cereal|nut|noix|seed|graine|oat|avoine|quinoa|almond|amande|walnut|cashew|fruit/.test(n)) return 'b';
-  return 'a';
-}
-
-function updateScoreCarbone() {
-  const co2El = document.getElementById('score_carbone');
-  if (!co2El) return;
-  const ecoPoints = { a: 0.2, b: 0.6, c: 1.2, d: 2.5, e: 4.5 };
-  let total = 0, count = 0;
-  document.querySelectorAll('#ingredients-container .ingredient-row select').forEach(sel => {
-    const txt = sel.options[sel.selectedIndex]?.text;
-    if (sel.value && txt) {
-      const grade = _ecoCache[txt.split('(')[0].trim()];
-      if (grade) { total += ecoPoints[grade] || 1.0; count++; }
-    }
-  });
-  if (count > 0) {
-    co2El.value = ((total / count) + 0.3).toFixed(2);
-  }
-}
-
 async function fetchEcoScore(name) {
   if (_ecoCache[name] !== undefined) return _ecoCache[name];
-  let grade = null;
   try {
-    const res = await fetch(`<?= OFF_BASE_URL ?>/cgi/search.pl?search_terms=${encodeURIComponent(name)}&json=1&page_size=1&fields=ecoscore_grade`);
+    const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&json=1&page_size=1&fields=ecoscore_grade`);
     const d = await res.json();
     const g = d?.products?.[0]?.ecoscore_grade?.toLowerCase() || null;
-    const valid = ['a','b','c','d','e'];
-    if (valid.includes(g)) grade = g;
-  } catch {}
-  if (!grade) grade = estimateEcoGrade(name);
-  _ecoCache[name] = grade;
-  return grade;
+    _ecoCache[name] = g; return g;
+  } catch { return null; }
 }
 function attachEcoScore(select) {
   select.addEventListener('change', async function() {
@@ -343,7 +311,6 @@ function attachEcoScore(select) {
       badge.className = 'eco-score-badge eco-badge';
       badge.style.background = 'rgba(59,130,246,0.08)'; badge.style.color = '#2563eb'; badge.style.borderColor = '#93c5fd';
     }
-    updateScoreCarbone();
   });
 }
 document.querySelectorAll('#ingredients-container .ingredient-row select').forEach(attachEcoScore);

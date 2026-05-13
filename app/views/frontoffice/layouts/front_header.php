@@ -156,11 +156,6 @@
               <?php endif; ?>
             </a>
           </li>
-          <li>
-            <a href="<?= BASE_URL ?>/?page=marketplace&action=history" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'marketplace' && isset($_GET['action']) && in_array($_GET['action'], ['history', 'track-order'])) ? 'active' : '' ?>">
-              <i data-lucide="package"></i><span>Mes Commandes</span>
-            </a>
-          </li>
         </ul>
 
         <!-- Section: Recettes -->
@@ -187,8 +182,13 @@
         <div class="sidebar-section-label">Social</div>
         <ul class="space-y-1 mb-5">
           <li>
-            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && in_array($_GET['page'], ['article','community'])) ? 'active' : '' ?>">
+            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && in_array($_GET['page'], ['article','community']) && (!isset($_GET['action']) || $_GET['action'] !== 'mes-activites')) ? 'active' : '' ?>">
               <i data-lucide="message-circle"></i><span>Communauté &amp; Blog</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?= BASE_URL ?>/?page=article&action=mes-activites" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'article' && isset($_GET['action']) && $_GET['action'] === 'mes-activites') ? 'active' : '' ?>">
+              <i data-lucide="folder-open"></i><span>Mes activités</span>
             </a>
           </li>
         </ul>

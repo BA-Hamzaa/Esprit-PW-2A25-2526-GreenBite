@@ -327,18 +327,9 @@ class RecettesController {
         $errors = [];
         if (empty(trim($post['soumis_par'] ?? ''))) { $errors[] = "Votre nom est obligatoire."; }
         if (empty(trim($post['titre'] ?? '')))       { $errors[] = "Le titre est obligatoire."; }
-        // Check for structured steps first (inst_titre[]), fallback to legacy textarea
-        $hasStructuredSteps = false;
-        if (!empty($post['inst_titre'])) {
-            foreach ($post['inst_titre'] as $t) {
-                if (!empty(trim($t))) { $hasStructuredSteps = true; break; }
-            }
-        }
-        if (!$hasStructuredSteps) {
-            $instructions = trim($post['instructions'] ?? '');
-            if (empty($instructions) || strlen($instructions) < 20) {
-                $errors[] = "Ajoutez au moins une étape de préparation.";
-            }
+        $instructions = trim($post['instructions'] ?? '');
+        if (empty($instructions) || strlen($instructions) < 20) {
+            $errors[] = "Les instructions doivent contenir au moins 20 caractères.";
         }
         if (!isset($post['temps_preparation']) || !is_numeric($post['temps_preparation']) || (int)$post['temps_preparation'] <= 0) {
             $errors[] = "Le temps de préparation doit être un nombre positif.";
@@ -369,18 +360,9 @@ class RecettesController {
     function ValiderRecette($post, $files, $isEdit = false) {
         $errors = [];
         if (empty(trim($post['titre'] ?? ''))) { $errors[] = "Le titre est obligatoire."; }
-        // Check for structured steps first (inst_titre[]), fallback to legacy textarea
-        $hasStructuredSteps = false;
-        if (!empty($post['inst_titre'])) {
-            foreach ($post['inst_titre'] as $t) {
-                if (!empty(trim($t))) { $hasStructuredSteps = true; break; }
-            }
-        }
-        if (!$hasStructuredSteps) {
-            $instructions = trim($post['instructions'] ?? '');
-            if (empty($instructions) || strlen($instructions) < 20) {
-                $errors[] = "Ajoutez au moins une étape de préparation.";
-            }
+        $instructions = trim($post['instructions'] ?? '');
+        if (empty($instructions) || strlen($instructions) < 20) {
+            $errors[] = "Les instructions doivent contenir au moins 20 caractères.";
         }
         if (!isset($post['temps_preparation']) || !is_numeric($post['temps_preparation']) || (int)$post['temps_preparation'] <= 0) {
             $errors[] = "Le temps de préparation doit être un nombre positif.";
@@ -1519,15 +1501,12 @@ class RecettesController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nom  = trim($_POST['nom'] ?? '');
             $desc = trim($_POST['description'] ?? '');
-            $errors = [];
-            if (empty($nom))  { $errors[] = "Le nom du matériel est obligatoire."; }
-            if (empty($desc)) { $errors[] = "La description du matériel est obligatoire."; }
-            if (empty($errors)) {
+            if (!empty($nom)) {
                 $m = new Materiel($nom, $desc, null, 'accepte');
                 $this->AjouterMateriel($m);
                 $_SESSION['success'] = "Matériel ajouté avec succès !";
             } else {
-                $_SESSION['error'] = implode(' ', $errors);
+                $_SESSION['error'] = "Le nom du matériel est obligatoire.";
             }
         }
         header('Location: ' . BASE_URL . '/?page=admin-recettes&action=materiels'); exit;

@@ -39,34 +39,14 @@
         </span>
       </div>
       <div style="display:flex;gap:0.5rem">
-        <?php if (isset($_SESSION['editing_order_id'])): ?>
-            <a href="<?= BASE_URL ?>/?page=marketplace&action=edit-order&id=<?= $_SESSION['editing_order_id'] ?>" class="btn btn-sm" style="background:linear-gradient(135deg,#ca8a04,#d97706);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.75rem">
-              <i data-lucide="edit-3" style="width:0.7rem;height:0.7rem"></i> Retour à la modification
-            </a>
-        <?php else: ?>
-            <a href="<?= BASE_URL ?>/?page=marketplace&action=order" class="btn btn-sm" style="background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.75rem">
-              <i data-lucide="credit-card" style="width:0.7rem;height:0.7rem"></i> Commander
-            </a>
-        <?php endif; ?>
+        <a href="<?= BASE_URL ?>/?page=marketplace&action=order" class="btn btn-sm" style="background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.75rem">
+          <i data-lucide="credit-card" style="width:0.7rem;height:0.7rem"></i> Commander
+        </a>
         <a href="<?= BASE_URL ?>/?page=marketplace&action=clear-cart" class="btn btn-outline btn-sm" style="border-radius:var(--radius-full);font-size:0.75rem;color:var(--destructive);border-color:var(--destructive)"
            data-confirm="Vider votre panier ?" data-confirm-title="Vider le panier" data-confirm-type="warning" data-confirm-btn="Vider">
           <i data-lucide="trash-2" style="width:0.7rem;height:0.7rem"></i> Vider
         </a>
       </div>
-    </div>
-  <?php endif; ?>
-
-  <?php if (isset($_SESSION['editing_order_id']) && $cartCount === 0): ?>
-    <div style="background:linear-gradient(135deg,rgba(202,138,4,0.08),rgba(217,119,6,0.04));border:1px solid rgba(202,138,4,0.25);border-radius:var(--radius-xl);padding:0.875rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
-      <div style="display:flex;align-items:center;gap:0.625rem">
-        <i data-lucide="edit-3" style="width:1.1rem;height:1.1rem;color:#ca8a04"></i>
-        <span style="font-size:0.875rem;font-weight:600;color:var(--text-primary)">
-          Vous modifiez la commande <strong style="color:#ca8a04">#<?= str_pad($_SESSION['editing_order_id'], 5, '0', STR_PAD_LEFT) ?></strong>. Ajoutez des produits pour continuer.
-        </span>
-      </div>
-      <a href="<?= BASE_URL ?>/?page=marketplace&action=edit-order&id=<?= $_SESSION['editing_order_id'] ?>" class="btn btn-sm" style="background:linear-gradient(135deg,#ca8a04,#d97706);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.75rem">
-        <i data-lucide="edit-3" style="width:0.7rem;height:0.7rem"></i> Voir la commande
-      </a>
     </div>
   <?php endif; ?>
 
