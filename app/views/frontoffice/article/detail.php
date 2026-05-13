@@ -141,53 +141,212 @@ $showResumeBtn = true;
   </div>
 
   <!-- FORMULAIRE AJOUT COMMENTAIRE -->
-  <div style="margin-top:1.25rem" class="card">
-    <h3 style="font-family:var(--font-heading);font-size:1.05rem;font-weight:900;color:var(--text-primary);margin:0 0 0.9rem;display:flex;align-items:center;gap:0.5rem">
-      <i data-lucide="send" style="width:1rem;height:1rem;color:var(--primary)"></i>
-      Laisser un commentaire
-    </h3>
+  <style>
+  /* ─── Dynamic validation styles (from add.php) ─── */
+  .art-field-error {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #ef4444;
+    animation: artFadeUp 0.2s ease;
+  }
+  .art-field-error.visible { display: flex; }
+  .art-input-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+  }
+  .art-input-valid {
+    border-color: #22c55e !important;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.10) !important;
+  }
+  @keyframes artFadeUp {
+    from { opacity:0; transform:translateY(4px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
 
-    <?php if (!empty($errors)): ?>
-      <div class="p-4 rounded-xl mb-4" style="background:linear-gradient(135deg,#fee2e2,#fef2f2);color:#991b1b;border:1px solid #fca5a5">
-        <div style="font-weight:800;margin-bottom:0.3rem">Veuillez corriger :</div>
-        <ul style="margin:0;padding-left:1.2rem">
+  .art-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 0.875rem;
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--foreground);
+    transition: all 0.25s;
+    outline: none;
+    font-family: inherit;
+  }
+  .art-input:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(82,183,136,0.12);
+  }
+  .art-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .art-char-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.3rem;
+    transition: color 0.2s;
+  }
+
+  .art-submit-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .art-submit-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+  }
+  .art-submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .pin-dots {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .pin-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.2s;
+  }
+  .pin-dot.filled {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 0 6px rgba(245,158,11,0.5);
+  }
+  </style>
+
+  <div style="margin-top:2.5rem;margin-bottom:2rem">
+    <div class="card" style="padding:2.25rem;border:1.5px solid var(--border);border-radius:1.25rem;display:flex;flex-direction:column;gap:1.6rem">
+      
+      <!-- HEADER -->
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+        <div style="display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;
+                    background:linear-gradient(135deg,#e0e7ff,#c7d2fe);border-radius:1rem;
+                    box-shadow:0 8px 24px rgba(99,102,241,0.25)">
+          <i data-lucide="message-square-plus" style="width:1.5rem;height:1.5rem;color:#4f46e5"></i>
+        </div>
+        <div>
+          <h3 style="font-family:var(--font-heading);font-size:1.3rem;font-weight:900;
+                     color:var(--text-primary);letter-spacing:-0.02em;margin:0">
+            Laisser un commentaire
+          </h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 0 0">
+            Participez à la discussion et donnez votre avis ! 💬
+          </p>
+        </div>
+      </div>
+
+      <?php if (!empty($errors)): ?>
+        <div style="background:linear-gradient(135deg,#fee2e2,#fef2f2);border:1.5px solid #fca5a5;
+                    border-radius:var(--radius-xl);padding:1rem 1.25rem">
           <?php foreach ($errors as $e): ?>
-            <li><?= htmlspecialchars($e) ?></li>
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:#dc2626;padding:0.2rem 0">
+              <i data-lucide="alert-circle" style="width:0.875rem;height:0.875rem;flex-shrink:0"></i>
+              <?= htmlspecialchars($e) ?>
+            </div>
           <?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
+        </div>
+      <?php endif; ?>
 
-    <form method="post" action="<?= BASE_URL ?>/?page=article&action=comment-add&id=<?= $articleId ?>" onsubmit="return validateCommentForm();">
-      <div class="grid grid-cols-2 gap-4">
+      <form method="post" action="<?= BASE_URL ?>/?page=article&action=comment&id=<?= $articleId ?>" id="commentAddForm" novalidate style="display:flex;flex-direction:column;gap:1.6rem">
+        
+        <!-- ROW 1: Auteur + PIN -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+          <!-- Auteur -->
+          <div>
+            <label for="commentAuteur" class="art-label">
+              <i data-lucide="user" style="width:0.85rem;height:0.85rem;color:#3b82f6"></i>
+              Votre nom <span style="color:#ef4444">*</span>
+            </label>
+            <input type="text" name="auteur" id="commentAuteur" class="art-input"
+                   value="<?= htmlspecialchars($_POST['auteur'] ?? '') ?>"
+                   placeholder="Ex: Amine Khoury" maxlength="120" autocomplete="name">
+            <div class="art-field-error" id="err-commentAuteur">
+              <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+              <span></span>
+            </div>
+          </div>
+
+          <!-- PIN -->
+          <div>
+            <label for="commentPin" class="art-label">
+              <i data-lucide="key-round" style="width:0.85rem;height:0.85rem;color:#f59e0b"></i>
+              Code PIN (4 chiffres) <span style="color:#ef4444">*</span>
+            </label>
+            <input type="text" name="pin" id="commentPin" class="art-input"
+                   value="<?= htmlspecialchars($_POST['pin'] ?? '') ?>"
+                   placeholder="Ex: 1234"
+                   maxlength="4" inputmode="numeric" pattern="\d{4}"
+                   style="letter-spacing:0.4em;font-size:1.2rem;font-weight:700;max-width:160px">
+            <div class="pin-dots" id="commentPinDots">
+              <div class="pin-dot" id="cpd0"></div>
+              <div class="pin-dot" id="cpd1"></div>
+              <div class="pin-dot" id="cpd2"></div>
+              <div class="pin-dot" id="cpd3"></div>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin:0.3rem 0 0">
+              Même PIN que pour vos articles. <a href="<?= BASE_URL ?>/?page=article&action=add" style="color:var(--primary)">Pas encore d'article ?</a>
+            </p>
+            <div class="art-field-error" id="err-commentPin">
+              <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+              <span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 2: Contenu -->
         <div>
-          <label class="label">Votre nom</label>
-          <input type="text" name="auteur" id="commentAuteur" class="input" value="<?= htmlspecialchars($_POST['auteur'] ?? '') ?>" placeholder="Ex: Amine" />
-          <div id="commentAuteurErr" style="margin-top:6px;font-size:0.75rem;color:#b91c1c;display:none"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.45rem">
+            <label for="commentContenu" class="art-label" style="margin-bottom:0">
+              <i data-lucide="message-square-dashed" style="width:0.85rem;height:0.85rem;color:#10b981"></i>
+              Votre commentaire <span style="color:#ef4444">*</span>
+            </label>
+            <span style="font-size:0.7rem;color:var(--text-muted)">min 5 caractères</span>
+          </div>
+          <textarea name="contenu" id="commentContenu" class="art-input" rows="4"
+                    placeholder="Qu'avez-vous pensé de cet article ?..."
+                    style="line-height:1.6;resize:vertical;min-height:100px"><?= htmlspecialchars($_POST['contenu'] ?? '') ?></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="art-field-error" id="err-commentContenu" style="margin-top:0.35rem">
+              <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+              <span></span>
+            </div>
+            <div class="art-char-count" id="commentContenuCount" style="margin-left:auto">0 caractères</div>
+          </div>
         </div>
-        <div>
-          <label class="label">🔢 Votre PIN (4 chiffres)</label>
-          <input type="password" name="pin" id="commentPin" class="input" value="<?= htmlspecialchars($_POST['pin'] ?? '') ?>" placeholder="Ex: 1234" maxlength="4" />
-          <div id="commentPinErr" style="margin-top:6px;font-size:0.75rem;color:#b91c1c;display:none"></div>
-          <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">Même PIN que pour vos articles. <a href="<?= BASE_URL ?>/?page=article&action=add" style="color:var(--primary)">Pas encore d'article ?</a></p>
-        </div>
-      </div>
 
-      <div style="margin-top:1rem">
-        <label class="label">Commentaire</label>
-        <textarea name="contenu" id="commentContenu" class="input" rows="5" placeholder="Votre message..."><?= htmlspecialchars($_POST['contenu'] ?? '') ?></textarea>
-        <div id="commentContenuErr" style="margin-top:6px;font-size:0.75rem;color:#b91c1c;display:none"></div>
-      </div>
-
-      <div style="margin-top:1rem;display:flex;justify-content:space-between;align-items:center">
-        <div style="padding:0.7rem 1rem;border:1px solid #fef3c7;border-radius:var(--radius);background:#fffbeb;color:#92400e;font-size:0.78rem;line-height:1.5">
-          🙏 Soyez respectueux — Les commentaires inappropriés peuvent être signalés.
+        <!-- SUBMIT -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:1rem;border-top:1.5px solid var(--border);flex-wrap:wrap;gap:1rem">
+          <div style="padding:0.7rem 1rem;border:1px solid #fef3c7;border-radius:0.75rem;background:#fffbeb;color:#92400e;font-size:0.78rem;line-height:1.5;flex:1;min-width:250px">
+            🙏 <strong>Soyez respectueux</strong> — Les commentaires inappropriés peuvent être signalés.
+          </div>
+          <button type="submit" id="commentSubmitBtn" class="btn btn-primary art-submit-btn"
+                  style="padding:0.8rem 2.2rem;font-size:0.95rem;border-radius:var(--radius-full);gap:0.5rem">
+            <i data-lucide="send-horizontal" style="width:1.1rem;height:1.1rem"></i>
+            Publier le commentaire
+          </button>
         </div>
-        <button class="btn btn-primary" type="submit" style="border-radius:var(--radius-full)">
-          <i data-lucide="send" style="width:1rem;height:1rem"></i> Envoyer
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -390,7 +549,7 @@ function loadSingleReaction(type, id) {
 
 function reportComment(id) {
   if (!confirm('Signaler ce commentaire comme inapproprié ?')) return;
-  fetch('<?= BASE_URL ?>/?page=article&action=comment-report&id=' + id, { method: 'POST' }).then(r => r.json()).then(data => { if (data.success) { alert('Commentaire signalé.'); location.reload(); } else { alert(data.error || 'Erreur'); } });
+  fetch('<?= BASE_URL ?>/?page=article&action=report-comment&id=' + id, { method: 'POST' }).then(r => r.json()).then(data => { if (data.success) { alert('Commentaire signalé.'); location.reload(); } else { alert(data.error || 'Erreur'); } });
 }
 
 // ==================== TRADUCTION ====================
@@ -408,23 +567,117 @@ function translateArticle() {
 function hideTranslation() { document.getElementById('translationResult').style.display = 'none'; document.getElementById('translateLang').value = ''; }
 
 // ==================== FORM VALIDATION ====================
-function validateCommentForm() {
-  const auteur = document.getElementById('commentAuteur');
-  const pin = document.getElementById('commentPin');
-  const contenu = document.getElementById('commentContenu');
-  const auteurErr = document.getElementById('commentAuteurErr');
-  const pinErr = document.getElementById('commentPinErr');
-  const contenuErr = document.getElementById('commentContenuErr');
-  let ok = true;
-  const a = (auteur.value || '').trim();
-  const p = (pin.value || '').trim();
-  const c = (contenu.value || '').trim();
-  auteurErr.style.display = 'none'; pinErr.style.display = 'none'; contenuErr.style.display = 'none';
-  if (a.length < 2) { auteurErr.textContent = "Nom obligatoire (min 2 caractères)."; auteurErr.style.display = 'block'; ok = false; }
-  if (!/^\d{4}$/.test(p)) { pinErr.textContent = "Le PIN doit contenir exactement 4 chiffres."; pinErr.style.display = 'block'; ok = false; }
-  if (c.length < 5) { contenuErr.textContent = "Commentaire obligatoire (min 5 caractères)."; contenuErr.style.display = 'block'; ok = false; }
-  return ok;
+function artShowError(fieldId, message) {
+  const field  = document.getElementById(fieldId);
+  const errBox = document.getElementById('err-' + fieldId);
+  if (!field || !errBox) return false;
+  field.classList.remove('art-input-valid');
+  field.classList.add('art-input-invalid');
+  errBox.querySelector('span').textContent = message;
+  errBox.classList.add('visible');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  return false;
 }
 
-document.addEventListener('DOMContentLoaded', function() { loadReactions(); });
+function artClearError(fieldId) {
+  const field  = document.getElementById(fieldId);
+  const errBox = document.getElementById('err-' + fieldId);
+  if (!field || !errBox) return true;
+  field.classList.remove('art-input-invalid');
+  errBox.classList.remove('visible');
+  return true;
+}
+
+function artMarkValid(fieldId) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  artClearError(fieldId);
+  field.classList.add('art-input-valid');
+}
+
+function updateCommentPinDots(val) {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('cpd' + i);
+    if (dot) dot.classList.toggle('filled', i < val.length);
+  }
+}
+
+function updateCommentCharCount() {
+  const el = document.getElementById('commentContenu');
+  const cnt = document.getElementById('commentContenuCount');
+  if (!el || !cnt) return;
+  cnt.textContent = el.value.length + ' caractères';
+}
+
+function validateCommentAuteur() {
+  artClearError('commentAuteur');
+  const val = document.getElementById('commentAuteur').value.trim();
+  if (!val) return artShowError('commentAuteur', 'Votre nom est obligatoire.');
+  if (val.length < 2) return artShowError('commentAuteur', 'Le nom doit contenir au moins 2 caractères.');
+  artMarkValid('commentAuteur');
+  return true;
+}
+
+function validateCommentPin() {
+  artClearError('commentPin');
+  const val = document.getElementById('commentPin').value.trim();
+  if (!val) return artShowError('commentPin', 'Le code PIN est obligatoire.');
+  if (!/^\d{4}$/.test(val)) return artShowError('commentPin', 'Le PIN doit contenir exactement 4 chiffres.');
+  artMarkValid('commentPin');
+  return true;
+}
+
+function validateCommentContenu() {
+  artClearError('commentContenu');
+  const val = document.getElementById('commentContenu').value.trim();
+  if (!val) return artShowError('commentContenu', 'Le commentaire est obligatoire.');
+  if (val.length < 5) return artShowError('commentContenu', 'Le commentaire doit contenir au moins 5 caractères.');
+  artMarkValid('commentContenu');
+  return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadReactions();
+
+  const cAuteur = document.getElementById('commentAuteur');
+  if(cAuteur) cAuteur.addEventListener('input', validateCommentAuteur);
+
+  const cPin = document.getElementById('commentPin');
+  if(cPin) {
+    cPin.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 4);
+      updateCommentPinDots(this.value);
+      validateCommentPin();
+    });
+    updateCommentPinDots(cPin.value);
+  }
+
+  const cContenu = document.getElementById('commentContenu');
+  if(cContenu) {
+    cContenu.addEventListener('input', function() {
+      validateCommentContenu();
+      updateCommentCharCount();
+    });
+    updateCommentCharCount();
+  }
+
+  const cForm = document.getElementById('commentAddForm');
+  if(cForm) {
+    cForm.addEventListener('submit', function(e) {
+      let valid = true;
+      if (!validateCommentAuteur()) valid = false;
+      if (!validateCommentPin()) valid = false;
+      if (!validateCommentContenu()) valid = false;
+
+      if (!valid) {
+        e.preventDefault();
+        const firstInvalid = document.querySelector('.art-input-invalid');
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior:'smooth', block:'center' });
+          firstInvalid.focus();
+        }
+      }
+    });
+  }
+});
 </script>
