@@ -37,6 +37,9 @@
         <div class="form-group">
           <label class="form-label" for="date_repas"><i data-lucide="calendar" style="width:0.75rem;height:0.75rem"></i> Date</label>
           <input type="date" name="date_repas" id="date_repas" class="form-input" value="<?= htmlspecialchars($_POST['date_repas'] ?? date('Y-m-d')) ?>">
+          <div id="err-foDate" style="display:none;align-items:center;gap:0.35rem;margin-top:0.35rem;font-size:0.75rem;font-weight:600;color:#ef4444">
+            <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem"></i><span></span>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="type_repas"><i data-lucide="clock" style="width:0.75rem;height:0.75rem"></i> Type de repas</label>
@@ -47,6 +50,9 @@
             <option value="diner" <?= (isset($_POST['type_repas']) && $_POST['type_repas'] === 'diner') ? 'selected' : '' ?>>🌙 Dîner</option>
             <option value="collation" <?= (isset($_POST['type_repas']) && $_POST['type_repas'] === 'collation') ? 'selected' : '' ?>>🍎 Collation</option>
           </select>
+          <div id="err-foType" style="display:none;align-items:center;gap:0.35rem;margin-top:0.35rem;font-size:0.75rem;font-weight:600;color:#ef4444">
+            <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem"></i><span></span>
+          </div>
         </div>
       </div>
 
@@ -84,41 +90,51 @@ document.getElementById('add-aliment-btn').addEventListener('click', function() 
   container.appendChild(row);
   if (typeof lucide !== 'undefined') lucide.createIcons();
 });
-document.getElementById('repasForm').addEventListener('submit', function(e) {
-  let errors = [];
+
+function _showInlineErr(fieldId, errId, msg) {
+  const f = document.getElementById(fieldId);
+  const b = document.getElementById(errId);
+  f.style.borderColor = '#ef4444'; f.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
+  b.querySelector('span').textContent = msg; b.style.display = 'flex';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  return false;
+}
+function _clearInlineErr(fieldId, errId) {
+  const f = document.getElementById(fieldId);
+  const b = document.getElementById(errId);
+  f.style.borderColor = ''; f.style.boxShadow = '';
+  b.style.display = 'none';
+  return true;
+}
+
+function validateNomFO() {
   const nomVal = document.getElementById('nom').value.trim();
-  const errBox = document.getElementById('err-foRepasNom');
-  errBox.style.display = 'none';
-  document.getElementById('nom').style.borderColor = '';
-  document.getElementById('nom').style.boxShadow   = '';
-  if (!nomVal) {
-    errors.push('Le nom du repas est obligatoire.');
-    _showNomErr('Le nom du repas est obligatoire.');
-  } else if (nomVal.length < 3) {
-    errors.push('Le nom doit contenir au moins 3 caractères.');
-    _showNomErr('Le nom doit contenir au moins 3 caractères.');
-  }
-  if (document.getElementById('date_repas').value === '') errors.push('La date est obligatoire.');
-  if (document.getElementById('type_repas').value === '') errors.push('Le type de repas est obligatoire.');
-  if (errors.length > 0) {
-    e.preventDefault();
-    showToast('error', errors[0]);
-  }
-  function _showNomErr(msg) {
-    const f = document.getElementById('nom'), b = document.getElementById('err-foRepasNom');
-    f.style.borderColor = '#ef4444'; f.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
-    b.querySelector('span').textContent = msg; b.style.display = 'flex';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  }
-});
-document.getElementById('nom').addEventListener('input', function() {
-  const val = this.value.trim(), box = document.getElementById('err-foRepasNom');
-  if (val.length > 0 && val.length < 3) {
-    this.style.borderColor = '#ef4444'; this.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
-    box.querySelector('span').textContent = 'Le nom doit contenir au moins 3 caractères.';
-    box.style.display = 'flex';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  } else { this.style.borderColor = ''; this.style.boxShadow = ''; box.style.display = 'none'; }
+  if (!nomVal) return _showInlineErr('nom', 'err-foRepasNom', 'Le nom du repas est obligatoire.');
+  if (nomVal.length < 3) return _showInlineErr('nom', 'err-foRepasNom', 'Le nom doit contenir au moins 3 caractères.');
+  return _clearInlineErr('nom', 'err-foRepasNom');
+}
+function validateDateFO() {
+  if (!document.getElementById('date_repas').value)
+    return _showInlineErr('date_repas', 'err-foDate', 'La date est obligatoire.');
+  return _clearInlineErr('date_repas', 'err-foDate');
+}
+function validateTypeFO() {
+  if (!document.getElementById('type_repas').value)
+    return _showInlineErr('type_repas', 'err-foType', 'Le type de repas est obligatoire.');
+  return _clearInlineErr('type_repas', 'err-foType');
+}
+
+document.getElementById('nom').addEventListener('input', validateNomFO);
+document.getElementById('date_repas').addEventListener('blur',   validateDateFO);
+document.getElementById('date_repas').addEventListener('change', validateDateFO);
+document.getElementById('type_repas').addEventListener('change', validateTypeFO);
+
+document.getElementById('repasForm').addEventListener('submit', function(e) {
+  let valid = true;
+  if (!validateNomFO())  valid = false;
+  if (!validateDateFO()) valid = false;
+  if (!validateTypeFO()) valid = false;
+  if (!valid) e.preventDefault();
 });
 
 function showToast(type, msg) {

@@ -77,11 +77,11 @@
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">
           <label class="form-label" for="f_nom"><i data-lucide="type" style="width:.75rem;height:.75rem"></i> Nom complet</label>
-          <input type="text" id="f_nom" class="form-input" placeholder="Ahmed Ben Ali" value="<?= htmlspecialchars($_POST['client_nom'] ?? '') ?>">
+          <input type="text" id="f_nom" class="form-input" placeholder="Ahmed Ben Ali" value="<?= htmlspecialchars($_POST['client_nom'] ?? $_SESSION['username'] ?? '') ?>">
         </div>
         <div class="form-group">
           <label class="form-label" for="f_email"><i data-lucide="mail" style="width:.75rem;height:.75rem"></i> Email</label>
-          <input type="email" id="f_email" class="form-input" placeholder="ahmed@email.com" value="<?= htmlspecialchars($_POST['client_email'] ?? '') ?>">
+          <input type="email" id="f_email" class="form-input" placeholder="ahmed@email.com" value="<?= htmlspecialchars($_POST['client_email'] ?? $_SESSION['email'] ?? '') ?>">
         </div>
         <div class="form-group" style="grid-column: span 2;">
           <label class="form-label" for="f_tel"><i data-lucide="phone" style="width:.75rem;height:.75rem"></i> Numéro de téléphone</label>

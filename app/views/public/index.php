@@ -17,6 +17,7 @@ setlocale(LC_TIME, 'fr_FR.UTF-8', 'fra', 'french');
 // Chemin de base du projet
 define('BASE_PATH', dirname(dirname(dirname(__DIR__))));
 define('BASE_URL', '');
+define('FULL_BASE_URL', 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost:8000'));
 
 // Charger la configuration de la base de données
 require_once BASE_PATH . '/config/database.php';
@@ -24,6 +25,10 @@ require_once BASE_PATH . '/config/database.php';
 require_once BASE_PATH . '/config/stripe.php';
 // Charger la configuration des APIs Nutrition (USDA, Open Food Facts)
 require_once BASE_PATH . '/config/nutrition_apis.php';
+// Charger la configuration Google OAuth, Email SMTP, reCAPTCHA
+require_once BASE_PATH . '/config/google.php';
+require_once BASE_PATH . '/config/email.php';
+require_once BASE_PATH . '/config/recaptcha.php';
 
 // Charger tous les modèles
 require_once BASE_PATH . '/app/models/MediaHelper.php';
@@ -40,6 +45,7 @@ require_once BASE_PATH . '/app/models/PlanNutritionnel.php';
 require_once BASE_PATH . '/app/models/RegimeAlimentaire.php';
 require_once BASE_PATH . '/app/models/Article.php';
 require_once BASE_PATH . '/app/models/Commentaire.php';
+require_once BASE_PATH . '/app/models/UserModel.php';
 
 // Charger tous les contrôleurs
 require_once BASE_PATH . '/app/controllers/NutritionController.php';
@@ -47,6 +53,9 @@ require_once BASE_PATH . '/app/controllers/MarketplaceController.php';
 require_once BASE_PATH . '/app/controllers/RecettesController.php';
 require_once BASE_PATH . '/app/controllers/ArticleController.php';
 require_once BASE_PATH . '/app/controllers/CommentController.php';
+require_once BASE_PATH . '/app/controllers/UserController.php';
+require_once BASE_PATH . '/app/controllers/AuthController.php';
+require_once BASE_PATH . '/app/controllers/FaceAuthController.php';
 
 // Récupérer la page et l'action depuis l'URL
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
@@ -64,14 +73,173 @@ switch ($page) {
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
         break;
 
-    // ---- AUTH (Static) ----
+    // ---- AUTH ----
     case 'login':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'], $_POST['password'])) {
+            $auth   = new AuthController();
+            $result = $auth->Login($_POST['email'], $_POST['password'], $_POST['g-recaptcha-response'] ?? null);
+            if (isset($result['error'])) {
+                $_SESSION['error'] = $result['error'];
+                header('Location: ' . BASE_URL . '/?page=login');
+                exit();
+            }
+        }
         require_once BASE_PATH . '/app/views/frontoffice/auth/login.php';
         break;
 
+    case 'logout':
+        $auth = new AuthController();
+        $auth->Logout();
+        break;
+
     case 'signup':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['email'], $_POST['password'])) {
+            $userCtrl = new UserController();
+            $existing = $userCtrl->RecupererUserByEmail($_POST['email']);
+            if ($existing) {
+                $_SESSION['error'] = 'Cet email est déjà utilisé.';
+            } else {
+                $user = new User($_POST['username'], $_POST['email'], $_POST['password'], 'USER', null, 1);
+                $userCtrl->AjouterUser($user, $_FILES['avatar'] ?? null);
+                $newUser = $userCtrl->RecupererUserByEmail($_POST['email']);
+                if ($newUser) {
+                    $_SESSION['user_id']  = $newUser['id'];
+                    $_SESSION['username'] = $newUser['username'];
+                    $_SESSION['email']    = $newUser['email'];
+                    $_SESSION['role']     = $newUser['role'];
+                    $_SESSION['avatar']   = $newUser['avatar'];
+                    $_SESSION['loggedin'] = true;
+                    $_SESSION['success']  = 'Compte créé avec succès. Bienvenue !';
+                    header('Location: ' . BASE_URL . '/');
+                    exit();
+                }
+            }
+        }
         require_once BASE_PATH . '/app/views/frontoffice/auth/signup.php';
         break;
+
+    case 'google-auth':
+        $auth = new AuthController();
+        $auth->RedirectToGoogle();
+        break;
+
+    case 'google-callback':
+        $auth   = new AuthController();
+        $result = $auth->HandleGoogleCallback();
+        if (isset($result['error'])) {
+            $_SESSION['error'] = $result['error'];
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
+        break;
+
+    case 'forgot-password':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
+            $auth   = new AuthController();
+            $result = $auth->RequestPasswordReset($_POST['email']);
+            if (isset($result['success'])) {
+                $_SESSION['success'] = $result['success'];
+            } else {
+                $_SESSION['error'] = $result['error'] ?? 'Une erreur est survenue.';
+            }
+            header('Location: ' . BASE_URL . '/?page=forgot-password');
+            exit();
+        }
+        require_once BASE_PATH . '/app/views/frontoffice/auth/forgot-password.php';
+        break;
+
+    case 'reset-password':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'], $_POST['password'])) {
+            $auth   = new AuthController();
+            $result = $auth->ResetPassword($_POST['token'], $_POST['password']);
+            if (isset($result['success'])) {
+                $_SESSION['success'] = $result['success'];
+                header('Location: ' . BASE_URL . '/?page=login');
+                exit();
+            } else {
+                $_SESSION['error'] = $result['error'] ?? 'Lien invalide ou expiré.';
+            }
+        }
+        require_once BASE_PATH . '/app/views/frontoffice/auth/reset-password.php';
+        break;
+
+    // ---- FACE ID API ----
+    case 'api-face-register':
+        header('Content-Type: application/json');
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            echo json_encode(['error' => 'Non authentifié']); exit();
+        }
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!isset($data['descriptor'])) {
+            echo json_encode(['error' => 'Descripteur manquant']); exit();
+        }
+        $ctrl   = new FaceAuthController();
+        $result = $ctrl->registerFace($_SESSION['user_id'], json_encode($data['descriptor']));
+        echo json_encode($result);
+        exit();
+
+    case 'api-face-login':
+        header('Content-Type: application/json');
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!isset($data['descriptor'])) {
+            echo json_encode(['error' => 'Descripteur manquant']); exit();
+        }
+        $ctrl   = new FaceAuthController();
+        $result = $ctrl->loginFace(json_encode($data['descriptor']));
+        echo json_encode($result);
+        exit();
+
+    // ---- FACE ID VIEW ----
+    case 'face-register':
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            header('Location: ' . BASE_URL . '/?page=login'); exit();
+        }
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
+        require_once BASE_PATH . '/app/views/frontoffice/auth/face-register.php';
+        require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
+        break;
+
+    // ---- DEMANDE COACH ----
+    case 'coach-request':
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            header('Location: ' . BASE_URL . '/?page=login'); exit();
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $ctrl   = new UserController();
+            $result = $ctrl->DemandeCoach($_SESSION['user_id'], $_FILES['certificate'] ?? null);
+            if (isset($result['success'])) {
+                $_SESSION['coach_request'] = 'pending';
+                $_SESSION['success'] = "Demande envoyée ! L'admin va examiner votre dossier.";
+            } else {
+                $_SESSION['error'] = $result['error'];
+            }
+        }
+        header('Location: ' . BASE_URL . '/');
+        exit();
+
+    // ---- MISE À JOUR PROFIL ----
+    case 'update-profile':
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            header('Location: ' . BASE_URL . '/?page=login'); exit();
+        }
+        $ctrl = new UserController();
+        $user = new User(
+            $_POST['username'],
+            $_POST['email'],
+            '',
+            $_SESSION['role'],
+            $_SESSION['avatar'] ?? null,
+            1
+        );
+        $ctrl->ModifierUser($user, $_SESSION['user_id'], $_FILES['avatar'] ?? null);
+        if (!empty($_POST['new_password'])) {
+            $ctrl->ModifierPassword($_SESSION['user_id'], $_POST['new_password']);
+        }
+        $_SESSION['username'] = $_POST['username'];
+        $_SESSION['email']    = $_POST['email'];
+        $_SESSION['success']  = 'Profil mis à jour avec succès.';
+        header('Location: ' . BASE_URL . '/');
+        exit();
 
     // ---- COMMUNAUTÉ & BLOG (Front) — alias → article list ----
     case 'community':
@@ -213,12 +381,70 @@ switch ($page) {
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
         break;
 
-    // ---- UTILISATEURS (Back - Static) ----
+    // ---- UTILISATEURS (Back - CRUD complet) ----
     case 'admin-users':
+        // Protection ADMIN
+        if (!isset($_SESSION['loggedin']) || ($_SESSION['role'] ?? '') !== 'ADMIN') {
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
+
+        $ctrl = new UserController();
+
+        // Supprimer
+        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+            $ctrl->SupprimerUser((int)$_GET['id']);
+            $_SESSION['success'] = "Utilisateur supprimé avec succès.";
+            header('Location: ' . BASE_URL . '/?page=admin-users');
+            exit();
+        }
+
+        // Toggle actif/suspendu
+        if (isset($_GET['action']) && $_GET['action'] === 'toggle' && isset($_GET['id'], $_GET['status'])) {
+            $ctrl->ToggleActive((int)$_GET['id'], (int)$_GET['status']);
+            $_SESSION['success'] = "Statut mis à jour.";
+            header('Location: ' . BASE_URL . '/?page=admin-users');
+            exit();
+        }
+
+        // Ajouter / Modifier
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+            if ($_POST['action'] === 'add') {
+                $user = new User($_POST['username'], $_POST['email'], $_POST['password'], $_POST['role'], null, 1);
+                $ctrl->AjouterUser($user, $_FILES['avatar'] ?? null);
+                $_SESSION['success'] = "Utilisateur ajouté avec succès.";
+                header('Location: ' . BASE_URL . '/?page=admin-users');
+                exit();
+            }
+            if ($_POST['action'] === 'edit') {
+                $user = new User($_POST['username'], $_POST['email'], '', $_POST['role'], null, (int)$_POST['is_active']);
+                $ctrl->ModifierUser($user, (int)$_POST['id'], $_FILES['avatar'] ?? null);
+                $_SESSION['success'] = "Utilisateur modifié avec succès.";
+                header('Location: ' . BASE_URL . '/?page=admin-users');
+                exit();
+            }
+        }
+
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_header.php';
         require_once BASE_PATH . '/app/views/backoffice/admin/users.php';
         require_once BASE_PATH . '/app/views/backoffice/layouts/back_footer.php';
         break;
+
+    // ---- TRAITER DEMANDE COACH (ADMIN) ----
+    case 'coach-decision':
+        if (!isset($_SESSION['loggedin']) || ($_SESSION['role'] ?? '') !== 'ADMIN') {
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
+        if (isset($_GET['id']) && isset($_GET['decision'])) {
+            $ctrl = new UserController();
+            $ctrl->TraiterDemandeCoach((int)$_GET['id'], $_GET['decision']);
+            $_SESSION['success'] = $_GET['decision'] === 'accepted'
+                ? "Demande acceptée — utilisateur promu Coach ✅"
+                : "Demande refusée ❌";
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-users');
+        exit();
 
     // ---- COMMUNAUTÉ (Back) — alias → admin-article ----
     case 'admin-community':
@@ -285,6 +511,8 @@ switch ($page) {
             case 'add':             $controller->addBack(); break;
             case 'edit':            $controller->editBack(); break;
             case 'delete':          $controller->deleteBack(); break;
+            case 'repas-accept':    $controller->acceptRepas(); break;
+            case 'repas-refuse':    $controller->refuseRepas(); break;
             case 'repas-export-pdf':$controller->exportRepasPdfBack(); break;
             // Aliments
             case 'aliments':        $controller->listAliments(); break;

@@ -291,3 +291,297 @@ body {
         <?php endif; ?>
       </div>
 
+<?php
+// ── Admin Notification data ──
+$_notifDb = Database::getConnexion();
+$_notifs  = [];
+try {
+    $r = $_notifDb->query("SELECT COUNT(*) FROM regime_alimentaire WHERE REPLACE(REPLACE(LOWER(TRIM(statut)),' ','_'),'-','_') = 'en_attente'")->fetchColumn();
+    if ($r > 0) $_notifs[] = ['icon'=>'salad',        'color'=>'#2D6A4F', 'bg'=>'#dcfce7', 'count'=>(int)$r, 'label'=>'Régime(s) en attente',    'url'=>BASE_URL.'/?page=admin-nutrition&action=regimes'];
+    $r = $_notifDb->query("SELECT COUNT(*) FROM plan_nutritionnel WHERE REPLACE(REPLACE(LOWER(TRIM(statut)),' ','_'),'-','_') = 'en_attente'")->fetchColumn();
+    if ($r > 0) $_notifs[] = ['icon'=>'clipboard-list','color'=>'#7c3aed', 'bg'=>'#ede9fe', 'count'=>(int)$r, 'label'=>'Plan(s) en attente',       'url'=>BASE_URL.'/?page=admin-nutrition&action=plans'];
+    $r = $_notifDb->query("SELECT COUNT(*) FROM article WHERE statut = 'en_attente'")->fetchColumn();
+    if ($r > 0) $_notifs[] = ['icon'=>'newspaper',     'color'=>'#d97706', 'bg'=>'#fef3c7', 'count'=>(int)$r, 'label'=>'Article(s) en attente',    'url'=>BASE_URL.'/?page=admin-article&action=pending'];
+    $r = $_notifDb->query("SELECT COUNT(*) FROM recette WHERE statut = 'en_attente'")->fetchColumn();
+    if ($r > 0) $_notifs[] = ['icon'=>'chef-hat',      'color'=>'#0891b2', 'bg'=>'#cffafe', 'count'=>(int)$r, 'label'=>'Recette(s) en attente',    'url'=>BASE_URL.'/?page=admin-recettes&action=moderate'];
+    $r = $_notifDb->query("SELECT COUNT(*) FROM materiel WHERE statut = 'en_attente'")->fetchColumn();
+    if ($r > 0) $_notifs[] = ['icon'=>'wrench',        'color'=>'#b45309', 'bg'=>'#fef3c7', 'count'=>(int)$r, 'label'=>'Matériel(s) en attente',   'url'=>BASE_URL.'/?page=admin-recettes&action=materiels'];
+    $r = $_notifDb->query("SELECT COUNT(*) FROM commande WHERE statut = 'en_attente'")->fetchColumn();
+    if ($r > 0) $_notifs[] = ['icon'=>'shopping-bag',  'color'=>'#dc2626', 'bg'=>'#fee2e2', 'count'=>(int)$r, 'label'=>'Commande(s) à traiter',   'url'=>BASE_URL.'/?page=admin-marketplace&action=commandes'];
+    try {
+        $r = $_notifDb->query("SELECT COUNT(*) FROM users WHERE coach_request = 'pending' AND role != 'COACH'")->fetchColumn();
+        if ($r > 0) $_notifs[] = ['icon'=>'award','color'=>'#7c3aed','bg'=>'#ede9fe','count'=>(int)$r,'label'=>'Demande(s) Coach','url'=>BASE_URL.'/?page=admin-users'];
+    } catch (Exception $__e) {}
+} catch (Exception $_e) { /* silently ignore */ }
+$_totalNotifs = array_sum(array_column($_notifs, 'count'));
+?>
+
+<style>
+.admin-topbar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.75rem 2rem;background:var(--card);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;gap:1rem;
+}
+.admin-search-wrap { position:relative;display:flex;align-items:center;flex:1;max-width:420px; }
+.admin-search-wrap input {
+  width:100%;padding:0.5rem 1rem 0.5rem 2.35rem;
+  border:1.5px solid var(--border);border-radius:var(--radius-full);
+  font-size:0.82rem;background:var(--surface);color:var(--foreground);
+  outline:none;transition:all 0.25s;
+}
+.admin-search-wrap input:focus { border-color:var(--secondary);box-shadow:0 0 0 3px rgba(82,183,136,0.12); }
+.admin-search-wrap .srch-icon { position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted);width:0.875rem;height:0.875rem; }
+#adminSearchDropdown {
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:0.875rem;box-shadow:0 12px 40px rgba(0,0,0,0.12);
+  display:none;z-index:9999;max-height:280px;overflow-y:auto;padding:0.35rem;
+}
+#adminSearchDropdown.open { display:block; animation:_aFadeUp 0.18s ease; }
+.adm-srch-item {
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.5rem 0.85rem;border-radius:0.625rem;
+  font-size:0.82rem;color:var(--text-primary);cursor:pointer;
+  transition:background 0.15s;text-decoration:none;
+}
+.adm-srch-item:hover { background:var(--muted); }
+.adm-si-icon { width:1.5rem;height:1.5rem;border-radius:0.375rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+
+#adminNotifBtn { position:relative; }
+#adminNotifPanel {
+  position:absolute;top:calc(100% + 10px);right:0;
+  width:340px;max-height:480px;overflow-y:auto;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.18);
+  display:none;z-index:9999;padding:0;
+}
+#adminNotifPanel.open { display:block; animation:_aFadeUp 0.2s ease; }
+.notif-hdr {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.875rem 1.1rem;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--card);z-index:1;
+}
+.notif-row {
+  display:flex;align-items:center;gap:0.75rem;
+  padding:0.75rem 1.1rem;border-bottom:1px solid var(--border);
+  text-decoration:none;transition:background 0.15s;
+}
+.notif-row:last-child { border-bottom:none; }
+.notif-row:hover { background:var(--muted); }
+.notif-cnt-badge {
+  min-width:1.35rem;height:1.35rem;border-radius:999px;
+  font-size:0.65rem;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 0.25rem;margin-left:auto;flex-shrink:0;
+}
+.notif-bell-badge {
+  position:absolute;top:-4px;right:-4px;
+  min-width:1.05rem;height:1.05rem;padding:0 0.2rem;
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  color:#fff;font-size:0.55rem;font-weight:700;
+  border-radius:999px;border:2px solid var(--card);
+  display:flex;align-items:center;justify-content:center;
+  animation:_aNPulse 2s infinite;
+}
+@keyframes _aNPulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);} }
+@keyframes _aFadeUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+</style>
+
+      <!-- ===== ADMIN TOPBAR ===== -->
+      <div class="admin-topbar">
+
+        <!-- Left: branding -->
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0">
+          <div style="width:2.2rem;height:2.2rem;border-radius:0.625rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);display:flex;align-items:center;justify-content:center">
+            <i data-lucide="shield-check" style="width:1.05rem;height:1.05rem;color:var(--primary)"></i>
+          </div>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);line-height:1.2">Administration</div>
+            <div style="font-size:0.68rem;color:var(--text-muted)">
+              <?php
+                $jM = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+                $jJ = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+                echo $jJ[date('w')].' '.date('d').' '.$jM[(int)date('n')-1].' '.date('Y');
+              ?>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Search -->
+        <div class="admin-search-wrap" id="adminSearchWrap">
+          <svg class="srch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="adminSearchInput" placeholder="Rechercher une section, une page…" autocomplete="off">
+          <div id="adminSearchDropdown"></div>
+        </div>
+
+        <!-- Right: Notif + User + Dark -->
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0">
+
+          <!-- Bell -->
+          <div style="position:relative" id="adminNotifBtn">
+            <button onclick="toggleAdminNotif(event)"
+                    style="width:2.4rem;height:2.4rem;border-radius:var(--radius-full);border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all 0.2s;position:relative"
+                    onmouseover="this.style.borderColor='var(--secondary)';this.style.background='rgba(82,183,136,0.06)'"
+                    onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'"
+                    title="Notifications">
+              <i data-lucide="bell" style="width:1rem;height:1rem"></i>
+              <?php if ($_totalNotifs > 0): ?>
+              <span class="notif-bell-badge"><?= $_totalNotifs > 99 ? '99+' : $_totalNotifs ?></span>
+              <?php endif; ?>
+            </button>
+
+            <!-- Notification Panel -->
+            <div id="adminNotifPanel">
+              <div class="notif-hdr">
+                <div style="display:flex;align-items:center;gap:0.5rem">
+                  <i data-lucide="bell" style="width:0.875rem;height:0.875rem;color:var(--secondary)"></i>
+                  <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary)">Notifications admin</span>
+                  <?php if ($_totalNotifs > 0): ?>
+                  <span style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:0.58rem;font-weight:700;padding:0.12rem 0.4rem;border-radius:999px"><?= $_totalNotifs ?></span>
+                  <?php endif; ?>
+                </div>
+                <button onclick="closeAdminNotif()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.2rem;border-radius:0.35rem">
+                  <i data-lucide="x" style="width:0.85rem;height:0.85rem"></i>
+                </button>
+              </div>
+
+              <?php if (empty($_notifs)): ?>
+              <div style="padding:2rem 1rem;text-align:center;color:var(--text-muted);font-size:0.82rem">
+                <i data-lucide="check-circle-2" style="width:2rem;height:2rem;color:#22c55e;display:block;margin:0 auto 0.5rem"></i>
+                <div style="font-weight:600;color:var(--text-primary);margin-bottom:0.25rem">Tout est à jour !</div>
+                Aucun élément en attente.
+              </div>
+              <?php else: ?>
+                <?php foreach ($_notifs as $_n): ?>
+                <a href="<?= htmlspecialchars($_n['url']) ?>" class="notif-row">
+                  <div class="adm-si-icon" style="background:<?= $_n['bg'] ?>">
+                    <i data-lucide="<?= $_n['icon'] ?>" style="width:0.85rem;height:0.85rem;color:<?= $_n['color'] ?>"></i>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:0.82rem;font-weight:600;color:var(--text-primary)"><?= htmlspecialchars($_n['label']) ?></div>
+                    <div style="font-size:0.7rem;color:var(--text-muted)">Cliquer pour examiner &rarr;</div>
+                  </div>
+                  <span class="notif-cnt-badge" style="background:<?= $_n['color'] ?>"><?= $_n['count'] ?></span>
+                </a>
+                <?php endforeach; ?>
+                <div style="padding:0.6rem 1rem;border-top:1px solid var(--border)">
+                  <a href="<?= BASE_URL ?>/?page=admin-stats" style="display:block;text-align:center;font-size:0.75rem;font-weight:600;color:var(--secondary);text-decoration:none;padding:0.4rem;border-radius:0.5rem;background:rgba(82,183,136,0.08);transition:background 0.15s" onmouseover="this.style.background='rgba(82,183,136,0.16)'" onmouseout="this.style.background='rgba(82,183,136,0.08)'">
+                    Voir les statistiques générales
+                  </a>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div style="width:1px;height:1.5rem;background:var(--border)"></div>
+
+          <!-- Admin Badge -->
+          <div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0.75rem 0.3rem 0.3rem;border-radius:var(--radius-full);background:var(--surface);border:1px solid var(--border)">
+            <div style="width:1.8rem;height:1.8rem;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden">
+              <?php if (!empty($_SESSION['avatar'])): ?>
+                <img src="<?= BASE_URL ?>/assets/images/avatars/<?= htmlspecialchars($_SESSION['avatar']) ?>" style="width:100%;height:100%;object-fit:cover">
+              <?php else: ?>
+                <i data-lucide="user" style="width:0.875rem;height:0.875rem;color:#fff"></i>
+              <?php endif; ?>
+            </div>
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text-primary);line-height:1.1"><?= htmlspecialchars($_SESSION['username'] ?? 'Admin') ?></div>
+              <div style="font-size:0.6rem;color:var(--primary);font-weight:700;display:flex;align-items:center;gap:0.2rem">
+                <i data-lucide="shield-check" style="width:0.6rem;height:0.6rem"></i> Admin
+              </div>
+            </div>
+          </div>
+
+          <!-- Dark toggle -->
+          <button onclick="toggleDarkMode()" title="Mode sombre/clair"
+                  style="width:2.4rem;height:2.4rem;border-radius:var(--radius-full);border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all 0.2s"
+                  onmouseover="this.style.borderColor='var(--secondary)';this.style.background='rgba(82,183,136,0.06)'"
+                  onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+            <i data-lucide="moon" id="topbarDarkIcon" style="width:1rem;height:1rem"></i>
+          </button>
+        </div>
+      </div>
+      <!-- /ADMIN TOPBAR -->
+
+<script>
+// ── SEARCH ──
+const _APAGES = [
+  {label:'Statistiques Dashboard',   icon:'bar-chart-3',    bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=admin-stats'},
+  {label:'Régimes alimentaires',     icon:'salad',          bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=admin-nutrition&action=regimes'},
+  {label:'Plans nutritionnels',      icon:'clipboard-list', bg:'#ede9fe',color:'#7c3aed',url:'<?= BASE_URL ?>/?page=admin-nutrition&action=plans'},
+  {label:'Repas',                    icon:'utensils-crossed',bg:'#fef3c7',color:'#d97706',url:'<?= BASE_URL ?>/?page=admin-nutrition&action=list'},
+  {label:'Aliments',                 icon:'apple',          bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=admin-nutrition&action=aliments'},
+  {label:'Produits Marketplace',     icon:'package',        bg:'#cffafe',color:'#0891b2',url:'<?= BASE_URL ?>/?page=admin-marketplace&action=list'},
+  {label:'Commandes',                icon:'shopping-bag',   bg:'#fee2e2',color:'#dc2626',url:'<?= BASE_URL ?>/?page=admin-marketplace&action=commandes'},
+  {label:'Recettes',                 icon:'chef-hat',       bg:'#cffafe',color:'#0891b2',url:'<?= BASE_URL ?>/?page=admin-recettes&action=list'},
+  {label:'Modération Recettes',      icon:'shield',         bg:'#fef3c7',color:'#d97706',url:'<?= BASE_URL ?>/?page=admin-recettes&action=moderate'},
+  {label:'Ingrédients',              icon:'carrot',         bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=admin-recettes&action=ingredients'},
+  {label:'Matériels',                icon:'wrench',         bg:'#fef3c7',color:'#b45309',url:'<?= BASE_URL ?>/?page=admin-recettes&action=materiels'},
+  {label:'Articles & Blog',          icon:'newspaper',      bg:'#fef3c7',color:'#d97706',url:'<?= BASE_URL ?>/?page=admin-article&action=list'},
+  {label:'Articles en attente',      icon:'clock',          bg:'#fef3c7',color:'#d97706',url:'<?= BASE_URL ?>/?page=admin-article&action=pending'},
+  {label:'Commentaires Blog',        icon:'message-circle', bg:'#ede9fe',color:'#7c3aed',url:'<?= BASE_URL ?>/?page=admin-comment&action=list'},
+  {label:'Utilisateurs',             icon:'users',          bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=admin-users'},
+];
+
+const _sInput = document.getElementById('adminSearchInput');
+const _sDrop  = document.getElementById('adminSearchDropdown');
+
+function _doSearch(q) {
+  q = q.trim().toLowerCase();
+  if (!q) { _sDrop.classList.remove('open'); return; }
+  const res = _APAGES.filter(p => p.label.toLowerCase().includes(q)).slice(0,7);
+  _sDrop.innerHTML = res.length
+    ? res.map(p=>`<a href="${p.url}" class="adm-srch-item"><div class="adm-si-icon" style="background:${p.bg}"><i data-lucide="${p.icon}" style="width:0.8rem;height:0.8rem;color:${p.color}"></i></div>${p.label}</a>`).join('')
+    : `<div style="padding:0.75rem 1rem;font-size:0.8rem;color:var(--text-muted)">Aucun résultat pour « ${q} »</div>`;
+  _sDrop.classList.add('open');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+_sInput.addEventListener('input', function(){ _doSearch(this.value); });
+_sInput.addEventListener('keydown', function(e){
+  if (e.key==='Enter') {
+    const first = _sDrop.querySelector('.adm-srch-item');
+    if (first) window.location.href = first.href;
+    _sDrop.classList.remove('open');
+  }
+  if (e.key==='Escape') { _sDrop.classList.remove('open'); this.blur(); }
+});
+document.addEventListener('click', function(e){
+  if (!document.getElementById('adminSearchWrap').contains(e.target)) _sDrop.classList.remove('open');
+});
+
+// ── NOTIFICATIONS ──
+function toggleAdminNotif(e) {
+  e.stopPropagation();
+  const p = document.getElementById('adminNotifPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open') && typeof lucide !== 'undefined') lucide.createIcons();
+}
+function closeAdminNotif() { document.getElementById('adminNotifPanel').classList.remove('open'); }
+document.addEventListener('click', function(e){
+  const b = document.getElementById('adminNotifBtn');
+  if (b && !b.contains(e.target)) closeAdminNotif();
+});
+
+<?php if ($_totalNotifs > 0): ?>
+// Auto-open notification panel on first visit (with short delay for render)
+if (!sessionStorage.getItem('_notifShown_<?= date('Ymd') ?>')) {
+  window.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      const p = document.getElementById('adminNotifPanel');
+      if (p) { p.classList.add('open'); if(typeof lucide !== 'undefined') lucide.createIcons(); }
+    }, 700);
+    sessionStorage.setItem('_notifShown_<?= date('Ymd') ?>', '1');
+  });
+}
+<?php endif; ?>
+
+// Sync dark toggle icon
+(function(){
+  const icon = document.getElementById('topbarDarkIcon');
+  if (icon) icon.setAttribute('data-lucide', localStorage.getItem('theme')==='dark'?'sun':'moon');
+})();
+</script>
+

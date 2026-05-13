@@ -560,7 +560,7 @@ class RecettesController {
 
     /////..............................FRONTOFFICE — Mes Suggestions............................../////
     function mySuggestions() {
-        $myName     = $_SESSION['recette_user'] ?? '';
+        $myName     = $_SESSION['username'] ?? $_SESSION['recette_user'] ?? '';
         $myRecettes = [];
         if (!empty($myName)) { $myRecettes = $this->AfficherSuggestionsClient($myName); }
 
@@ -577,7 +577,7 @@ class RecettesController {
             $_SESSION['error'] = "Recette introuvable.";
             header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;
         }
-        $myName = $_SESSION['recette_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['recette_user'] ?? '';
         if (empty($myName) || $recette['soumis_par'] !== $myName) {
             $_SESSION['error'] = "Vous n'êtes pas autorisé à modifier cette recette.";
             header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;
@@ -648,7 +648,7 @@ class RecettesController {
             $_SESSION['error'] = "Recette introuvable.";
             header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;
         }
-        $myName = $_SESSION['recette_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['recette_user'] ?? '';
         if (empty($myName) || $recette['soumis_par'] !== $myName) {
             $_SESSION['error'] = "Vous n'êtes pas autorisé à supprimer cette recette.";
             header('Location: ' . BASE_URL . '/?page=recettes&action=my-suggestions'); exit;

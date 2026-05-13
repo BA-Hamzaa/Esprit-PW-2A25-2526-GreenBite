@@ -170,7 +170,9 @@ const stockEl = document.getElementById('stock');
 nomEl.addEventListener('blur', () => { const v=nomEl.value.trim(); if(!v) showFE(nomEl,'Le nom est obligatoire.'); else if(v.length<3) showFE(nomEl,'Min. 3 caractères.'); else clearFE(nomEl); });
 nomEl.addEventListener('input', () => { if(nomEl.classList.contains('is-invalid') && nomEl.value.trim().length>=3) clearFE(nomEl); });
 prixEl.addEventListener('blur', () => { if(!prixEl.value || isNaN(prixEl.value) || parseFloat(prixEl.value)<=0) showFE(prixEl,'Prix positif obligatoire.'); else clearFE(prixEl); });
-stockEl.addEventListener('blur', () => { if(stockEl.value!=='' && (isNaN(stockEl.value)||parseInt(stockEl.value)<0)) showFE(stockEl,'Stock ne peut être négatif.'); else clearFE(stockEl); });
+prixEl.addEventListener('input', () => { if(prixEl.classList.contains('is-invalid') && prixEl.value && !isNaN(prixEl.value) && parseFloat(prixEl.value)>0) clearFE(prixEl); });
+stockEl.addEventListener('blur', () => { const v=parseInt(stockEl.value); if(stockEl.value==='' || isNaN(v) || v<0) showFE(stockEl,'Stock doit être un entier ≥ 0.'); else clearFE(stockEl); });
+stockEl.addEventListener('input', () => { if(stockEl.classList.contains('is-invalid')) { const v=parseInt(stockEl.value); if(stockEl.value!=='' && !isNaN(v) && v>=0) clearFE(stockEl); } });
 
 document.getElementById('produitForm').addEventListener('submit', function(e) {
   let valid = true;
@@ -179,7 +181,8 @@ document.getElementById('produitForm').addEventListener('submit', function(e) {
   else if (nom.length<3) { showFE(nomEl,'Min. 3 caractères.'); valid=false; }
   else clearFE(nomEl);
   if (!prixEl.value || isNaN(prixEl.value) || parseFloat(prixEl.value)<=0) { showFE(prixEl,'Prix positif obligatoire.'); valid=false; } else clearFE(prixEl);
-  if (stockEl.value!=='' && (isNaN(stockEl.value)||parseInt(stockEl.value)<0)) { showFE(stockEl,'Stock ne peut être négatif.'); valid=false; } else clearFE(stockEl);
+  const stockV = parseInt(stockEl.value);
+  if (stockEl.value==='' || isNaN(stockV) || stockV<0) { showFE(stockEl,'Stock doit être un entier ≥ 0.'); valid=false; } else clearFE(stockEl);
   if (!valid) e.preventDefault();
 });
 </script>

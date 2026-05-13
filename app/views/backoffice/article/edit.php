@@ -190,4 +190,49 @@ function validateArticleForm() {
   if (!['brouillon','en_attente','publie'].includes(statut.value)) ok = false;
   return ok;
 }
+
+// Real-time validation listeners
+const titreF   = document.getElementById('articleTitre');
+const auteurF  = document.getElementById('articleAuteur');
+const roleF    = document.getElementById('articleRole');
+const contenuF = document.getElementById('articleContenu');
+
+titreF.addEventListener('input', () => {
+  const err = document.getElementById('articleTitreErr');
+  if ((titreF.value||'').trim().length >= 3) err.style.display='none';
+  else if (titreF.value.length > 0) { err.textContent='Titre trop court (min 3 caractères).'; err.style.display='block'; }
+});
+titreF.addEventListener('blur', () => {
+  const err = document.getElementById('articleTitreErr');
+  if ((titreF.value||'').trim().length < 3) { err.textContent='Titre obligatoire (min 3 caractères).'; err.style.display='block'; }
+  else err.style.display='none';
+});
+
+auteurF.addEventListener('input', () => {
+  const err = document.getElementById('articleAuteurErr');
+  if ((auteurF.value||'').trim().length >= 1) err.style.display='none';
+});
+auteurF.addEventListener('blur', () => {
+  const err = document.getElementById('articleAuteurErr');
+  if (!(auteurF.value||'').trim()) { err.textContent='Auteur obligatoire.'; err.style.display='block'; }
+  else err.style.display='none';
+});
+
+roleF.addEventListener('change', () => {
+  const err = document.getElementById('articleRoleErr');
+  if (roleF.value) err.style.display='none';
+  else { err.textContent='Veuillez sélectionner un rôle.'; err.style.display='block'; }
+});
+
+contenuF.addEventListener('input', () => {
+  const err = document.getElementById('articleContenuErr');
+  const n = (contenuF.value||'').trim().length;
+  if (n >= 20) err.style.display='none';
+  else if (n > 0) { err.textContent=`Contenu trop court (${n}/20 caractères minimum).`; err.style.display='block'; }
+});
+contenuF.addEventListener('blur', () => {
+  const err = document.getElementById('articleContenuErr');
+  if ((contenuF.value||'').trim().length < 20) { err.textContent='Contenu obligatoire (min 20 caractères).'; err.style.display='block'; }
+  else err.style.display='none';
+});
 </script>

@@ -19,28 +19,29 @@
     </a>
   </div>
 
-  <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border)">
-    <div style="overflow-x:auto;">
-      <table class="table" style="width:100%;border-collapse:collapse;">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="table" style="width:100%;border-collapse:collapse">
         <thead>
-          <tr>
-            <th>#</th>
-            <th>Article</th>
-            <th>Auteur</th>
-            <th>Commentaire</th>
-            <th>Statut</th>
-            <th>Date</th>
-            <th>Actions</th>
+          <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">#</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Article</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Auteur</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Commentaire</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Date</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:160px">Actions</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($commentaires)): ?>
             <tr>
-              <td colspan="7" style="text-align:center;padding:3.5rem 2rem;color:var(--text-muted)">
-                <div style="display:inline-flex;align-items:center;justify-content:center;width:4rem;height:4rem;background:var(--muted);border-radius:var(--radius-full);margin-bottom:1rem">
-                  <i data-lucide="inbox" style="width:2rem;height:2rem;color:var(--text-muted)"></i>
+              <td colspan="7" style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:4.5rem;height:4.5rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border-radius:50%;margin-bottom:1.25rem">
+                  <i data-lucide="inbox" style="width:2.25rem;height:2.25rem;color:var(--primary)"></i>
                 </div>
-                <p style="font-weight:600;color:var(--text-secondary);margin-top:0.5rem">Aucun commentaire</p>
+                <h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem">Aucun commentaire</h3>
+                <p style="color:var(--text-muted);font-size:0.82rem">Les commentaires apparaîtront ici.</p>
               </td>
             </tr>
           <?php else: ?>
@@ -48,49 +49,64 @@
               <?php
                 $statut = $c['statut'] ?? 'valide';
                 $isSignale = ($statut === 'signale');
-                if ($isSignale) {
-                    $badgeClass = 'badge-coral';
-                    $statutLabel = '🚩 Signalé';
-                } else {
-                    $badgeClass = 'badge-success';
-                    $statutLabel = '✅ Validé';
-                }
+                $sColor = $isSignale ? '#ef4444' : '#22c55e';
+                $sBg    = $isSignale ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)';
+                $sIcon  = $isSignale ? 'flag' : 'check-circle-2';
+                $sLabel = $isSignale ? 'Signalé' : 'Validé';
                 $excerpt = trim($c['contenu'] ?? '');
                 if (mb_strlen($excerpt) > 90) $excerpt = mb_substr($excerpt, 0, 90) . '...';
                 $commentId = (int)$c['id'];
                 $articleId = (int)$c['article_id'];
               ?>
-              <tr style="<?= $isSignale ? 'background:#fef2f2;' : '' ?>">
-                <td><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= $commentId ?></span></td>
-                <td style="max-width:200px">
-                  <span style="color:var(--text-primary);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">
-                    <?= htmlspecialchars($c['article_titre'] ?? '') ?>
+              <tr style="border-bottom:1px solid var(--border);transition:background 0.2s<?= $isSignale ? ';background:rgba(239,68,68,0.02)' : '' ?>" onmouseover="this.style.background='<?= $isSignale ? 'rgba(239,68,68,0.06)' : 'rgba(82,183,136,0.03)' ?>'" onmouseout="this.style.background='<?= $isSignale ? 'rgba(239,68,68,0.02)' : '' ?>'">
+                <td style="padding:0.75rem 0.875rem"><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= $commentId ?></span></td>
+                <td style="padding:0.75rem 0.875rem;max-width:200px">
+                  <span style="font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block"><?= htmlspecialchars($c['article_titre'] ?? '') ?></span>
+                </td>
+                <td style="padding:0.75rem 0.875rem">
+                  <div style="display:flex;align-items:center;gap:0.5rem">
+                    <div style="width:1.75rem;height:1.75rem;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <i data-lucide="user" style="width:0.75rem;height:0.75rem;color:#fff"></i>
+                    </div>
+                    <span style="font-size:0.82rem;font-weight:600;color:var(--text-primary)"><?= htmlspecialchars($c['pseudo'] ?? '') ?></span>
+                  </div>
+                </td>
+                <td style="padding:0.75rem 0.875rem;max-width:320px;color:var(--text-secondary);font-size:0.82rem"><?= htmlspecialchars($excerpt) ?></td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;border-radius:var(--radius-full);background:<?= $sBg ?>;color:<?= $sColor ?>;font-size:0.72rem;font-weight:700">
+                    <i data-lucide="<?= $sIcon ?>" style="width:0.75rem;height:0.75rem"></i><?= $sLabel ?>
                   </span>
                 </td>
-                <td style="font-weight:600"><?= htmlspecialchars($c['pseudo'] ?? '') ?></td>
-                <td style="max-width:320px;color:var(--text-secondary);font-size:0.85rem"><?= htmlspecialchars($excerpt) ?></td>
-                <td><span class="badge <?= $badgeClass ?>" style="font-size:0.68rem"><?= $statutLabel ?></span></td>
-                <td style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($c['date_commentaire'] ?? '') ?></td>
-                <td>
-                  <div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap">
-                    <!-- Voir le commentaire (même fenêtre) -->
-                    <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= $articleId ?>#comment-<?= $commentId ?>" class="icon-btn" title="Voir le commentaire" style="background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.15);color:#3b82f6;text-decoration:none;">
-                      <i data-lucide="eye" style="width:0.85rem;height:0.85rem"></i>
+                <td style="padding:0.75rem 0.875rem;font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($c['date_commentaire'] ?? '') ?></td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <div style="display:inline-flex;gap:0.4rem;justify-content:center;align-items:center;flex-wrap:nowrap;white-space:nowrap">
+                    <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= $articleId ?>#comment-<?= $commentId ?>"
+                       style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(59,130,246,0.08);color:#3b82f6;border-radius:var(--radius-full);border:1px solid rgba(59,130,246,0.2);transition:all 0.2s;text-decoration:none"
+                       onmouseover="this.style.background='rgba(59,130,246,0.15)';this.style.transform='translateY(-1px)'"
+                       onmouseout="this.style.background='rgba(59,130,246,0.08)';this.style.transform='none'" title="Voir">
+                      <i data-lucide="eye" style="width:0.75rem;height:0.75rem"></i>
                     </a>
-
                     <?php if ($isSignale): ?>
-                      <!-- Ignorer le signalement -->
-                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=ignorer&id=<?= $commentId ?>" class="icon-btn" title="Ignorer le signalement" style="background:rgba(82,183,136,0.08);border-color:rgba(82,183,136,0.18);color:var(--primary);text-decoration:none;" onclick="return confirm('Ignorer le signalement ? Le commentaire redeviendra normal.')">
-                        <i data-lucide="check-circle-2" style="width:0.85rem;height:0.85rem"></i>
+                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=ignorer&id=<?= $commentId ?>"
+                         style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;white-space:nowrap"
+                         onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.3)'"
+                         onmouseout="this.style.transform='none';this.style.boxShadow='none'"
+                         onclick="return confirm('Ignorer le signalement ? Le commentaire redeviendra normal.')">
+                        <i data-lucide="check" style="width:0.75rem;height:0.75rem"></i> Ignorer
                       </a>
-                      <!-- Supprimer & Bannir (nouveau bouton avec JS propre) -->
-                      <button onclick="confirmBan(<?= $commentId ?>)" class="icon-btn" title="Supprimer & Bannir" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;">
-                        <i data-lucide="ban" style="width:0.85rem;height:0.85rem"></i>
+                      <button onclick="confirmBan(<?= $commentId ?>)"
+                              style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap"
+                              onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(239,68,68,0.3)'"
+                              onmouseout="this.style.transform='none';this.style.boxShadow='none'" title="Supprimer & Bannir">
+                        <i data-lucide="ban" style="width:0.75rem;height:0.75rem"></i> Bannir
                       </button>
                     <?php else: ?>
-                      <!-- Supprimer (simple) -->
-                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=delete&id=<?= $commentId ?>" class="icon-btn" title="Supprimer" style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15);color:#ef4444;text-decoration:none;" onclick="return confirm('Supprimer ce commentaire ?')">
-                        <i data-lucide="trash-2" style="width:0.85rem;height:0.85rem"></i>
+                      <a href="<?= BASE_URL ?>/?page=admin-comment&action=delete&id=<?= $commentId ?>"
+                         style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);transition:all 0.2s;text-decoration:none"
+                         onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
+                         onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.transform='none'"
+                         title="Supprimer" onclick="return confirm('Supprimer ce commentaire ?')">
+                        <i data-lucide="trash-2" style="width:0.75rem;height:0.75rem"></i>
                       </a>
                     <?php endif; ?>
                   </div>

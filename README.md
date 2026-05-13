@@ -247,6 +247,25 @@ Le module Marketplace intègre **Stripe** pour les paiements sécurisés.
 
 ---
 
+## 🛡️ Workflow de Modération
+
+Pour garantir la qualité et la sécurité du contenu communautaire, l'application intègre un système de modération multi-niveaux :
+
+1. **Soumission** : Lorsqu'un utilisateur propose une Recette, un Plan Nutritionnel ou un Régime, celui-ci est créé avec le statut `en_attente`.
+2. **Visibilité Restreinte** : L'élément en attente n'est visible que par son auteur (dans son espace "Mes Suggestions") et par les administrateurs.
+3. **Validation Admin** : Les administrateurs peuvent approuver (statut `accepte`) ou refuser (statut `refuse`) les propositions depuis le Back-Office.
+4. **Commentaire de Refus** : En cas de refus, l'administrateur peut laisser un motif explicatif visible par l'utilisateur.
+
+## 🔔 Système de Notifications
+
+Les utilisateurs reçoivent des notifications en temps réel dans la barre de navigation :
+
+- **Suivi des soumissions** : Alertes lorsqu'une proposition passe au statut `en_attente`, `accepte` ou `refuse`.
+- **Commandes** : Notifications lors du changement de statut d'une commande (Confirmée, En cours, Livrée).
+- **Interactions** : Validation ou signalement de commentaires sur le blog ou les recettes.
+
+---
+
 ## 👥 Équipe
 
 Projet réalisé dans le cadre du module **Programmation Web — 2ème année** à **ESPRIT School of Engineering**, année académique 2025–2026.
@@ -257,4 +276,4 @@ Projet réalisé dans le cadre du module **Programmation Web — 2ème année** 
 
 ## 📄 Licence
 
-Projet académique — usage interne ESPRIT uniquement.
+Projet académique — usage interne ESPRIT uniquement.

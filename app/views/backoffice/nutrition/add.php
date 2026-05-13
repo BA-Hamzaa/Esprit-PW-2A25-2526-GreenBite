@@ -14,10 +14,17 @@
   </div>
 
   <?php if (!empty($errors)): ?>
-    <div class="p-4 rounded-xl mb-6 flex items-start gap-3 animate-fade-up" style="background:linear-gradient(135deg,#fee2e2,#fef2f2);color:#991b1b;border:1px solid #fca5a5" id="error-box">
-      <i data-lucide="alert-triangle" style="width:1.25rem;height:1.25rem;flex-shrink:0;margin-top:2px"></i>
-      <div><?php foreach ($errors as $e): ?><div class="mb-1"><?= htmlspecialchars($e) ?></div><?php endforeach; ?></div>
-    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+          <?php foreach ($errors as $e): ?>
+            <?php if (stripos($e, 'nom') !== false): ?>showFE(document.getElementById('nom'), <?= json_encode($e) ?>);<?php endif; ?>
+            <?php if (stripos($e, 'date') !== false): ?>showFE(document.getElementById('date_repas'), <?= json_encode($e) ?>);<?php endif; ?>
+            <?php if (stripos($e, 'type') !== false): ?>showFE(document.getElementById('type_repas'), <?= json_encode($e) ?>);<?php endif; ?>
+          <?php endforeach; ?>
+        }, 100);
+      });
+    </script>
   <?php endif; ?>
 
   <div class="card" style="padding:2rem">
@@ -85,19 +92,35 @@ const nomEl   = document.getElementById('nom');
 const dateEl  = document.getElementById('date_repas');
 const typeEl  = document.getElementById('type_repas');
 
-nomEl.addEventListener('blur', () => { const v=nomEl.value.trim(); if(!v) showFE(nomEl,'Le nom est obligatoire.'); else if(v.length<3) showFE(nomEl,'Min. 3 caractères.'); else clearFE(nomEl); });
-nomEl.addEventListener('input', () => { if(nomEl.classList.contains('is-invalid') && nomEl.value.trim().length>=3) clearFE(nomEl); });
-dateEl.addEventListener('blur', () => { if(!dateEl.value) showFE(dateEl,'La date est obligatoire.'); else clearFE(dateEl); });
-typeEl.addEventListener('change', () => { if(!typeEl.value) showFE(typeEl,'Le type est obligatoire.'); else clearFE(typeEl); });
+function validateNom() {
+  const v = nomEl.value.trim();
+  if(!v) { showFE(nomEl, 'Le nom est obligatoire.'); return false; }
+  else if(v.length < 3) { showFE(nomEl, 'Min. 3 caractères.'); return false; }
+  else { clearFE(nomEl); return true; }
+}
+function validateDate() {
+  if(!dateEl.value) { showFE(dateEl, 'La date est obligatoire.'); return false; }
+  else { clearFE(dateEl); return true; }
+}
+function validateType() {
+  if(!typeEl.value) { showFE(typeEl, 'Le type est obligatoire.'); return false; }
+  else { clearFE(typeEl); return true; }
+}
+
+nomEl.addEventListener('blur', validateNom);
+nomEl.addEventListener('input', () => { if(nomEl.classList.contains('is-invalid')) validateNom(); });
+
+dateEl.addEventListener('blur', validateDate);
+dateEl.addEventListener('input', () => { if(dateEl.classList.contains('is-invalid')) validateDate(); });
+
+typeEl.addEventListener('change', validateType);
 
 document.getElementById('repasForm').addEventListener('submit', function(e) {
   let valid = true;
-  const nomVal = nomEl.value.trim();
-  if (!nomVal) { showFE(nomEl,'Le nom est obligatoire.'); valid=false; }
-  else if (nomVal.length < 3) { showFE(nomEl,'Min. 3 caractères.'); valid=false; }
-  else clearFE(nomEl);
-  if (!dateEl.value) { showFE(dateEl,'La date est obligatoire.'); valid=false; } else clearFE(dateEl);
-  if (!typeEl.value) { showFE(typeEl,'Le type est obligatoire.'); valid=false; } else clearFE(typeEl);
+  if(!validateNom()) valid = false;
+  if(!validateDate()) valid = false;
+  if(!validateType()) valid = false;
+  
   if (!valid) e.preventDefault();
 });
 </script>

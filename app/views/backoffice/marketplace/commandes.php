@@ -13,12 +13,31 @@
   </div>
 
   <div class="card" style="padding:0;overflow:hidden">
-    <div class="table-container">
-      <table class="table">
-        <thead><tr><th>ID</th><th>Client</th><th>Email</th><th>Total</th><th>Paiement</th><th style="min-width:11rem">Statut</th><th>Date</th><th>Actions</th></tr></thead>
+    <div style="overflow-x:auto">
+      <table class="table" style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">#</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Client</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Email</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Total</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Paiement</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:11rem">Statut</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Date</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:110px">Actions</th>
+          </tr>
+        </thead>
         <tbody>
           <?php if (empty($commandes)): ?>
-            <tr><td colspan="8" class="text-center py-8" style="color:var(--text-muted)">Aucune commande.</td></tr>
+            <tr>
+              <td colspan="8" style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:4.5rem;height:4.5rem;background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:50%;margin-bottom:1.25rem">
+                  <i data-lucide="shopping-bag" style="width:2.25rem;height:2.25rem;color:#2563eb"></i>
+                </div>
+                <h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:#2563eb;margin-bottom:0.5rem">Aucune commande</h3>
+                <p style="color:var(--text-muted);font-size:0.82rem">Aucune commande pour le moment.</p>
+              </td>
+            </tr>
           <?php else: ?>
             <?php
               $statusBadges = ['en_attente'=>'badge-yellow-light','confirmee'=>'badge-blue-light','en_preparation'=>'badge-purple-light','expediee'=>'badge-orange-light','livree'=>'badge-success','annulee'=>'badge-red-light'];
@@ -26,7 +45,7 @@
               $statusColors = ['en_attente'=>'#b45309','confirmee'=>'#1d4ed8','en_preparation'=>'#7c3aed','expediee'=>'#c2410c','livree'=>'#166534','annulee'=>'#b91c1c'];
             ?>
             <?php foreach ($commandes as $c): ?>
-              <tr>
+              <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='rgba(82,183,136,0.03)'" onmouseout="this.style.background=''">
                 <td style="color:var(--text-muted)">#<?= $c['id'] ?></td>
                 <td class="font-medium" style="color:var(--text-primary)"><?= htmlspecialchars($c['client_nom']) ?></td>
                 <td style="color:var(--text-secondary)"><?= htmlspecialchars($c['client_email']) ?></td>
