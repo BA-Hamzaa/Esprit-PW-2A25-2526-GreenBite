@@ -61,75 +61,92 @@
   </div>
 
   <!-- Materiels table -->
-  <div class="card" style="overflow:hidden;border-radius:var(--radius-xl)">
-    <div class="table-responsive">
-      <table class="admin-table" style="width:100%">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="table" style="width:100%;border-collapse:collapse">
         <thead>
-          <tr>
-            <th style="width:40px">#</th>
-            <th>Nom</th>
-            <th>Description</th>
-            <th>Proposé par</th>
-            <th>Statut</th>
-            <th>Date</th>
-            <th style="width:180px">Actions</th>
+          <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Nom</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Description</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Proposé par</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Date</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);width:180px">Actions</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($materiels)): ?>
-            <tr><td colspan="7" class="text-center" style="padding:3rem;color:var(--text-muted)">
-              <i data-lucide="inbox" style="width:2rem;height:2rem;display:block;margin:0 auto .75rem;opacity:.4"></i>
-              Aucun matériel enregistré.
-            </td></tr>
+            <tr>
+              <td colspan="6" style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:4.5rem;height:4.5rem;background:linear-gradient(135deg,#fef9c3,#fefce8);border-radius:50%;margin-bottom:1.25rem">
+                  <i data-lucide="inbox" style="width:2.25rem;height:2.25rem;color:#d97706"></i>
+                </div>
+                <h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:#d97706;margin-bottom:0.5rem">Aucun matériel</h3>
+                <p style="color:var(--text-muted);font-size:0.82rem">Aucun matériel enregistré.</p>
+              </td>
+            </tr>
           <?php else: ?>
             <?php foreach ($materiels as $mat): ?>
-              <tr style="<?= $mat['statut']==='en_attente'?'background:rgba(251,191,36,0.06)':'' ?>">
-                <td style="font-weight:600;color:var(--text-muted)"><?= $mat['id'] ?></td>
-                <td><strong style="color:var(--text-primary)"><?= htmlspecialchars($mat['nom']) ?></strong></td>
-                <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;color:var(--text-muted)"><?= htmlspecialchars($mat['description'] ?? '—') ?></td>
-                <td>
+              <tr style="border-bottom:1px solid var(--border);transition:background 0.2s<?= $mat['statut']==='en_attente'?';background:rgba(251,191,36,0.03)':'' ?>"
+                  onmouseover="this.style.background='<?= $mat['statut']==='en_attente' ? 'rgba(251,191,36,0.07)' : 'rgba(82,183,136,0.03)' ?>'"
+                  onmouseout="this.style.background='<?= $mat['statut']==='en_attente' ? 'rgba(251,191,36,0.03)' : '' ?>'">
+                <td style="padding:0.75rem 0.875rem">
+                  <div style="font-weight:700;font-size:0.875rem;color:var(--text-primary)"><?= htmlspecialchars($mat['nom']) ?></div>
+                  <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">#<?= $mat['id'] ?></div>
+                </td>
+                <td style="padding:0.75rem 0.875rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;color:var(--text-muted)"><?= htmlspecialchars($mat['description'] ?? '—') ?></td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
                   <?php if ($mat['propose_par']): ?>
-                    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:.75rem;font-weight:600">
-                      <i data-lucide="user" style="width:.6rem;height:.6rem"></i> <?= htmlspecialchars($mat['propose_par']) ?>
+                    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:.72rem;font-weight:700">
+                      <i data-lucide="user" style="width:.65rem;height:.65rem"></i><?= htmlspecialchars($mat['propose_par']) ?>
                     </span>
                   <?php else: ?>
-                    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;background:var(--muted);color:var(--text-muted);font-size:.75rem">
-                      <i data-lucide="shield" style="width:.6rem;height:.6rem"></i> Admin
+                    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;background:var(--muted);color:var(--text-muted);font-size:.72rem;font-weight:700">
+                      <i data-lucide="shield" style="width:.65rem;height:.65rem"></i>Admin
                     </span>
                   <?php endif; ?>
                 </td>
-                <td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
                   <?php
-                    $colors = ['accepte'=>['#dcfce7','#166534'],'en_attente'=>['#fef9c3','#92400e'],'refuse'=>['#fee2e2','#991b1b']];
-                    $icons  = ['accepte'=>'check-circle','en_attente'=>'clock','refuse'=>'x-circle'];
-                    $labels = ['accepte'=>'Accepté','en_attente'=>'En attente','refuse'=>'Refusé'];
-                    $c = $colors[$mat['statut']] ?? ['#f3f4f6','#374151'];
-                    $ic = $icons[$mat['statut']] ?? 'help-circle';
-                    $l = $labels[$mat['statut']] ?? $mat['statut'];
+                    $statColors = ['accepte'=>['#22c55e','rgba(34,197,94,0.1)'],'en_attente'=>['#f59e0b','rgba(245,158,11,0.1)'],'refuse'=>['#ef4444','rgba(239,68,68,0.1)']];
+                    $statIcons  = ['accepte'=>'check-circle','en_attente'=>'clock','refuse'=>'x-circle'];
+                    $statLabels = ['accepte'=>'Accepté','en_attente'=>'En attente','refuse'=>'Refusé'];
+                    $sc = $statColors[$mat['statut']] ?? ['#6b7280','rgba(107,114,128,0.1)'];
+                    $si = $statIcons[$mat['statut']] ?? 'help-circle';
+                    $sl = $statLabels[$mat['statut']] ?? $mat['statut'];
                   ?>
-                  <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;background:<?= $c[0] ?>;color:<?= $c[1] ?>;font-size:.75rem;font-weight:600">
-                    <i data-lucide="<?= $ic ?>" style="width:.6rem;height:.6rem"></i> <?= $l ?>
+                  <span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:var(--radius-full);background:<?= $sc[1] ?>;color:<?= $sc[0] ?>;font-size:.72rem;font-weight:700">
+                    <i data-lucide="<?= $si ?>" style="width:.65rem;height:.65rem"></i><?= $sl ?>
                   </span>
                   <?php if ($mat['statut']==='refuse' && !empty($mat['motif_refus'])): ?>
                     <div style="font-size:.7rem;color:#991b1b;margin-top:3px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= htmlspecialchars($mat['motif_refus']) ?>">
-                      <i data-lucide="message-square" style="width:.55rem;height:.55rem;display:inline"></i> <?= htmlspecialchars($mat['motif_refus']) ?>
+                      <i data-lucide="message-square" style="width:.55rem;height:.55rem;display:inline"></i><?= htmlspecialchars($mat['motif_refus']) ?>
                     </div>
                   <?php endif; ?>
                 </td>
-                <td style="font-size:.8rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($mat['created_at'])) ?></td>
-                <td>
-                  <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+                <td style="padding:0.75rem 0.875rem;font-size:.8rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($mat['created_at'])) ?></td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <div style="display:inline-flex;gap:.4rem;flex-wrap:wrap;justify-content:center">
                     <?php if ($mat['statut'] !== 'accepte'): ?>
-                      <a href="<?= BASE_URL ?>/?page=admin-recettes&action=materiel-accept&id=<?= $mat['id'] ?>" class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none;border-radius:var(--radius-xl);font-size:.75rem;padding:.35rem .65rem;font-weight:600" title="Approuver">
-                        <i data-lucide="check" style="width:.7rem;height:.7rem"></i> Approuver
+                      <a href="<?= BASE_URL ?>/?page=admin-recettes&action=materiel-accept&id=<?= $mat['id'] ?>"
+                         style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;background:rgba(34,197,94,0.1);color:#16a34a;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(34,197,94,0.2)"
+                         onmouseover="this.style.background='rgba(34,197,94,0.2)';this.style.transform='translateY(-1px)'"
+                         onmouseout="this.style.background='rgba(34,197,94,0.1)';this.style.transform='none'" title="Approuver">
+                        <i data-lucide="check" style="width:.72rem;height:.72rem"></i> OK
                       </a>
                     <?php endif; ?>
                     <?php if ($mat['statut'] !== 'refuse'): ?>
-                      <button type="button" class="btn btn-sm btn-refuse-materiel" data-id="<?= $mat['id'] ?>" data-nom="<?= htmlspecialchars($mat['nom']) ?>" style="background:#fef9c3;color:#92400e;border:none;border-radius:var(--radius-xl);font-size:.75rem;padding:.35rem .65rem;font-weight:600" title="Refuser">
-                        <i data-lucide="x" style="width:.7rem;height:.7rem"></i> Refuser
+                      <button type="button" class="btn-refuse-materiel" data-id="<?= $mat['id'] ?>" data-nom="<?= htmlspecialchars($mat['nom']) ?>"
+                              style="display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;background:rgba(245,158,11,0.1);color:#d97706;border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-full);cursor:pointer;transition:all 0.2s"
+                              onmouseover="this.style.background='rgba(245,158,11,0.2)';this.style.transform='translateY(-1px)'"
+                              onmouseout="this.style.background='rgba(245,158,11,0.1)';this.style.transform='none'" title="Refuser">
+                        <i data-lucide="x" style="width:.7rem;height:.7rem"></i>
                       </button>
                     <?php endif; ?>
-                    <button type="button" class="btn btn-sm btn-delete-materiel" data-id="<?= $mat['id'] ?>" data-nom="<?= htmlspecialchars($mat['nom']) ?>" style="background:#fee2e2;color:#991b1b;border:none;border-radius:var(--radius-xl);font-size:.75rem;padding:.35rem .65rem" title="Supprimer">
+                    <button type="button" class="btn-delete-materiel" data-id="<?= $mat['id'] ?>" data-nom="<?= htmlspecialchars($mat['nom']) ?>"
+                            style="display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-full);cursor:pointer;transition:all 0.2s"
+                            onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
+                            onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.transform='none'" title="Supprimer">
                       <i data-lucide="trash-2" style="width:.7rem;height:.7rem"></i>
                     </button>
                   </div>
@@ -141,6 +158,7 @@
       </table>
     </div>
   </div>
+
 </div>
 
 <!-- Refuse Modal with reason -->

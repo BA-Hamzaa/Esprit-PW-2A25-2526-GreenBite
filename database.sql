@@ -17,6 +17,34 @@ CREATE DATABASE IF NOT EXISTS greenbite CHARACTER SET utf8 COLLATE utf8_general_
 USE greenbite;
 
 -- =============================================
+-- MODULE 0 : UTILISATEURS & AUTHENTIFICATION
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS users (
+    id                   INT AUTO_INCREMENT PRIMARY KEY,
+    username             VARCHAR(100)  NOT NULL,
+    email                VARCHAR(150)  NOT NULL UNIQUE,
+    password             VARCHAR(255)  NOT NULL,
+    role                 ENUM('USER','COACH','ADMIN') DEFAULT 'USER',
+    avatar               VARCHAR(255)  NULL,
+    is_active            TINYINT(1)    DEFAULT 1,
+    password_reset_token VARCHAR(255)  NULL,
+    reset_token_expiry   DATETIME      NULL,
+    face_descriptor      TEXT          NULL,
+    certificate          VARCHAR(255)  NULL,
+    coach_request        ENUM('none','pending','accepted','refused') DEFAULT 'none',
+    coach_request_date   DATETIME      NULL,
+    created_at           TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Données d'exemple — Utilisateurs
+-- Mot de passe admin : Admin1234! (hash bcrypt PASSWORD_BCRYPT)
+INSERT INTO users (username, email, password, role, is_active) VALUES
+('admin', 'admin@greenbite.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 1),
+('demo',  'demo@greenbite.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER',  1);
+
+-- =============================================
 -- MODULE BLOG : ARTICLES
 -- =============================================
 
@@ -134,11 +162,13 @@ CREATE TABLE IF NOT EXISTS commande (
     id             INT AUTO_INCREMENT PRIMARY KEY,
     client_nom     VARCHAR(100)   NOT NULL,
     client_email   VARCHAR(150)   NOT NULL,
+    client_telephone VARCHAR(20)  NULL,
     client_adresse TEXT           NOT NULL,
     latitude       DECIMAL(10,7)  NULL DEFAULT NULL,
     longitude      DECIMAL(10,7)  NULL DEFAULT NULL,
     total          DECIMAL(8,2)   DEFAULT 0,
     statut         ENUM('en_attente','confirmee','livree','annulee') DEFAULT 'en_attente',
+    mode_paiement  ENUM('carte','livraison') DEFAULT 'carte',
     created_at     TIMESTAMP      DEFAULT CURRENT_TIMESTAMP
 );
 

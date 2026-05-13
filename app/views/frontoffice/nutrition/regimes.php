@@ -97,9 +97,18 @@ $objectifColors = [
     <div id="ai-results" style="padding:1.25rem 1.75rem;display:none">
       <div id="ai-loading" style="display:none;padding:0.75rem 0">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">
-          <div class="ai-skeleton-card"></div>
-          <div class="ai-skeleton-card"></div>
-          <div class="ai-skeleton-card"></div>
+          <div class="ai-loading-card">
+            <div class="ai-loading-spinner"></div>
+            <div class="ai-loading-text">Génération du régime 1...</div>
+          </div>
+          <div class="ai-loading-card">
+            <div class="ai-loading-spinner"></div>
+            <div class="ai-loading-text">Génération du régime 2...</div>
+          </div>
+          <div class="ai-loading-card">
+            <div class="ai-loading-spinner"></div>
+            <div class="ai-loading-text">Génération du régime 3...</div>
+          </div>
         </div>
       </div>
       <div id="ai-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem"></div>
@@ -128,6 +137,39 @@ $objectifColors = [
     animation: skeletonShimmer 1.2s ease-in-out infinite;
   }
   @keyframes skeletonShimmer { to { background-position: -140% 0; } }
+
+  .ai-loading-card {
+    height: 230px;
+    border-radius: 1rem;
+    border: 1.5px solid var(--border);
+    background: linear-gradient(135deg, rgba(82,183,136,0.05), rgba(45,106,79,0.02));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .ai-loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid rgba(82,183,136,0.2);
+    border-top-color: #52B788;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .ai-loading-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
 
   /* ===== Regime Cards ===== */
   @keyframes regimeCardIn {
@@ -406,7 +448,7 @@ $objectifColors = [
                 <?= strtoupper(substr(trim((string)($regime['soumis_par'] ?? 'U')), 0, 1)) ?>
               </div>
               <div>
-                <div style="font-size:0.72rem;font-weight:600;color:var(--text-primary)">Utilisateur Inconnu</div>
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-primary)"><?= htmlspecialchars(trim((string)($regime['soumis_par'] ?? '')) !== '' ? $regime['soumis_par'] : 'Utilisateur Inconnu') ?></div>
                 <div style="font-size:0.62rem;color:var(--text-muted)"><?= date('d/m/Y', strtotime($regime['created_at'])) ?></div>
               </div>
             </div>
@@ -557,7 +599,7 @@ document.addEventListener('keydown', function(e) {
 
 // Dynamic Client-side Search
 document.addEventListener('DOMContentLoaded', function() {
-  var searchInput = document.getElementById('globalSearchInput');
+  var searchInput = document.getElementById('frontSearchInput');
   var filterButtons = document.querySelectorAll('.regime-filter-btn');
   var cards = document.querySelectorAll('.regime-card-item');
   var activeFilter = 'all';
@@ -593,6 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 var AI_PROXY_URL = '<?= BASE_URL ?>/ai-proxy.php';
+var SAVE_REGIME_URL = '<?= BASE_URL ?>/save-ai-regime.php';
 var goalColors = {
   perte_poids:    {from:'#ef4444',to:'#dc2626',bg:'rgba(239,68,68,0.06)',  text:'#b91c1c',emoji:'🔥'},
   maintien:       {from:'#52B788',to:'#2D6A4F',bg:'rgba(82,183,136,0.06)', text:'#2D6A4F',emoji:'⚖️'},
@@ -603,6 +646,33 @@ var goalColors = {
   low_carb:       {from:'#8b5cf6',to:'#7c3aed',bg:'rgba(139,92,246,0.06)',text:'#4c1d95',emoji:'🥩'},
   detox:          {from:'#06b6d4',to:'#0891b2',bg:'rgba(6,182,212,0.06)',  text:'#164e63',emoji:'🍃'}
 };
+
+// Fallback mock regimes when AI fails
+function getFallbackRegimes(goal, details) {
+  var baseRegimes = {
+    perte_poids: [
+      {nom: 'Régime Équilibré Perte de Poids', duree: '4 semaines', calories_jour: 1500, description: 'Un régime équilibré riche en légumes et protéines maigres pour une perte de poids progressive.', avantages: ['Perte de poids saine', 'Énergie stable', 'Facile à suivre'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Oeufs brouillés + épinards', dejeuner: 'Poulet grillé + quinoa', diner: 'Salade composée', collation: 'Pomme'}]},
+      {nom: 'Régime Méditerranéen Léger', duree: '6 semaines', calories_jour: 1600, description: 'Inspiré du régime méditerranéen avec moins de calories pour favoriser la perte de poids.', avantages: ['Cœur sain', 'Antioxydants', 'Saveurs variées'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Yaourt grec + fruits rouges', dejeuner: 'Poisson + légumes grillés', diner: 'Légumineuses', collation: 'Amandes'}]},
+      {nom: 'Régime Protéiné', duree: '4 semaines', calories_jour: 1400, description: 'Riche en protéines pour préserver la masse musculaire pendant la perte de poids.', avantages: ['Préservation musculaire', 'Satiété', 'Métabolisme actif'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Smoothie protéiné', dejeuner: 'Dinde + légumes', diner: 'Tofu sauté', collation: 'Fromage blanc'}]}
+    ],
+    maintien: [
+      {nom: 'Régime Équilibre Parfait', duree: '8 semaines', calories_jour: 2000, description: 'Un régime équilibré pour maintenir votre poids actuel tout en restant en bonne santé.', avantages: ['Stabilité pondérale', 'Énergie constante', 'Santé digestive'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Pain complet + avocat', dejeuner: 'Saumon + riz complet', diner: 'Volaille + légumes', collation: 'Fruits frais'}]},
+      {nom: 'Régime Méditerranéen Classique', duree: '12 semaines', calories_jour: 2100, description: 'Le régime méditerranéen traditionnel pour une santé optimale et un poids stable.', avantages: ['Santé cardiovasculaire', 'Longévité', 'Plaisir gustatif'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Pain + huile d\'olive', dejeuner: 'Pâtes + légumes', diner: 'Poisson grillé', collation: 'Noix'}]},
+      {nom: 'Régime Flexitarien', duree: '8 semaines', calories_jour: 1900, description: 'Principalement végétarien avec occasionnellement de la viande pour flexibilité et équilibre.', avantages: ['Flexibilité', 'Impact environnemental', 'Nutrition variée'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Granola + lait végétal', dejeuner: 'Buddha bowl', diner: 'Légumes rôtis', collation: 'Yaourt'}]}
+    ],
+    prise_masse: [
+      {nom: 'Régime Hypercalorique', duree: '8 semaines', calories_jour: 3000, description: 'Apport calorique élevé avec beaucoup de protéines pour la prise de masse musculaire.', avantages: ['Prise de masse rapide', 'Récupération', 'Force accrue'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Oeufs + avocat + pain', dejeuner: 'Steak + pâtes', diner: 'Poulet + riz', collation: 'Shaker protéiné'}]},
+      {nom: 'Régime Bodybuilder', duree: '12 semaines', calories_jour: 3200, description: 'Plan nutritionnel optimisé pour la musculation avec 6 repas par jour.', avantages: ['Muscle maximal', 'Énergie intense', 'Performance'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Pancakes protéinés', dejeuner: 'Bœuf + patates douces', diner: 'Saumon + quinoa', collation: 'Noix + fruits'}]},
+      {nom: 'Régime Clean Bulk', duree: '10 semaines', calories_jour: 2800, description: 'Prise de masse propre avec des aliments sains pour limiter le gras.', avantages: ['Masse maigre', 'Santé', 'Digestion'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Oeufs + flocons d\'avoine', dejeuner: 'Dinde + patate douce', diner: 'Poisson + légumes', collation: 'Beurre de cacahuète'}]}
+    ],
+    sante_generale: [
+      {nom: 'Régime Méditerranéen', duree: '8 semaines', calories_jour: 1800, description: 'Le régime méditerranéen pour une santé globale et une longévité optimale.', avantages: ['Santé cardiaque', 'Anti-inflammatoire', 'Bien-être'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Yaourt + miel + fruits', dejeuner: 'Poisson + légumes', diner: 'Légumineuses + pain complet', collation: 'Olives'}]},
+      {nom: 'Régime Équilibré Anti-oxydant', duree: '6 semaines', calories_jour: 1900, description: 'Riche en antioxydants pour renforcer le système immunitaire et lutter contre le stress oxydatif.', avantages: ['Immunité', 'Peau saine', 'Vitalité'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Smoothie baies', dejeuner: 'Quinoa + légumes', diner: 'Poulet + carottes', collation: 'Agrumes'}]},
+      {nom: 'Régime Digestif Sain', duree: '4 semaines', calories_jour: 1700, description: 'Focus sur la santé digestive avec des aliments probiotiques et riches en fibres.', avantages: ['Digestion', 'Flore intestinale', 'Confort'], jours_exemple: [{jour: 'Jour 1', petit_dejeuner: 'Kéfir + fruits', dejeuner: 'Lentilles + riz', diner: 'Poisson vapeur', collation: 'Kombucha'}]}
+    ]
+  };
+  return baseRegimes[goal] || baseRegimes.sante_generale;
+}
 
 async function generateAIRegimes() {
   var goal    = document.getElementById('ai-goal-select').value;
@@ -616,6 +686,10 @@ async function generateAIRegimes() {
   results.style.display = 'block';
   loading.style.display = 'block';
   cardsEl.innerHTML = '';
+  
+  var regimesData = null;
+  var useFallback = false;
+
   try {
     var res = await fetch(AI_PROXY_URL, {
       method: 'POST',
@@ -623,56 +697,80 @@ async function generateAIRegimes() {
       body: JSON.stringify({type: 'generate_regimes', goal: goal, details: details})
     });
     var data = await res.json();
-    loading.style.display = 'none';
+    
     if (data.error || !data.regimes) {
-      cardsEl.innerHTML = '<div style="padding:1.5rem;background:#fef2f2;border:1px solid #fca5a5;border-radius:1rem;color:#b91c1c">Erreur de g\u00e9n\u00e9ration. R\u00e9essayez.</div>';
+      // Use fallback when AI fails
+      console.log('AI generation failed, using fallback:', data.error);
+      regimesData = getFallbackRegimes(goal, details);
+      useFallback = true;
     } else {
-      var c = goalColors[goal] || goalColors.sante_generale;
-      data.regimes.forEach(function(r, i) {
-        var avantages = (r.avantages || []).map(function(a) {
-          return '<div class="ai-avantage"><span style="color:' + c.text + ';margin-right:0.35rem">✓</span>' + aiEsc(a) + '</div>';
-        }).join('');
-        var jour = r.jours_exemple && r.jours_exemple[0];
-        var dayHtml = '';
-        if (jour) {
-          dayHtml = '<div class="ai-card-day">'
-            + '<div style="font-size:0.7rem;font-weight:700;color:' + c.text + ';text-transform:uppercase;margin-bottom:0.5rem">📅 ' + aiEsc(jour.jour) + '</div>'
-            + (jour.petit_dejeuner ? '<div class="ai-day-meal"><span class="ai-meal-label">🌅 Matin</span><span class="ai-meal-value">' + aiEsc(jour.petit_dejeuner) + '</span></div>' : '')
-            + (jour.dejeuner       ? '<div class="ai-day-meal"><span class="ai-meal-label">☀️ Midi</span><span class="ai-meal-value">' + aiEsc(jour.dejeuner) + '</span></div>' : '')
-            + (jour.collation      ? '<div class="ai-day-meal"><span class="ai-meal-label">🍎 Collation</span><span class="ai-meal-value">' + aiEsc(jour.collation) + '</span></div>' : '')
-            + (jour.diner          ? '<div class="ai-day-meal"><span class="ai-meal-label">🌙 Soir</span><span class="ai-meal-value">' + aiEsc(jour.diner) + '</span></div>' : '')
-            + '</div>';
-        }
-        var card = document.createElement('div');
-        card.className = 'ai-regime-card';
-        card.style.animationDelay = (i * 0.12) + 's';
-        card.innerHTML =
-          '<div style="height:4px;background:linear-gradient(90deg,' + c.from + ',' + c.to + ')"></div>'
-          + '<div style="padding:1.25rem;background:' + c.bg + '">'
-          + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.75rem">'
-          + '<div>'
-          + '<span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:' + c.text + ';display:block;margin-bottom:0.3rem">' + c.emoji + ' R\u00e9gime ' + (i + 1) + '</span>'
-          + '<h3 style="font-family:var(--font-heading);font-weight:800;color:var(--text-primary);font-size:1rem;line-height:1.25;margin:0">' + aiEsc(r.nom) + '</h3>'
-          + '</div>'
-          + '<div style="text-align:right;flex-shrink:0">'
-          + '<div style="font-weight:800;color:' + c.text + ';font-size:1.1rem">' + (r.calories_jour || '?') + '</div>'
-          + '<div style="font-size:0.65rem;color:var(--text-muted)">kcal/jour</div>'
-          + '</div></div>'
-          + '<div style="margin-bottom:0.875rem"><span style="padding:0.2rem 0.6rem;background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.07);border-radius:999px;font-size:0.7rem;font-weight:600">' + aiEsc(r.duree || '?') + '</span></div>'
-          + '<p style="font-size:0.8rem;color:var(--text-secondary);line-height:1.55;margin-bottom:0.875rem">' + aiEsc(r.description || '') + '</p>'
-          + '<div style="margin-bottom:0.5rem">' + avantages + '</div>'
-          + dayHtml
-          + '</div>'
-          + '<div style="padding:0.75rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end">'
-          + '<button onclick="if(typeof gbSendQuick===\'function\'){gbSendQuick(\'D\u00e9taille le r\u00e9gime : ' + aiEsc(r.nom).replace(/'/g, '') + '\');if(typeof gbOpen!==\'undefined\'&&!gbOpen)toggleGreenBot();}" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.35rem 0.875rem;background:linear-gradient(135deg,' + c.from + ',' + c.to + ');color:#fff;border:none;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:pointer">🤖 En savoir plus</button>'
-          + '</div>';
-        cardsEl.appendChild(card);
-      });
+      regimesData = data.regimes;
     }
   } catch(err) {
-    loading.style.display = 'none';
-    cardsEl.innerHTML = '<div style="padding:1.5rem;background:#fef2f2;border:1px solid #fca5a5;border-radius:1rem;color:#b91c1c">Probl\u00e8me de connexion. V\u00e9rifiez votre r\u00e9seau.</div>';
+    console.log('Network error, using fallback:', err);
+    regimesData = getFallbackRegimes(goal, details);
+    useFallback = true;
   }
+
+  loading.style.display = 'none';
+  
+  // Save regimes to database
+  try {
+    var saveRes = await fetch(SAVE_REGIME_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({regimes: regimesData, goal: goal, details: details})
+    });
+    var saveData = await saveRes.json();
+    console.log('Regimes saved:', saveData);
+  } catch(saveErr) {
+    console.error('Failed to save regimes:', saveErr);
+  }
+
+  // Display regimes
+  var c = goalColors[goal] || goalColors.sante_generale;
+  regimesData.forEach(function(r, i) {
+    var avantages = (r.avantages || []).map(function(a) {
+      return '<div class="ai-avantage"><span style="color:' + c.text + ';margin-right:0.35rem">✓</span>' + aiEsc(a) + '</div>';
+    }).join('');
+    var jour = r.jours_exemple && r.jours_exemple[0];
+    var dayHtml = '';
+    if (jour) {
+      dayHtml = '<div class="ai-card-day">'
+        + '<div style="font-size:0.7rem;font-weight:700;color:' + c.text + ';text-transform:uppercase;margin-bottom:0.5rem">📅 ' + aiEsc(jour.jour) + '</div>'
+        + (jour.petit_dejeuner ? '<div class="ai-day-meal"><span class="ai-meal-label">🌅 Matin</span><span class="ai-meal-value">' + aiEsc(jour.petit_dejeuner) + '</span></div>' : '')
+        + (jour.dejeuner       ? '<div class="ai-day-meal"><span class="ai-meal-label">☀️ Midi</span><span class="ai-meal-value">' + aiEsc(jour.dejeuner) + '</span></div>' : '')
+        + (jour.collation      ? '<div class="ai-day-meal"><span class="ai-meal-label">🍎 Collation</span><span class="ai-meal-value">' + aiEsc(jour.collation) + '</span></div>' : '')
+        + (jour.diner          ? '<div class="ai-day-meal"><span class="ai-meal-label">🌙 Soir</span><span class="ai-meal-value">' + aiEsc(jour.diner) + '</span></div>' : '')
+        + '</div>';
+    }
+    var card = document.createElement('div');
+    card.className = 'ai-regime-card';
+    card.style.animationDelay = (i * 0.12) + 's';
+    card.innerHTML =
+      '<div style="height:4px;background:linear-gradient(90deg,' + c.from + ',' + c.to + ')"></div>'
+      + '<div style="padding:1.25rem;background:' + c.bg + '">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.75rem">'
+      + '<div>'
+      + '<span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:' + c.text + ';display:block;margin-bottom:0.3rem">' + c.emoji + ' R\u00e9gime ' + (i + 1) + '</span>'
+      + '<h3 style="font-family:var(--font-heading);font-weight:800;color:var(--text-primary);font-size:1rem;line-height:1.25;margin:0">' + aiEsc(r.nom) + '</h3>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<div style="font-weight:800;color:' + c.text + ';font-size:1.1rem">' + (r.calories_jour || '?') + '</div>'
+      + '<div style="font-size:0.65rem;color:var(--text-muted)">kcal/jour</div>'
+      + '</div></div>'
+      + '<div style="margin-bottom:0.875rem"><span style="padding:0.2rem 0.6rem;background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.07);border-radius:999px;font-size:0.7rem;font-weight:600">' + aiEsc(r.duree || '?') + '</span></div>'
+      + '<p style="font-size:0.8rem;color:var(--text-secondary);line-height:1.55;margin-bottom:0.875rem">' + aiEsc(r.description || '') + '</p>'
+      + '<div style="margin-bottom:0.5rem">' + avantages + '</div>'
+      + dayHtml
+      + '</div>'
+      + '<div style="padding:0.75rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.5rem">'
+      + (useFallback ? '<span style="font-size:0.65rem;color:#f59e0b;font-weight:600;margin-right:auto">⚡ Mode hors ligne</span>' : '')
+      + '<button onclick="window.location.href=\'<?= BASE_URL ?>/?page=nutrition&action=regimes\'" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.35rem 0.875rem;background:linear-gradient(135deg,' + c.from + ',' + c.to + ');color:#fff;border:none;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:pointer">🔄 Voir dans la liste</button>'
+      + '</div>';
+    cardsEl.appendChild(card);
+  });
+
   btn.disabled = false;
   btn.innerHTML = '<span style="font-size:0.95rem;line-height:1">⚡</span> G\u00e9n\u00e9rer';
 }

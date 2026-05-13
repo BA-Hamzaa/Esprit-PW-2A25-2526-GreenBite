@@ -90,108 +90,124 @@
 
   <!-- Table -->
   <div class="card" style="padding:0;overflow:hidden">
-    <div class="table-container">
-      <table class="table">
+    <div style="overflow-x:auto">
+      <table class="table" style="width:100%;border-collapse:collapse">
         <thead>
-          <tr>
-            <th>ID</th>
-            <th>Image</th>
-            <th>Titre</th>
-            <th>Proposé par</th>
-            <th>Statut</th>
-            <th>Difficulté</th>
-            <th>Catégorie</th>
-            <th>Temps</th>
-            <th>Calories</th>
-            <th>CO₂</th>
-            <th>Actions</th>
+          <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">#</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Image</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Titre</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Proposé par</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Difficulté</th>
+            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Catégorie</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Temps</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Calories</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">CO₂</th>
+            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:150px">Actions</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($displayed)): ?>
             <tr>
-              <td colspan="11" class="text-center py-8" style="color:var(--text-muted)">
-                Aucune recette pour ce filtre.
+              <td colspan="11" style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:4.5rem;height:4.5rem;background:linear-gradient(135deg,#ede9fe,#f5f3ff);border-radius:50%;margin-bottom:1.25rem">
+                  <i data-lucide="chef-hat" style="width:2.25rem;height:2.25rem;color:#7c3aed"></i>
+                </div>
+                <h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:#7c3aed;margin-bottom:0.5rem">Aucune recette</h3>
+                <p style="color:var(--text-muted);font-size:0.82rem">Aucune recette pour ce filtre.</p>
               </td>
             </tr>
           <?php else: ?>
             <?php
-              $diffBadges  = ['facile'=>'badge-green-light','moyen'=>'badge-yellow-light','difficile'=>'badge-red-light'];
-              $statutBadges = [
-                'acceptee'   => ['class'=>'badge-success',     'label'=>'Acceptée',   'icon'=>'check-circle'],
-                'en_attente' => ['class'=>'badge-yellow-light','label'=>'En attente', 'icon'=>'clock'],
-                'refusee'    => ['class'=>'badge-red-light',   'label'=>'Refusée',    'icon'=>'x-circle'],
+              $diffColors  = ['facile'=>['#22c55e','rgba(34,197,94,0.1)'],'moyen'=>['#f59e0b','rgba(245,158,11,0.1)'],'difficile'=>['#ef4444','rgba(239,68,68,0.1)']];
+              $statutData = [
+                'acceptee'   => ['color'=>'#22c55e','bg'=>'rgba(34,197,94,0.1)',  'icon'=>'check-circle','label'=>'Acceptée'],
+                'en_attente' => ['color'=>'#f59e0b','bg'=>'rgba(245,158,11,0.1)','icon'=>'clock',        'label'=>'En attente'],
+                'refusee'    => ['color'=>'#ef4444','bg'=>'rgba(239,68,68,0.1)', 'icon'=>'x-circle',    'label'=>'Refusée'],
               ];
             ?>
             <?php foreach ($displayed as $r): ?>
-              <tr style="<?= $r['statut'] === 'en_attente' ? 'background:rgba(253,230,138,0.08)' : '' ?>">
-                <td style="color:var(--text-muted)">#<?= $r['id'] ?></td>
-                <td>
-                  <?php $admRimg = MediaHelper::url($r['image'] ?? '', MediaHelper::fallbackRecette($r['categorie'] ?? '')); ?>
-                  <div style="width:3rem;height:3rem;border-radius:var(--radius-lg);overflow:hidden;background:var(--muted)">
+              <?php
+                $sd = $statutData[$r['statut']] ?? ['color'=>'#6b7280','bg'=>'rgba(107,114,128,0.1)','icon'=>'help-circle','label'=>$r['statut']];
+                $dd = $diffColors[$r['difficulte']] ?? ['#6b7280','rgba(107,114,128,0.1)'];
+                $admRimg = MediaHelper::url($r['image'] ?? '', MediaHelper::fallbackRecette($r['categorie'] ?? ''));
+              ?>
+              <tr style="border-bottom:1px solid var(--border);transition:background 0.2s<?= $r['statut'] === 'en_attente' ? ';background:rgba(245,158,11,0.03)' : '' ?>"
+                  onmouseover="this.style.background='<?= $r['statut'] === 'en_attente' ? 'rgba(245,158,11,0.07)' : 'rgba(82,183,136,0.03)' ?>'"
+                  onmouseout="this.style.background='<?= $r['statut'] === 'en_attente' ? 'rgba(245,158,11,0.03)' : '' ?>'">
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= (int)$r['id'] ?></span>
+                </td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <div style="width:3rem;height:3rem;border-radius:0.75rem;overflow:hidden;background:var(--muted);margin:0 auto">
                     <img src="<?= htmlspecialchars($admRimg) ?>" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">
                   </div>
                 </td>
-                <td class="font-semibold" style="color:var(--primary)"><?= htmlspecialchars($r['titre']) ?></td>
-                <td style="color:var(--text-secondary)">
+                <td style="padding:0.75rem 0.875rem">
+                  <div style="font-weight:700;font-size:0.875rem;color:var(--primary)"><?= htmlspecialchars($r['titre']) ?></div>
+                </td>
+                <td style="padding:0.75rem 0.875rem">
                   <?php if (!empty($r['soumis_par'])): ?>
-                    <span class="flex items-center gap-1 text-xs">
-                      <i data-lucide="user" style="width:0.7rem;height:0.7rem"></i>
-                      <?= htmlspecialchars($r['soumis_par']) ?>
+                    <span style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.78rem;color:var(--text-secondary)">
+                      <i data-lucide="user" style="width:0.7rem;height:0.7rem"></i><?= htmlspecialchars($r['soumis_par']) ?>
                     </span>
                   <?php else: ?>
                     <span style="color:var(--text-muted)">—</span>
                   <?php endif; ?>
                 </td>
-                <td>
-                  <?php $sb = $statutBadges[$r['statut']] ?? ['class'=>'badge-gray','label'=>$r['statut'],'icon'=>'help-circle']; ?>
-                  <span class="badge <?= $sb['class'] ?>">
-                    <i data-lucide="<?= $sb['icon'] ?>" style="width:0.6rem;height:0.6rem"></i>
-                    <?= $sb['label'] ?>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.65rem;border-radius:var(--radius-full);background:<?= $sd['bg'] ?>;color:<?= $sd['color'] ?>;font-size:0.72rem;font-weight:700">
+                    <i data-lucide="<?= $sd['icon'] ?>" style="width:0.65rem;height:0.65rem"></i><?= $sd['label'] ?>
                   </span>
                 </td>
-                <td>
-                  <span class="badge <?= $diffBadges[$r['difficulte']] ?? 'badge-gray' ?>">
-                    <?= ucfirst($r['difficulte']) ?>
-                  </span>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <span style="display:inline-flex;align-items:center;padding:0.25rem 0.65rem;border-radius:var(--radius-full);background:<?= $dd[1] ?>;color:<?= $dd[0] ?>;font-size:0.72rem;font-weight:700;border:1px solid <?= $dd[0] ?>30"><?= ucfirst($r['difficulte']) ?></span>
                 </td>
-                <td style="color:var(--text-secondary)"><?= htmlspecialchars($r['categorie'] ?? '-') ?></td>
-                <td style="color:var(--text-secondary)">
-                  <i data-lucide="clock" style="width:0.75rem;height:0.75rem;display:inline;vertical-align:middle"></i>
+                <td style="padding:0.75rem 0.875rem;font-size:0.82rem;color:var(--text-secondary)"><?= htmlspecialchars($r['categorie'] ?? '-') ?></td>
+                <td style="padding:0.75rem 0.875rem;text-align:center;font-size:0.82rem;color:var(--text-secondary)">
+                  <i data-lucide="clock" style="width:0.7rem;height:0.7rem;display:inline;vertical-align:middle"></i>
                   <?= $r['temps_preparation'] ?>min
                 </td>
-                <td><span class="font-semibold" style="color:var(--accent-orange)"><?= $r['calories_total'] ?> kcal</span></td>
-                <td>
-                  <?= $r['score_carbone'] <= 1
-                    ? '<span class="badge badge-success"><i data-lucide="leaf" style="width:0.7rem;height:0.7rem"></i> Low</span>'
-                    : '<span class="badge badge-gray">' . $r['score_carbone'] . '</span>' ?>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--accent-orange)"><?= $r['calories_total'] ?></span>
+                  <span style="font-size:0.65rem;color:var(--text-muted);display:block">kcal</span>
                 </td>
-                <td>
-                  <div class="flex gap-1">
-                    <!-- Moderation: Accept/Refuse only for pending -->
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <?= $r['score_carbone'] <= 1
+                    ? '<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.6rem;border-radius:var(--radius-full);background:rgba(34,197,94,0.1);color:#16a34a;font-size:0.72rem;font-weight:700"><i data-lucide=\'leaf\' style=\'width:0.65rem;height:0.65rem\'></i>Low</span>'
+                    : '<span style="display:inline-flex;align-items:center;padding:0.25rem 0.6rem;border-radius:var(--radius-full);background:var(--muted);color:var(--text-muted);font-size:0.72rem;font-weight:700">' . $r['score_carbone'] . '</span>' ?>
+                </td>
+                <td style="padding:0.75rem 0.875rem;text-align:center">
+                  <div style="display:inline-flex;gap:0.4rem;justify-content:center;align-items:center;flex-wrap:nowrap;white-space:nowrap">
                     <?php if ($r['statut'] === 'en_attente'): ?>
                       <a href="<?= BASE_URL ?>/?page=admin-recettes&action=accept&id=<?= $r['id'] ?>"
-                         class="icon-btn" title="Accepter"
-                         style="color:#16a34a;background:rgba(22,163,74,0.1)"
-                         data-confirm="Accepter cette recette ?" data-confirm-title="Accepter" data-confirm-type="success" data-confirm-btn="Accepter">
-                        <i data-lucide="check-circle" style="width:0.875rem;height:0.875rem"></i>
+                         style="display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;background:rgba(34,197,94,0.1);color:#16a34a;border-radius:var(--radius-full);border:1px solid rgba(34,197,94,0.25);transition:all 0.2s;text-decoration:none"
+                         onmouseover="this.style.background='rgba(34,197,94,0.2)';this.style.transform='translateY(-1px)'"
+                         onmouseout="this.style.background='rgba(34,197,94,0.1)';this.style.transform='none'"
+                         title="Accepter" data-confirm="Accepter cette recette ?" data-confirm-type="success" data-confirm-btn="Accepter">
+                        <i data-lucide="check-circle" style="width:0.8rem;height:0.8rem"></i>
                       </a>
                       <a href="<?= BASE_URL ?>/?page=admin-recettes&action=refuse&id=<?= $r['id'] ?>"
-                         class="icon-btn" title="Refuser"
-                         style="color:#dc2626;background:rgba(220,38,38,0.1)"
-                         data-confirm="Refuser cette recette ?" data-confirm-title="Refuser" data-confirm-type="danger" data-confirm-btn="Refuser">
-                        <i data-lucide="x-circle" style="width:0.875rem;height:0.875rem"></i>
+                         style="display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;background:rgba(239,68,68,0.1);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.25);transition:all 0.2s;text-decoration:none"
+                         onmouseover="this.style.background='rgba(239,68,68,0.2)';this.style.transform='translateY(-1px)'"
+                         onmouseout="this.style.background='rgba(239,68,68,0.1)';this.style.transform='none'"
+                         title="Refuser" data-confirm="Refuser cette recette ?" data-confirm-type="danger" data-confirm-btn="Refuser">
+                        <i data-lucide="x-circle" style="width:0.8rem;height:0.8rem"></i>
                       </a>
                     <?php endif; ?>
-                    <!-- Standard edit/delete -->
                     <a href="<?= BASE_URL ?>/?page=admin-recettes&action=edit&id=<?= $r['id'] ?>"
-                       class="icon-btn" title="Modifier">
-                      <i data-lucide="edit-3" style="width:0.875rem;height:0.875rem"></i>
+                       style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"
+                       onmouseover="this.style.background='rgba(59,130,246,0.18)';this.style.transform='translateY(-1px)'"
+                       onmouseout="this.style.background='rgba(59,130,246,0.1)';this.style.transform='none'">
+                      <i data-lucide="edit" style="width:0.72rem;height:0.72rem"></i> Modifier
                     </a>
                     <a href="<?= BASE_URL ?>/?page=admin-recettes&action=delete&id=<?= $r['id'] ?>"
-                       class="icon-btn" title="Supprimer" style="color:var(--destructive)"
-                       data-confirm="Supprimer cette recette ?" data-confirm-title="Supprimer" data-confirm-type="danger" data-confirm-btn="Supprimer">
-                      <i data-lucide="trash-2" style="width:0.875rem;height:0.875rem"></i>
+                       style="display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);transition:all 0.2s;text-decoration:none"
+                       onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
+                       onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.transform='none'"
+                       title="Supprimer" data-confirm="Supprimer cette recette ?" data-confirm-type="danger" data-confirm-btn="Supprimer">
+                      <i data-lucide="trash-2" style="width:0.72rem;height:0.72rem"></i>
                     </a>
                   </div>
                 </td>
@@ -203,3 +219,4 @@
     </div>
   </div>
 </div>
+

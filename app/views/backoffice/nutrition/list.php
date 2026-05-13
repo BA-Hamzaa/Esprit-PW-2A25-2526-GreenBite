@@ -94,13 +94,14 @@ if ($stats['total'] > 0) {
           <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Type</th>
           <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Date</th>
           <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Calories</th>
+          <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
           <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:140px">Actions</th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($repas)): ?>
           <tr>
-            <td colspan="5" style="padding:3.5rem 2rem;text-align:center;color:var(--text-muted)">
+            <td colspan="6" style="padding:3.5rem 2rem;text-align:center;color:var(--text-muted)">
               <div style="display:inline-flex;align-items:center;justify-content:center;width:4rem;height:4rem;background:var(--muted);border-radius:var(--radius-full);margin-bottom:1rem">
                 <i data-lucide="inbox" style="width:2rem;height:2rem;color:var(--text-muted)"></i>
               </div>
@@ -119,7 +120,7 @@ if ($stats['total'] > 0) {
                   </div>
                   <div>
                     <div style="font-weight:700;font-size:0.875rem;color:var(--text-primary)"><?= htmlspecialchars($r['nom']) ?></div>
-                    <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">#<?= $r['id'] ?></div>
+                    <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em">#<?= $r['id'] ?> <?= isset($r['soumis_par']) ? ' - Par: ' . htmlspecialchars($r['soumis_par']) : '' ?></div>
                   </div>
                 </div>
               </td>
@@ -141,15 +142,38 @@ if ($stats['total'] > 0) {
                 <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--accent-orange)"><?= $r['calories_total'] ?? '—' ?></span>
                 <span style="font-size:0.65rem;color:var(--text-muted);display:block">kcal</span>
               </td>
+              <!-- Statut -->
+              <td style="padding:0.75rem 0.875rem;text-align:center">
+                <?php
+                  $st = $r['statut'] ?? 'accepte'; // Par défaut si la colonne est ancienne
+                  if ($st === 'en_attente') {
+                      echo '<span class="badge" style="background:#fef3c7;color:#d97706;border:1px solid #fde68a"><i data-lucide="clock" style="width:0.75rem;height:0.75rem"></i> En attente</span>';
+                  } elseif ($st === 'accepte') {
+                      echo '<span class="badge" style="background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0"><i data-lucide="check-circle" style="width:0.75rem;height:0.75rem"></i> Accepté</span>';
+                  } else {
+                      echo '<span class="badge" style="background:#fee2e2;color:#ef4444;border:1px solid #fca5a5"><i data-lucide="x-circle" style="width:0.75rem;height:0.75rem"></i> Refusé</span>';
+                  }
+                ?>
+              </td>
               <!-- Actions -->
               <td style="padding:0.75rem 0.875rem;text-align:center">
                 <div style="display:inline-flex;gap:0.4rem;justify-content:center;align-items:center;flex-wrap:nowrap;white-space:nowrap">
-                  <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=edit&id=<?= $r['id'] ?>"
-                     style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"
-                     onmouseover="this.style.background='rgba(59,130,246,0.18)';this.style.transform='translateY(-1px)'"
-                     onmouseout="this.style.background='rgba(59,130,246,0.1)';this.style.transform='none'">
-                    <i data-lucide="edit" style="width:0.75rem;height:0.75rem"></i> Modifier
-                  </a>
+                  <?php if (($r['statut'] ?? '') === 'en_attente'): ?>
+                    <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=repas-accept&id=<?= $r['id'] ?>" class="btn" style="padding:0.35rem 0.75rem;background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none" title="Accepter">
+                      <i data-lucide="check" style="width:0.75rem;height:0.75rem"></i>
+                    </a>
+                    <button type="button" onclick="openRefuseModal(<?= $r['id'] ?>)" class="btn" style="padding:0.35rem 0.75rem;background:#fee2e2;color:#ef4444;border:1px solid #fca5a5;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;cursor:pointer" title="Refuser">
+                      <i data-lucide="x" style="width:0.75rem;height:0.75rem"></i>
+                    </button>
+                  <?php else: ?>
+                    <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=edit&id=<?= $r['id'] ?>"
+                       style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"
+                       onmouseover="this.style.background='rgba(59,130,246,0.18)';this.style.transform='translateY(-1px)'"
+                       onmouseout="this.style.background='rgba(59,130,246,0.1)';this.style.transform='none'">
+                      <i data-lucide="edit" style="width:0.75rem;height:0.75rem"></i> Modifier
+                    </a>
+                  <?php endif; ?>
+                  
                   <a href="<?= BASE_URL ?>/?page=admin-nutrition&action=delete&id=<?= $r['id'] ?>"
                      style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);transition:all 0.2s;text-decoration:none"
                      onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
@@ -347,7 +371,41 @@ document.addEventListener('DOMContentLoaded', function() {
         exportBtn.innerHTML = '<i data-lucide="file-down" style="width:1rem;height:1rem"></i> Export PDF';
         if (typeof lucide !== 'undefined') lucide.createIcons();
       });
-    });
+    }); // <-- Fix: Close addEventListener
   }
 });
+
+// Modal Refus
+function openRefuseModal(id) {
+  const modal = document.getElementById('refuseModal');
+  if(modal) {
+    modal.style.display = 'flex';
+    document.getElementById('refuseForm').action = '<?= BASE_URL ?>/?page=admin-nutrition&action=repas-refuse&id=' + id;
+  }
+}
+function closeRefuseModal() {
+  const modal = document.getElementById('refuseModal');
+  if(modal) modal.style.display = 'none';
+}
 </script>
+
+<!-- Modal de Refus -->
+<div id="refuseModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+  <div class="card" style="width:100%;max-width:400px;padding:2rem;position:relative">
+    <button type="button" onclick="closeRefuseModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer"><i data-lucide="x" style="width:1.25rem;height:1.25rem;color:var(--text-muted)"></i></button>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;color:#ef4444">
+      <i data-lucide="alert-triangle" style="width:1.5rem;height:1.5rem"></i>
+      <h3 style="font-size:1.25rem;font-weight:700;margin:0">Refuser le repas</h3>
+    </div>
+    <form id="refuseForm" method="POST">
+      <div class="form-group mb-4">
+        <label class="form-label" style="font-size:0.875rem">Raison du refus (optionnel)</label>
+        <textarea name="admin_comment" class="form-textarea" rows="3" placeholder="Ex: Informations nutritionnelles incohérentes..."></textarea>
+      </div>
+      <div style="display:flex;gap:1rem">
+        <button type="button" onclick="closeRefuseModal()" class="btn btn-outline" style="flex:1">Annuler</button>
+        <button type="submit" class="btn" style="flex:1;background:#ef4444;color:#fff;border:none">Confirmer</button>
+      </div>
+    </form>
+  </div>
+</div>

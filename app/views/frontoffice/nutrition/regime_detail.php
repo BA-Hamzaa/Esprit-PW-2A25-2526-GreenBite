@@ -69,6 +69,14 @@ if ($rawRestrictions !== '') {
     }
 }
 $followRegimeUrl = BASE_URL . '/?page=nutrition&action=plans&regime_id=' . (int)$regime['id'] . '&follow=1';
+$unfollowRegimeUrl = BASE_URL . '/?page=nutrition&action=regime-unfollow&id=' . (int)$regime['id'];
+
+// Detect whether current user is already following this regime
+$followedRegimes = $_SESSION['followed_regimes'] ?? [];
+$isFollowingRegime = isset($followedRegimes[(int)$regime['id']]);
+$regimeFollowedAt = $isFollowingRegime
+    ? ($followedRegimes[(int)$regime['id']]['date_debut'] ?? $followedRegimes[(int)$regime['id']]['followed_at'] ?? null)
+    : null;
 ?>
 
 <style>
@@ -588,7 +596,24 @@ $followRegimeUrl = BASE_URL . '/?page=nutrition&action=plans&regime_id=' . (int)
       </div>
 
       <div class="hero-actions">
-        <a href="<?= htmlspecialchars($followRegimeUrl) ?>" class="btn-main js-main-follow-trigger">⊕ Suivre ce régime</a>
+        <?php if ($isFollowingRegime): ?>
+          <span class="btn-main" style="background:linear-gradient(135deg,#16a34a,#22c55e);box-shadow:0 8px 24px rgba(22,163,74,0.45);cursor:default;gap:6px">
+            <i data-lucide="check-circle" style="width:16px;height:16px"></i>
+            Suivi actif<?= $regimeFollowedAt ? ' · depuis le ' . date('d/m/Y', strtotime($regimeFollowedAt)) : '' ?>
+          </span>
+          <button type="button"
+                  class="btn-ghost"
+                  style="background:rgba(239,68,68,0.18);border-color:rgba(239,68,68,0.45);color:#fff;gap:6px;display:inline-flex;align-items:center"
+                  data-confirm="Arrêter le suivi de ce régime ? Le plan lié sera aussi arrêté automatiquement."
+                  data-confirm-title="Arrêter le régime"
+                  data-confirm-type="warning"
+                  data-confirm-url="<?= htmlspecialchars($unfollowRegimeUrl) ?>"
+                  data-confirm-btn="Arrêter">
+            <i data-lucide="x-circle" style="width:16px;height:16px"></i> Arrêter le régime
+          </button>
+        <?php else: ?>
+          <a href="<?= htmlspecialchars($followRegimeUrl) ?>" class="btn-main js-main-follow-trigger">⊕ Suivre ce régime</a>
+        <?php endif; ?>
         <button type="button" class="btn-ghost js-share-btn" data-share-title="<?= htmlspecialchars($regime['nom']) ?>" data-share-text="Découvrez ce régime GreenBite">↗ Partager</button>
       </div>
     </div>
@@ -698,9 +723,11 @@ $followRegimeUrl = BASE_URL . '/?page=nutrition&action=plans&regime_id=' . (int)
 
 </div>
 
+<?php if (!$isFollowingRegime): ?>
 <div class="floating-follow" id="floatingFollowRegime">
   <a href="<?= htmlspecialchars($followRegimeUrl) ?>" class="sticky-btn">Suivre ce régime</a>
 </div>
+<?php endif; ?>
 
 <script>
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
