@@ -56,13 +56,22 @@
   </div>
 
   <?php
-    // Check for active followed plans
-    $followedPlans = $_SESSION['followed_plans'] ?? [];
+    // Check for active followed plans — from DB if logged in
+    $followedPlans = [];
+    if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && !empty($_SESSION['user_id'])) {
+        if (!class_exists('NutritionController')) {
+            require_once BASE_PATH . '/app/controllers/NutritionController.php';
+        }
+        $nc = new NutritionController();
+        $followedPlans = $nc->getFollowedPlansDB((int)$_SESSION['user_id']);
+    }
     if (!empty($followedPlans)):
-      if (!class_exists('NutritionController')) {
-        require_once BASE_PATH . '/app/controllers/NutritionController.php';
+      if (!isset($nc)) {
+        if (!class_exists('NutritionController')) {
+            require_once BASE_PATH . '/app/controllers/NutritionController.php';
+        }
+        $nc = new NutritionController();
       }
-      $nc = new NutritionController();
       $regimeCache = [];
       foreach ($followedPlans as $fpId => $fpData):
         $fp = $nc->RecupererPlan($fpId);

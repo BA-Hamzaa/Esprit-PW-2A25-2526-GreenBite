@@ -370,7 +370,8 @@ document.addEventListener('DOMContentLoaded', function() {
         exportBtn.disabled = false;
         exportBtn.innerHTML = '<i data-lucide="file-down" style="width:1rem;height:1rem"></i> Export PDF';
         if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
+      });
+    }); // <-- Fix: Close addEventListener
   }
 });
 

@@ -500,6 +500,33 @@
   </div>
 </div>
 
+<!-- ===== SECTION 4: REPAS ===== -->
+<div class="section-title"><span></span><h2>🍽️ Repas — Analyse Détaillée</h2></div>
+<div class="grid grid-cols-2 gap-5 mb-6">
+  <!-- Repas by status donut -->
+  <div class="chart-card">
+    <div class="chart-title"><i data-lucide="check-circle" style="width:.95rem;height:.95rem;color:#10b981"></i> Repas par statut</div>
+    <canvas id="repasStatutChart"></canvas>
+  </div>
+  <!-- Repas by type donut -->
+  <div class="chart-card">
+    <div class="chart-title"><i data-lucide="utensils-crossed" style="width:.95rem;height:.95rem;color:#f97316"></i> Distribution par type de repas</div>
+    <canvas id="repasTypeChart"></canvas>
+  </div>
+</div>
+<div class="grid grid-cols-2 gap-5 mb-6">
+  <!-- Top 5 aliments -->
+  <div class="chart-card">
+    <div class="chart-title"><i data-lucide="apple" style="width:.95rem;height:.95rem;color:#ef4444"></i> Top 5 aliments les plus utilisés</div>
+    <canvas id="topAlimChart" style="max-height:200px"></canvas>
+  </div>
+  <!-- Repas by day of week -->
+  <div class="chart-card">
+    <div class="chart-title"><i data-lucide="calendar-days" style="width:.95rem;height:.95rem;color:#3b82f6"></i> Repas par jour de la semaine</div>
+    <canvas id="repasDayChart" style="max-height:200px"></canvas>
+  </div>
+</div>
+
 <!-- ===== RECENT ACTIVITY ===== -->
 <div class="section-title"><span></span><h2>🕐 Activité Récente</h2></div>
 <div class="grid grid-cols-3 gap-5 mb-2">
@@ -601,4 +628,17 @@ barH('regimesChart',<?= json_encode($regimesLabels ?: ['—']) ?>,<?= json_encod
 
 // Ingrédients local donut
 donut('ingredientsChart',['Locaux 🌍','Importés'],[<?= implode(',',$ingData) ?>],['#2D6A4F','#94a3b8']);
+
+// ── REPAS CHARTS ──
+// Repas by status donut
+donut('repasStatutChart',['Accepté','En attente','Refusé'],[<?= $repasStatutData['accepte'] ?>,<?= $repasStatutData['en_attente'] ?>,<?= $repasStatutData['refuse'] ?>],['#22c55e','#f59e0b','#ef4444']);
+
+// Repas by type donut
+donut('repasTypeChart',<?= json_encode($repasTypeLabels ?: ['—']) ?>,<?= json_encode($repasTypeValues ?: [0]) ?>,['#f97316','#3b82f6','#8b5cf6','#22c55e','#ec4899']);
+
+// Top 5 aliments (horizontal bar)
+barH('topAlimChart',<?= json_encode($topAlimLabels ?: ['—']) ?>,<?= json_encode($topAlimValues ?: [0]) ?>,'rgba(239,68,68,.7)','Fréquence');
+
+// Repas by day of week (vertical bar)
+new Chart(document.getElementById('repasDayChart'),{type:'bar',data:{labels:<?= json_encode($repasDayLabels ?: ['—']) ?>,datasets:[{label:'Repas',data:<?= json_encode($repasDayValues ?: [0]) ?>,backgroundColor:['#3b82f6','#8b5cf6','#ec4899','#f97316','#22c55e','#14b8a6','#6366f1'],borderRadius:{topLeft:6,topRight:6},borderSkipped:false,categoryPercentage:.62,barPercentage:.48,maxBarThickness:42}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{...sc,y:{...sc.y,beginAtZero:true,grace:'6%'}}}});
 </script>

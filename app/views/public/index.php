@@ -62,6 +62,13 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 
 // =============================================
+// PROTECTION VISITEUR — Approche : les visiteurs peuvent naviguer
+// librement (voir régimes, produits, recettes, etc.) mais les
+// ACTIONS sensibles (suivre, commander, commenter, ajouter) sont
+// protégées dans chaque module ci-dessous.
+// =============================================
+
+// =============================================
 // ROUTAGE
 // =============================================
 switch ($page) {
@@ -248,6 +255,13 @@ switch ($page) {
 
     // ---- MODULE BLOG / ARTICLES (Front) ----
     case 'article':
+        // Actions nécessitant connexion
+        $actionsSensiblesArticle = ['add','comment','edit-comment','delete-comment','report-comment','mes-activites','edit-mes-articles','delete-mes-articles','edit-mes-commentaires','delete-mes-commentaires'];
+        if (in_array($action, $actionsSensiblesArticle) && (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true)) {
+            $_SESSION['error'] = '🔒 Vous devez être connecté pour effectuer cette action.';
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
         $controller = new ArticleController();
         switch ($action) {
             case 'list':                    $controller->listFront();                break;
@@ -367,6 +381,39 @@ switch ($page) {
         $recentCommandes = $db->query("SELECT client_nom, total, statut, created_at FROM commande ORDER BY created_at DESC LIMIT 5")->fetchAll();
         $recentRepas     = $db->query("SELECT nom, type_repas, calories_total, date_repas FROM repas ORDER BY created_at DESC LIMIT 5")->fetchAll();
 
+        // ── REPAS STATISTICS (detailed) ──
+        $repasStatutData = ['accepte'=>0,'en_attente'=>0,'refuse'=>0];
+        $repasTypeLabels = []; $repasTypeValues = [];
+        $topAlimLabels = []; $topAlimValues = [];
+        $repasDayLabels = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+        $repasDayValues = [0,0,0,0,0,0,0];
+        try {
+            // Repas by status
+            $repasStatutRaw = $db->query("SELECT statut, COUNT(*) as c FROM repas GROUP BY statut")->fetchAll();
+            foreach($repasStatutRaw as $r) $repasStatutData[$r['statut']] = (int)$r['c'];
+
+            // Repas by type (donut)
+            $repasTypeRaw = $db->query("SELECT type_repas, COUNT(*) as c FROM repas GROUP BY type_repas ORDER BY c DESC")->fetchAll();
+            $repasTypeLabels = array_map(fn($x)=>ucfirst(str_replace('_',' ',$x['type_repas'])), $repasTypeRaw);
+            $repasTypeValues = array_map('intval', array_column($repasTypeRaw,'c'));
+
+            // Top 5 aliments in repas (table may not exist)
+            try {
+                $topAlimentsRaw = $db->query("SELECT a.nom, COUNT(*) as freq FROM repas_aliment ra JOIN aliment a ON a.id=ra.aliment_id GROUP BY a.id, a.nom ORDER BY freq DESC LIMIT 5")->fetchAll();
+                $topAlimLabels = array_column($topAlimentsRaw,'nom');
+                $topAlimValues = array_map('intval', array_column($topAlimentsRaw,'freq'));
+            } catch (Exception $e) {}
+
+            // Repas by day of week
+            $repasDayRaw = $db->query("SELECT DAYOFWEEK(date_repas) as dow, COUNT(*) as c FROM repas GROUP BY DAYOFWEEK(date_repas) ORDER BY dow")->fetchAll();
+            $repasDayMap = array_fill(1,7,0);
+            foreach($repasDayRaw as $r) $repasDayMap[(int)$r['dow']] = (int)$r['c'];
+            $repasDayLabels = []; $repasDayValues = [];
+            $dayNames = ['','Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+            for($d=2;$d<=7;$d++){$repasDayLabels[]=$dayNames[$d];$repasDayValues[]=$repasDayMap[$d];}
+            $repasDayLabels[]=$dayNames[1]; $repasDayValues[]=$repasDayMap[1];
+        } catch (Exception $e) {}
+
         // Macros average
         $macroRaw  = $db->query("SELECT ROUND(AVG(proteines),1) as p, ROUND(AVG(glucides),1) as g, ROUND(AVG(lipides),1) as l FROM aliment")->fetch();
         $macroData = [(float)$macroRaw['p'], (float)$macroRaw['g'], (float)$macroRaw['l']];
@@ -480,6 +527,13 @@ switch ($page) {
 
     // ---- MODULE NUTRITION (Front) ----
     case 'nutrition':
+        // Suivi & actions sensibles réservées aux utilisateurs connectés
+        $actionsSensiblesNutrition = ['plan-follow','plan-unfollow','regime-unfollow','plan-add','plan-edit','plan-delete','regime-add','regime-edit','regime-delete','add'];
+        if (in_array($action, $actionsSensiblesNutrition) && (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true)) {
+            $_SESSION['error'] = '🔒 Vous devez être connecté pour effectuer cette action.';
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
         $controller = new NutritionController();
         switch ($action) {
             case 'list':           $controller->listFront(); break;
@@ -542,6 +596,13 @@ switch ($page) {
 
     // ---- MODULE MARKETPLACE (Front) ----
     case 'marketplace':
+        // Commandes et panier réservés aux utilisateurs connectés
+        $actionsSensiblesMarket = ['order','order-success','history','track-order','edit-order','update-order','download-receipt'];
+        if (in_array($action, $actionsSensiblesMarket) && (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true)) {
+            $_SESSION['error'] = '🔒 Vous devez être connecté pour passer une commande.';
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
         $controller = new MarketplaceController();
         switch ($action) {
             case 'list':             $controller->listFront(); break;
@@ -581,6 +642,13 @@ switch ($page) {
 
     // ---- MODULE RECETTES (Front) ----
     case 'recettes':
+        // Actions nécessitant une connexion
+        $actionsSensiblesRecettes = ['suggest','my-suggestions','edit-suggestion','delete-suggestion','comment','update-comment','instruction-add','instruction-edit','instruction-delete','propose-materiel','propose-ingredient'];
+        if (in_array($action, $actionsSensiblesRecettes) && (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true)) {
+            $_SESSION['error'] = '🔒 Vous devez être connecté pour effectuer cette action.';
+            header('Location: ' . BASE_URL . '/?page=login');
+            exit();
+        }
         $controller = new RecettesController();
         switch ($action) {
             case 'list':              $controller->listFront();            break;

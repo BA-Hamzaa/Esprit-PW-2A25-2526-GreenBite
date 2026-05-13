@@ -206,12 +206,150 @@
 </div>
 
 <script>
-// Remove a product row
+/* ============================================================
+   VALIDATION JS — Edit Commande
+   Inline errors sous chaque champ + blocage submit
+   ============================================================ */
+
+// ── Helpers ──────────────────────────────────────────────────
+function showError(fieldId, msg) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  field.style.borderColor = '#ef4444';
+  field.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
+  let err = document.getElementById(fieldId + '_err');
+  if (!err) {
+    err = document.createElement('div');
+    err.id = fieldId + '_err';
+    err.style.cssText = 'color:#dc2626;font-size:.75rem;font-weight:600;margin-top:.3rem;display:flex;align-items:center;gap:.3rem;animation:errIn .2s ease';
+    field.parentNode.appendChild(err);
+  }
+  err.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ' + msg;
+}
+
+function clearError(fieldId) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  field.style.borderColor = '';
+  field.style.boxShadow   = '';
+  const err = document.getElementById(fieldId + '_err');
+  if (err) err.remove();
+}
+
+function showQtyError(input, msg) {
+  input.style.borderColor = '#ef4444';
+  let errId = 'qty_err_' + input.closest('.product-row').dataset.productId;
+  let err = document.getElementById(errId);
+  if (!err) {
+    err = document.createElement('div');
+    err.id = errId;
+    err.style.cssText = 'color:#dc2626;font-size:.72rem;font-weight:600;margin-top:.2rem';
+    input.parentNode.appendChild(err);
+  }
+  err.textContent = msg;
+}
+
+function clearQtyError(input) {
+  input.style.borderColor = '';
+  const errId = 'qty_err_' + input.closest('.product-row').dataset.productId;
+  const err = document.getElementById(errId);
+  if (err) err.remove();
+}
+
+// ── Field validators ─────────────────────────────────────────
+function validateNom() {
+  const val = document.getElementById('client_nom').value.trim();
+  if (!val) { showError('client_nom', 'Le nom est obligatoire.'); return false; }
+  if (val.length < 2) { showError('client_nom', 'Le nom doit contenir au moins 2 caractères.'); return false; }
+  if (/\d/.test(val)) { showError('client_nom', 'Le nom ne doit pas contenir de chiffres.'); return false; }
+  clearError('client_nom'); return true;
+}
+
+function validateTel() {
+  const val = document.getElementById('client_telephone').value.trim().replace(/\s/g,'');
+  // Tunisian: +21612345678 or 21612345678 or 12345678 (8 digits starting 2,5,9,7)
+  const ok = /^(\+?216)?[2579]\d{7}$/.test(val);
+  if (!val) { showError('client_telephone', 'Le téléphone est obligatoire.'); return false; }
+  if (!ok)  { showError('client_telephone', 'Format invalide. Ex: +216 20 123 456'); return false; }
+  clearError('client_telephone'); return true;
+}
+
+function validateEmail() {
+  const val = document.getElementById('client_email').value.trim();
+  const ok  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
+  if (!val) { showError('client_email', 'L\'email est obligatoire.'); return false; }
+  if (!ok)  { showError('client_email', 'Adresse email invalide.'); return false; }
+  clearError('client_email'); return true;
+}
+
+function validateAdresse() {
+  const val = document.getElementById('client_adresse').value.trim();
+  if (!val)       { showError('client_adresse', 'L\'adresse est obligatoire.'); return false; }
+  if (val.length < 10) { showError('client_adresse', 'L\'adresse doit contenir au moins 10 caractères.'); return false; }
+  clearError('client_adresse'); return true;
+}
+
+function validateAllQty() {
+  let ok = true;
+  document.querySelectorAll('#products-container .product-row input[name="quantites[]"]').forEach(inp => {
+    const v = parseInt(inp.value, 10);
+    if (!inp.value || isNaN(v) || v < 1) {
+      showQtyError(inp, 'Quantité minimum : 1'); ok = false;
+    } else if (v > 99) {
+      showQtyError(inp, 'Quantité maximum : 99'); ok = false;
+    } else if (!Number.isInteger(parseFloat(inp.value))) {
+      showQtyError(inp, 'Quantité entière requise'); ok = false;
+    } else {
+      clearQtyError(inp);
+    }
+  });
+  return ok;
+}
+
+// ── Live blur events ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  const nomEl  = document.getElementById('client_nom');
+  const telEl  = document.getElementById('client_telephone');
+  const emlEl  = document.getElementById('client_email');
+  const adrEl  = document.getElementById('client_adresse');
+  if (nomEl)  nomEl.addEventListener('blur',  validateNom);
+  if (nomEl)  nomEl.addEventListener('input', function(){ if(this.style.borderColor==='rgb(239, 68, 68)') validateNom(); });
+  if (telEl)  telEl.addEventListener('blur',  validateTel);
+  if (telEl)  telEl.addEventListener('input', function(){ if(this.style.borderColor==='rgb(239, 68, 68)') validateTel(); });
+  if (emlEl)  emlEl.addEventListener('blur',  validateEmail);
+  if (emlEl)  emlEl.addEventListener('input', function(){ if(this.style.borderColor==='rgb(239, 68, 68)') validateEmail(); });
+  if (adrEl)  adrEl.addEventListener('blur',  validateAdresse);
+  if (adrEl)  adrEl.addEventListener('input', function(){ if(this.style.borderColor==='rgb(239, 68, 68)') validateAdresse(); });
+
+  // Quantity validation live
+  document.querySelectorAll('input[name="quantites[]"]').forEach(inp => {
+    inp.addEventListener('blur',  function(){ validateAllQty(); recalc(); });
+    inp.addEventListener('input', function(){ recalc(); });
+  });
+
+  // Form submit guard
+  const form = document.getElementById('editOrderForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const v1 = validateNom();
+      const v2 = validateTel();
+      const v3 = validateEmail();
+      const v4 = validateAdresse();
+      const v5 = validateAllQty();
+      if (!v1 || !v2 || !v3 || !v4 || !v5) {
+        e.preventDefault();
+        // Scroll to first error
+        const firstErr = form.querySelector('[style*="rgb(239, 68, 68)"]');
+        if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+      }
+    });
+  }
+});
+
+// ── Existing functions (remove / recalc / checkEmpty) ────────
 function removeProduct(btn) {
   const row = btn.closest('.product-row');
   if (!row) return;
-
-  // Animate removal
   row.style.transition = 'all .3s ease';
   row.style.opacity = '0';
   row.style.transform = 'translateX(30px)';
@@ -219,18 +357,15 @@ function removeProduct(btn) {
     row.remove();
     recalc();
     checkEmpty();
-    // Re-init lucide icons for the empty state
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }, 300);
 }
 
-// Check if there are no products left
 function checkEmpty() {
   const rows = document.querySelectorAll('#products-container .product-row');
   const emptyMsg  = document.getElementById('empty-cart-msg');
   const totalRow  = document.getElementById('total-row');
   const submitBtn = document.getElementById('submitBtn');
-
   if (rows.length === 0) {
     emptyMsg.classList.add('visible');
     totalRow.style.display = 'none';
@@ -246,7 +381,6 @@ function checkEmpty() {
   }
 }
 
-// Live total recalculation
 function recalc() {
   const rows = document.querySelectorAll('#products-container .product-row');
   let total = 0;
@@ -264,8 +398,8 @@ function recalc() {
   const disp = document.getElementById('total-display');
   if (disp) disp.textContent = total.toFixed(2) + ' DT';
 }
-
-document.querySelectorAll('input[name="quantites[]"]').forEach(inp => {
-  inp.addEventListener('input', recalc);
-});
 </script>
+<style>
+@keyframes errIn { from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none} }
+</style>
+
