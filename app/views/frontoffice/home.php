@@ -33,10 +33,7 @@
 
       <!-- CTA Buttons -->
       <div class="flex gap-3 flex-wrap">
-        <a href="<?= BASE_URL ?>/?page=nutrition" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:#fff;color:var(--primary);border-radius:var(--radius-full);font-weight:700;font-size:0.9rem;box-shadow:0 6px 20px rgba(0,0,0,0.2);transition:all 0.3s;text-decoration:none" onmouseover="this.style.transform='translateY(-2px) scale(1.03)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'">
-          <i data-lucide="utensils-crossed" style="width:0.9rem;height:0.9rem"></i> Suivi Nutritionnel
-        </a>
-        <a href="<?= BASE_URL ?>/?page=nutrition&action=regimes" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius-full);font-weight:600;font-size:0.9rem;border:1px solid rgba(255,255,255,0.25);transition:all 0.3s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,0.2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='none'">
+        <a href="<?= BASE_URL ?>/?page=nutrition&action=regimes" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:#fff;color:var(--primary);border-radius:var(--radius-full);font-weight:700;font-size:0.9rem;box-shadow:0 6px 20px rgba(0,0,0,0.2);transition:all 0.3s;text-decoration:none" onmouseover="this.style.transform='translateY(-2px) scale(1.03)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'">
           <i data-lucide="leaf" style="width:0.9rem;height:0.9rem"></i> Régimes
         </a>
         <a href="<?= BASE_URL ?>/?page=marketplace" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius-full);font-weight:600;font-size:0.9rem;border:1px solid rgba(255,255,255,0.25);transition:all 0.3s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,0.2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='none'">
@@ -47,6 +44,12 @@
         </a>
         <a href="<?= BASE_URL ?>/?page=nutrition&action=plans" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius-full);font-weight:600;font-size:0.9rem;border:1px solid rgba(255,255,255,0.25);transition:all 0.3s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,0.2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='none'">
           <i data-lucide="clipboard-list" style="width:0.9rem;height:0.9rem"></i> Plans
+        </a>
+        <a href="<?= BASE_URL ?>/?page=community" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius-full);font-weight:600;font-size:0.9rem;border:1px solid rgba(255,255,255,0.25);transition:all 0.3s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,0.2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='none'">
+          <i data-lucide="message-circle" style="width:0.9rem;height:0.9rem"></i> Communauté
+        </a>
+        <a href="<?= BASE_URL ?>/?page=marketplace&action=commandes" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius-full);font-weight:600;font-size:0.9rem;border:1px solid rgba(255,255,255,0.25);transition:all 0.3s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,0.2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='none'">
+          <i data-lucide="package" style="width:0.9rem;height:0.9rem"></i> Mes Commandes
         </a>
       </div>
     </div>

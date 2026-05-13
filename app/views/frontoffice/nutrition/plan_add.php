@@ -34,12 +34,11 @@
         <div id="err_nom" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
       </div>
 
-      <!-- Champ temporaire : Votre nom (sera remplacé par la session utilisateur) -->
+      <!-- Champ: Votre nom -->
       <div class="form-group mb-6">
         <label class="form-label" for="soumis_par"><i data-lucide="user" style="width:0.875rem;height:0.875rem"></i> Votre nom</label>
-        <input type="text" name="soumis_par" id="soumis_par" class="form-input" placeholder="Ex: Ahmed Ben Ali" value="<?= htmlspecialchars($_POST['soumis_par'] ?? ($_SESSION['plan_user'] ?? '')) ?>">
+        <input type="text" name="soumis_par" id="soumis_par" class="form-input" placeholder="Ex: Ahmed Ben Ali" value="<?= htmlspecialchars($_POST['soumis_par'] ?? $_SESSION['username'] ?? '') ?>">
         <div id="err_soumis_par" style="color:var(--destructive);font-size:0.75rem;margin-top:0.25rem;display:none;"></div>
-        <p class="text-xs mt-1" style="color:var(--text-muted)"><i data-lucide="info" style="width:0.7rem;height:0.7rem;display:inline;vertical-align:middle"></i> Ce champ sera supprimé lorsque l'authentification utilisateur sera intégrée.</p>
       </div>
 
       <!-- ===== Section Objectifs ===== -->

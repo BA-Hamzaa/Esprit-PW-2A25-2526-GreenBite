@@ -69,7 +69,7 @@
         </label>
         <input type="text" name="soumis_par" id="soumis_par" class="form-input"
                placeholder="Ex: Marie Dupont"
-               value="<?= htmlspecialchars($_POST['soumis_par'] ?? '') ?>">
+               value="<?= htmlspecialchars($_POST['soumis_par'] ?? $_SESSION['username'] ?? '') ?>">
       </div>
 
       <!-- Titre -->

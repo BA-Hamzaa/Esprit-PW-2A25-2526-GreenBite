@@ -246,7 +246,7 @@ $roles = [
             Votre nom <span style="color:#ef4444">*</span>
           </label>
           <input type="text" name="auteur" id="aaAuteur" class="art-input"
-                 value="<?= htmlspecialchars($_POST['auteur'] ?? '') ?>"
+                 value="<?= htmlspecialchars($_POST['auteur'] ?? $_SESSION['username'] ?? '') ?>"
                  placeholder="Ex: Amine Khoury"
                  maxlength="120" autocomplete="name">
           <div class="art-field-error" id="err-aaAuteur">

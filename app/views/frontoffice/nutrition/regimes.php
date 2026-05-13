@@ -557,7 +557,7 @@ document.addEventListener('keydown', function(e) {
 
 // Dynamic Client-side Search
 document.addEventListener('DOMContentLoaded', function() {
-  var searchInput = document.getElementById('globalSearchInput');
+  var searchInput = document.getElementById('frontSearchInput');
   var filterButtons = document.querySelectorAll('.regime-filter-btn');
   var cards = document.querySelectorAll('.regime-card-item');
   var activeFilter = 'all';

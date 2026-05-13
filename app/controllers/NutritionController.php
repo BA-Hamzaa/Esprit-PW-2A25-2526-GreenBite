@@ -43,12 +43,25 @@ class NutritionController
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateYmd)) {
             return [];
         }
-        $sql = "SELECT * FROM repas WHERE date_repas = :d
-                ORDER BY FIELD(type_repas, 'petit_dejeuner', 'dejeuner', 'collation', 'diner')";
+        
+        $currentUser = $_SESSION['username'] ?? 'Invité';
+        $isAdmin = ($_SESSION['role'] ?? '') === 'ADMIN';
+
+        if ($isAdmin) {
+            $sql = "SELECT * FROM repas WHERE date_repas = :d 
+                    ORDER BY FIELD(type_repas, 'petit_dejeuner', 'dejeuner', 'collation', 'diner')";
+        } else {
+            $sql = "SELECT * FROM repas WHERE date_repas = :d AND (statut = 'accepte' OR soumis_par = :u)
+                    ORDER BY FIELD(type_repas, 'petit_dejeuner', 'dejeuner', 'collation', 'diner')";
+        }
+        
         $db = Database::getConnexion();
         try {
             $stmt = $db->prepare($sql);
             $stmt->bindValue(':d', $dateYmd);
+            if (!$isAdmin) {
+                $stmt->bindValue(':u', $currentUser);
+            }
             $stmt->execute();
             $liste = $stmt->fetchAll();
             foreach ($liste as &$r) {
@@ -123,8 +136,8 @@ class NutritionController
     /////..............................Ajouter Repas............................../////
     function AjouterRepas(Repas $repas)
     {
-        $sql = "INSERT INTO repas (nom, date_repas, type_repas, calories_total)
-                VALUES (:nom, :date_repas, :type_repas, :calories_total)";
+        $sql = "INSERT INTO repas (nom, date_repas, type_repas, calories_total, statut, admin_comment, soumis_par)
+                VALUES (:nom, :date_repas, :type_repas, :calories_total, :statut, :admin_comment, :soumis_par)";
         $db = Database::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -133,6 +146,9 @@ class NutritionController
                 'date_repas' => $repas->getDateRepas(),
                 'type_repas' => $repas->getTypeRepas(),
                 'calories_total' => $repas->getCaloriesTotal(),
+                'statut' => $repas->getStatut(),
+                'admin_comment' => $repas->getAdminComment(),
+                'soumis_par' => $repas->getSoumisPar() ?? $_SESSION['username'] ?? 'Utilisateur'
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
@@ -208,6 +224,43 @@ class NutritionController
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
         }
+    }
+
+    /////..............................Mettre à jour Statut Repas............................../////
+    function ChangerStatutRepas($id, $statut, $admin_comment = null)
+    {
+        $sql = "UPDATE repas SET statut = :statut, admin_comment = :admin_comment WHERE id = :id";
+        $db = Database::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute([
+                'statut' => $statut,
+                'admin_comment' => $admin_comment,
+                'id' => $id,
+            ]);
+        } catch (Exception $e) {
+            die('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    public function acceptRepas()
+    {
+        if (isset($_GET['id'])) {
+            $this->ChangerStatutRepas((int)$_GET['id'], 'accepte');
+            $_SESSION['success'] = "Repas validé avec succès.";
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-nutrition');
+        exit;
+    }
+
+    public function refuseRepas()
+    {
+        if (isset($_GET['id'])) {
+            $this->ChangerStatutRepas((int)$_GET['id'], 'refuse', $_POST['admin_comment'] ?? 'Refusé');
+            $_SESSION['success'] = "Repas refusé.";
+        }
+        header('Location: ' . BASE_URL . '/?page=admin-nutrition');
+        exit;
     }
 
     //==========================================================================
@@ -959,7 +1012,7 @@ class NutritionController
                 exit;
             }
         }
-        $myName = $_SESSION['plan_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['plan_user'] ?? '';
         $myIds = $_SESSION['my_plan_ids'] ?? [];
         $myPlans = [];
         if (!empty($myName)) {
@@ -1082,7 +1135,7 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
             exit;
         }
-        $myName = $_SESSION['plan_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['plan_user'] ?? '';
         $myIds = $_SESSION['my_plan_ids'] ?? [];
         $isAuthorized = (!empty($myName) && $plan['soumis_par'] === $myName) || in_array($id, $myIds);
         if (!$isAuthorized || $plan['statut'] !== 'en_attente') {
@@ -1149,7 +1202,7 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=plans');
             exit;
         }
-        $myName = $_SESSION['plan_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['plan_user'] ?? '';
         $myIds = $_SESSION['my_plan_ids'] ?? [];
         $isAuthorized = (!empty($myName) && $plan['soumis_par'] === $myName) || in_array($id, $myIds);
         if (!$isAuthorized || $plan['statut'] !== 'en_attente') {
@@ -1297,7 +1350,7 @@ class NutritionController
     function listRegimes()
     {
         $regimes = $this->AfficherRegimesAcceptes();
-        $myName = $_SESSION['regime_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['regime_user'] ?? '';
         $myIds = $_SESSION['my_regime_ids'] ?? [];
         $myRegimes = [];
         if (!empty($myName)) {
@@ -1406,7 +1459,7 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
             exit;
         }
-        $myName = $_SESSION['regime_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['regime_user'] ?? '';
         $myIds = $_SESSION['my_regime_ids'] ?? [];
         $isAuthorized = (!empty($myName) && $regime['soumis_par'] === $myName) || in_array($id, $myIds);
         if (!$isAuthorized) {
@@ -1449,7 +1502,7 @@ class NutritionController
             header('Location: ' . BASE_URL . '/?page=nutrition&action=regimes');
             exit;
         }
-        $myName = $_SESSION['regime_user'] ?? '';
+        $myName = $_SESSION['username'] ?? $_SESSION['regime_user'] ?? '';
         $myIds = $_SESSION['my_regime_ids'] ?? [];
         $isAuthorized = (!empty($myName) && $regime['soumis_par'] === $myName) || in_array($id, $myIds);
         if (!$isAuthorized) {
