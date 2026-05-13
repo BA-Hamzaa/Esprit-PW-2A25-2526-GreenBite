@@ -1,18 +1,24 @@
 # 🌱 GreenBite — Application Web PHP MVC
 
-> Plateforme de nutrition durable développée en PHP MVC pur (sans framework) dans le cadre du module **Programmation Web 2A** à l'ESPRIT.
+> Plateforme de nutrition durable développée en **PHP MVC pur** (sans framework) dans le cadre du module **Programmation Web 2A** à l'**ESPRIT School of Engineering** — Année 2025–2026.
+
+[![PHP](https://img.shields.io/badge/PHP-8.x-blue?logo=php)](https://php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?logo=mysql)](https://mysql.com)
+[![Stripe](https://img.shields.io/badge/Stripe-Payments-blueviolet?logo=stripe)](https://stripe.com)
+[![License](https://img.shields.io/badge/Licence-Académique-green)](./README.md)
 
 ---
 
 ## 📦 Modules du Projet
 
-| # | Module | Description |
-|---|--------|-------------|
-| 1 | **Blog & Articles** | Publication, modération et commentaires d'articles |
-| 2 | **Suivi Nutritionnel** | Gestion des repas, aliments, plans et régimes alimentaires |
-| 3 | **Marketplace** | Boutique de produits bio avec commandes et paiement Stripe |
-| 4 | **Recettes Durables** | Création, recherche et notation de recettes éco-responsables |
-| 5 | **Communauté** | Espace communautaire et échanges entre utilisateurs |
+| # | Module | Responsable | Description |
+|---|--------|-------------|-------------|
+| 1 | **Authentification & Utilisateurs** | — | Inscription, connexion, Google OAuth, Face ID, récupération mot de passe |
+| 2 | **Blog & Articles** | — | Publication, modération et commentaires d'articles |
+| 3 | **Suivi Nutritionnel** | — | Gestion des repas, aliments, plans et régimes alimentaires |
+| 4 | **Marketplace** | — | Boutique de produits bio avec commandes et paiement Stripe |
+| 5 | **Recettes Durables** | — | Création, recherche, notation et modération de recettes |
+| 6 | **Communauté** | — | Espace social et échanges entre utilisateurs |
 
 ---
 
@@ -20,8 +26,8 @@
 
 ### Prérequis
 
-- **PHP 7.4+** (ou PHP 8.x recommandé)
-- **MySQL 5.7+** ou MariaDB
+- **PHP 8.x** (minimum 7.4)
+- **MySQL 8.0+** ou MariaDB
 - Un serveur local : **XAMPP**, **WAMP**, ou **MAMP**
 
 ---
@@ -39,7 +45,7 @@ cd Esprit-PW-2A25-2526-GreenBite
 
 1. Ouvrez **phpMyAdmin** et créez une base nommée `greenbite`
 2. Importez le fichier `database.sql` situé à la **racine du projet**
-3. Les paramètres par défaut sont :
+3. Paramètres par défaut :
    - **Host** : `localhost`
    - **DB** : `greenbite`
    - **User** : `root`
@@ -78,10 +84,13 @@ Esprit-PW-2A25-2526-GreenBite/
 │
 ├── app/
 │   ├── controllers/
+│   │   ├── AuthController.php          ← Inscription, connexion, Google OAuth, récupération MDP
+│   │   ├── FaceAuthController.php      ← Authentification biométrique (Face ID)
+│   │   ├── UserController.php          ← Gestion des profils et rôles (ADMIN / COACH / USER)
 │   │   ├── ArticleController.php       ← Blog : articles + modération
 │   │   ├── CommentController.php       ← Blog : commentaires
-│   │   ├── MarketplaceController.php   ← Boutique, commandes, Stripe
 │   │   ├── NutritionController.php     ← Repas, aliments, plans, régimes
+│   │   ├── MarketplaceController.php   ← Boutique, commandes, Stripe
 │   │   └── RecettesController.php      ← Recettes, ingrédients, matériels
 │   │
 │   ├── models/
@@ -102,36 +111,32 @@ Esprit-PW-2A25-2526-GreenBite/
 │   │
 │   └── views/
 │       ├── backoffice/                 ← Interface d'administration
-│       │   ├── admin/
+│       │   ├── admin/                  ← Tableau de bord, stats, gestion utilisateurs
 │       │   ├── article/
 │       │   ├── comment/
-│       │   ├── community/
 │       │   ├── marketplace/
 │       │   ├── nutrition/
 │       │   ├── recettes/
 │       │   └── layouts/
 │       │
 │       ├── frontoffice/                ← Interface utilisateur
+│       │   ├── auth/                   ← Login, signup, Face ID, forgot/reset password
 │       │   ├── article/
-│       │   ├── auth/
 │       │   ├── community/
 │       │   ├── marketplace/
 │       │   ├── nutrition/
 │       │   ├── recettes/
 │       │   ├── layouts/
+│       │   │   ├── front_header.php    ← Topbar, sidebar, notifications
+│       │   │   └── front_footer.php
 │       │   └── home.php
 │       │
 │       └── public/                     ← Point d'entrée web
 │           ├── index.php               ← Front controller (routeur)
-│           ├── home.php                ← Page d'accueil publique
-│           ├── ai-proxy.php            ← Proxy IA (OpenRouter multi-modèle)
-│           ├── nutrition-api.php       ← API nutrition externe
 │           ├── stripe-intent.php       ← Paiement Stripe (PaymentIntent)
+│           ├── nutrition-api.php       ← API nutrition externe
 │           ├── .htaccess               ← Réécriture d'URL Apache
-│           ├── assets/                 ← CSS, JS, images
-│           ├── auth/
-│           ├── community/
-│           └── layouts/
+│           └── assets/                 ← CSS, JS, images, avatars
 │
 ├── config/
 │   ├── database.php                    ← Singleton PDO
@@ -140,7 +145,10 @@ Esprit-PW-2A25-2526-GreenBite/
 │   ├── stripe.php                      ← Clé secrète Stripe
 │   └── bannis.json                     ← Mots bannis (modération)
 │
-├── database.sql                        ← Script SQL complet (toutes les tables)
+├── vendor/
+│   └── PHPMailer-master/               ← Envoi d'emails (récupération MDP, notifications)
+│
+├── database.sql                        ← Script SQL complet (toutes les tables + données)
 ├── start.bat                           ← Lanceur Windows (serveur + navigateur)
 └── README.md
 ```
@@ -155,6 +163,7 @@ Le fichier `database.sql` contient la totalité du schéma et des données d'exe
 
 | Module | Tables |
 |--------|--------|
+| **Utilisateurs** | `user`, `coach_request` |
 | **Blog** | `article`, `commentaire` |
 | **Nutrition** | `repas`, `aliment`, `repas_aliment`, `plan_nutritionnel`, `plan_repas` |
 | **Régimes** | `regime_alimentaire` |
@@ -165,19 +174,63 @@ Le fichier `database.sql` contient la totalité du schéma et des données d'exe
 
 ---
 
-## 🤖 Assistant IA — GreenBot
+## 🔐 Authentification & Sécurité
 
-L'application intègre **GreenBot**, un assistant IA spécialisé en nutrition durable, via `ai-proxy.php`.
+L'application propose plusieurs méthodes d'authentification :
 
-- **Provider** : [OpenRouter](https://openrouter.ai) (accès multi-modèle)
-- **Fallback** : 8 modèles gratuits en cascade (Llama, GPT, Gemma, Qwen…)
-- **Fonctionnalités** :
-  - Chat nutritionnel en français
-  - Génération automatique de régimes alimentaires personnalisés
-  - Suggestions de recettes
+| Méthode | Détail |
+|---------|--------|
+| **Email / Mot de passe** | Connexion classique avec hachage `password_hash()` |
+| **Google OAuth 2.0** | Connexion via compte Google (redirection OAuth) |
+| **Face ID** | Authentification biométrique par reconnaissance faciale (via caméra + API) |
+| **Récupération MDP** | Lien sécurisé par email via **PHPMailer** + token temporaire |
 
-**Configuration** : Définissez la variable d'environnement `OPENROUTER_API_KEY` sur votre serveur.  
-Aucune clé n'est codée en dur dans le projet.
+### Rôles utilisateurs
+
+| Rôle | Accès |
+|------|-------|
+| `VISITEUR` | Lecture seule (articles, recettes, produits) |
+| `USER` | Toutes les fonctionnalités front + soumissions |
+| `COACH` | Accès coach (régimes, plans conseillés) |
+| `ADMIN` | Back-office complet — validation, modération, gestion |
+
+---
+
+## 🔔 Système de Notifications
+
+Les utilisateurs connectés reçoivent des notifications en temps réel dans la barre de navigation.
+
+### Badges d'état
+
+| Statut | Couleur | Badge |
+|--------|---------|-------|
+| `en_attente` | 🟡 Orange | ⏳ En attente |
+| `accepte` | 🟢 Vert | ✓ Accepté |
+| `refuse` | 🔴 Rouge | ✗ Refusé |
+
+### Types de notifications
+
+| Type | Déclencheur |
+|------|-------------|
+| **Régime** | Soumission → en attente / accepté / refusé |
+| **Plan nutritionnel** | Soumission → accepté / refusé |
+| **Repas** | Soumission → accepté / refusé |
+| **Recette** | Soumission → acceptée / refusée |
+| **Matériel** | Proposition → acceptée / refusée |
+| **Commentaire article** | Validé ou signalé par un admin |
+| **Avis recette** | Approuvé ou refusé |
+| **Commande** | Changement de statut (confirmée / livrée / annulée) |
+
+---
+
+## 🛡️ Workflow de Modération
+
+Pour garantir la qualité et la sécurité du contenu communautaire :
+
+1. **Soumission** : L'utilisateur propose une Recette, un Plan, un Régime ou un Matériel → statut `en_attente`
+2. **Visibilité restreinte** : L'élément n'est visible que par son auteur et les administrateurs
+3. **Validation Admin** : L'admin approuve (`accepte`) ou refuse (`refuse`) depuis le Back-Office
+4. **Motif de refus** : En cas de refus, un commentaire explicatif est affiché à l'utilisateur dans ses notifications
 
 ---
 
@@ -206,9 +259,17 @@ Le module Marketplace intègre **Stripe** pour les paiements sécurisés.
 
 ### Typographie
 
-- **Titres** : Poppins (600–700)
-- **Corps** : Inter (300–600)
+- **Titres** : Poppins (600–800)
+- **Corps** : Inter (300–600), DM Sans
 - Chargées via **Google Fonts CDN**
+
+### Composants
+
+- Dark mode complet (toggle dans la sidebar)
+- Glassmorphism sur les cards
+- Micro-animations (fade-up, slide-in, bell pulse)
+- Notifications panel responsive
+- Modal Coach / Modifier profil
 
 ---
 
@@ -217,16 +278,21 @@ Le module Marketplace intègre **Stripe** pour les paiements sécurisés.
 | Route | Contrôleur | Description |
 |-------|-----------|-------------|
 | `/` | — | Page d'accueil publique |
-| `/?page=blog` | `ArticleController` | Liste des articles |
-| `/?page=blog&action=show&id=X` | `ArticleController` | Détail d'un article |
-| `/?page=nutrition` | `NutritionController` | Suivi nutritionnel |
+| `/?page=login` | `AuthController` | Connexion |
+| `/?page=signup` | `AuthController` | Inscription |
+| `/?page=face-login` | `FaceAuthController` | Connexion Face ID |
+| `/?page=forgot-password` | `AuthController` | Récupération mot de passe |
+| `/?page=article&action=list` | `ArticleController` | Blog & communauté |
+| `/?page=nutrition` | `NutritionController` | Suivi nutritionnel (repas) |
+| `/?page=nutrition&action=regimes` | `NutritionController` | Régimes alimentaires |
+| `/?page=nutrition&action=plans` | `NutritionController` | Plans nutritionnels |
 | `/?page=marketplace` | `MarketplaceController` | Boutique produits |
+| `/?page=marketplace&action=order` | `MarketplaceController` | Commander |
+| `/?page=marketplace&action=history` | `MarketplaceController` | Mes commandes |
 | `/?page=recettes` | `RecettesController` | Catalogue recettes |
-| `/?page=admin` | — | Tableau de bord admin |
-| `/?page=admin&module=articles` | `ArticleController` | Modération articles |
-| `/?page=admin&module=nutrition` | `NutritionController` | Gestion nutrition (admin) |
-| `/?page=admin&module=marketplace` | `MarketplaceController` | Gestion commandes |
-| `/?page=admin&module=recettes` | `RecettesController` | Gestion recettes |
+| `/?page=recettes&action=suggest` | `RecettesController` | Proposer une recette |
+| `/?page=admin-stats` | `UserController` | Tableau de bord admin |
+| `/?page=admin-users` | `UserController` | Gestion utilisateurs |
 
 ---
 
@@ -234,41 +300,33 @@ Le module Marketplace intègre **Stripe** pour les paiements sécurisés.
 
 | Technologie | Rôle |
 |-------------|------|
-| PHP 7.4+ | Backend MVC (aucun framework) |
+| PHP 8.x | Backend MVC (aucun framework) |
 | MySQL / PDO | Base de données |
-| HTML5 / CSS3 | Structure et styles (Vanilla) |
-| JavaScript (ES6) | Interactivité côté client |
+| HTML5 / CSS3 | Structure et styles (Vanilla CSS) |
+| JavaScript ES6 | Interactivité côté client |
+| Lucide Icons | Icônes SVG |
 | Chart.js | Graphiques nutritionnels |
 | Stripe.js | Paiement en ligne |
-| OpenRouter API | Assistant IA multi-modèle |
-| Google Fonts | Typographie (Inter + Poppins) |
+| PHPMailer | Envoi d'emails transactionnels |
+| Google Fonts | Typographie (Inter + Poppins + DM Sans) |
+| Face API | Authentification biométrique |
 
-> **Aucun outil de build requis.** Pas de npm, pas de Composer, pas de framework.
+> **Aucun outil de build requis.** Pas de npm, pas de Composer (hors PHPMailer), pas de framework.
 
 ---
 
-## 🛡️ Workflow de Modération
+## 🌿 Branches Git
 
-Pour garantir la qualité et la sécurité du contenu communautaire, l'application intègre un système de modération multi-niveaux :
-
-1. **Soumission** : Lorsqu'un utilisateur propose une Recette, un Plan Nutritionnel ou un Régime, celui-ci est créé avec le statut `en_attente`.
-2. **Visibilité Restreinte** : L'élément en attente n'est visible que par son auteur (dans son espace "Mes Suggestions") et par les administrateurs.
-3. **Validation Admin** : Les administrateurs peuvent approuver (statut `accepte`) ou refuser (statut `refuse`) les propositions depuis le Back-Office.
-4. **Commentaire de Refus** : En cas de refus, l'administrateur peut laisser un motif explicatif visible par l'utilisateur.
-
-## 🔔 Système de Notifications
-
-Les utilisateurs reçoivent des notifications en temps réel dans la barre de navigation :
-
-- **Suivi des soumissions** : Alertes lorsqu'une proposition passe au statut `en_attente`, `accepte` ou `refuse`.
-- **Commandes** : Notifications lors du changement de statut d'une commande (Confirmée, En cours, Livrée).
-- **Interactions** : Validation ou signalement de commentaires sur le blog ou les recettes.
+| Branche | Description |
+|---------|-------------|
+| `main` | Branche principale — code stable |
+| `user-final` | Dernière version utilisateur — fix notifications 3 états |
 
 ---
 
 ## 👥 Équipe
 
-Projet réalisé dans le cadre du module **Programmation Web — 2ème année** à **ESPRIT School of Engineering**, année académique 2025–2026.
+Projet réalisé dans le cadre du module **Programmation Web — 2ème année** à **ESPRIT School of Engineering**, année académique **2025–2026**.
 
 **Groupe** : GreenBite — 2A25-2526
 
@@ -276,4 +334,4 @@ Projet réalisé dans le cadre du module **Programmation Web — 2ème année** 
 
 ## 📄 Licence
 
-Projet académique — usage interne ESPRIT uniquement.
+Projet académique — usage interne ESPRIT uniquement.
