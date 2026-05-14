@@ -105,35 +105,27 @@ foreach (($allForCounts ?? $articles) as $a) {
     </div>
 
   <!-- TABLE -->
-  <div class="card" style="padding:0;overflow:hidden">
+  <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border)">
     <div style="overflow-x:auto">
       <table class="table" style="width:100%;border-collapse:collapse">
         <thead>
-          <tr style="background:linear-gradient(135deg,rgba(45,106,79,0.06),rgba(82,183,136,0.04));border-bottom:2px solid var(--border)">
-            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">#</th>
-            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Titre</th>
-            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Auteur</th>
-            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Rôle</th>
-            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Statut</th>
-            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Commentaires</th>
-            <th style="padding:0.75rem 0.875rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Date</th>
-            <th style="padding:0.75rem 0.875rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);min-width:180px">Actions</th>
+          <tr>
+            <th>#</th><th>Titre</th><th>Auteur</th><th>Rôle</th><th>Statut</th><th>Commentaires</th><th>Date</th><th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($articles)): ?>
             <tr>
-              <td colspan="8" style="text-align:center;padding:4rem 2rem;color:var(--text-muted)">
-                <div style="display:inline-flex;align-items:center;justify-content:center;width:4.5rem;height:4.5rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border-radius:50%;margin-bottom:1.25rem">
-                  <i data-lucide="search" style="width:2.25rem;height:2.25rem;color:var(--primary)"></i>
-                </div>
-                <h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem">Aucun article trouvé</h3>
-                <p style="color:var(--text-muted);font-size:0.82rem">Essayez d'autres filtres ou un autre mot-clé.</p>
+              <td colspan="8" style="text-align:center;padding:3.5rem 2rem;color:var(--text-muted)">
+                <div style="font-size:3rem;margin-bottom:0.75rem">🔍</div>
+                <p style="font-weight:600;color:var(--text-secondary)">Aucun article trouvé</p>
+                <p style="font-size:0.8rem;margin-top:0.25rem">Essayez d'autres filtres ou un autre mot-clé.</p>
               </td>
             </tr>
           <?php else: ?>
             <?php foreach ($articles as $a):
               $statut = $a['statut'] ?? 'brouillon';
+              $badgeClass = $statut === 'publie' ? 'badge-success' : ($statut === 'en_attente' ? 'badge-warning' : 'badge-info');
               $role = $a['role_utilisateur'] ?? '—';
               $roleColor = '#6b7280';
               if (strpos($role,'Chef')!==false) $roleColor='#e76f51';
@@ -145,14 +137,10 @@ foreach (($allForCounts ?? $articles) as $a) {
               elseif (strpos($role,'Food')!==false) $roleColor='#ec4899';
               elseif (strpos($role,'Éco')!==false) $roleColor='#14b8a6';
               elseif (strpos($role,'Passionné')!==false) $roleColor='#f97316';
-              $sColor = $statut === 'publie' ? '#22c55e' : ($statut === 'en_attente' ? '#f59e0b' : '#6b7280');
-              $sBg    = $statut === 'publie' ? 'rgba(34,197,94,0.1)' : ($statut === 'en_attente' ? 'rgba(245,158,11,0.1)' : 'rgba(107,114,128,0.1)');
-              $sIcon  = $statut === 'publie' ? 'check-circle-2' : ($statut === 'en_attente' ? 'clock' : 'edit-3');
-              $sLabel = $statut === 'publie' ? 'Publié' : ($statut === 'en_attente' ? 'En attente' : 'Brouillon');
             ?>
-              <tr style="border-bottom:1px solid var(--border);transition:background 0.2s" onmouseover="this.style.background='rgba(82,183,136,0.03)'" onmouseout="this.style.background=''">
-                <td style="padding:0.75rem 0.875rem"><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= (int)$a['id'] ?></span></td>
-                <td style="padding:0.75rem 0.875rem;max-width:260px">
+              <tr>
+                <td><span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;background:var(--muted);border-radius:0.5rem;font-size:0.7rem;font-weight:700;color:var(--text-muted)"><?= (int)$a['id'] ?></span></td>
+                <td style="max-width:260px">
                   <div style="display:flex;align-items:center;gap:0.625rem">
                     <div style="display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;background:linear-gradient(135deg,rgba(45,106,79,0.08),rgba(82,183,136,0.06));border-radius:0.625rem;flex-shrink:0">
                       <i data-lucide="file-text" style="width:0.875rem;height:0.875rem;color:var(--primary)"></i>
@@ -160,29 +148,21 @@ foreach (($allForCounts ?? $articles) as $a) {
                     <span style="font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:200px"><?= htmlspecialchars($a['titre']) ?></span>
                   </div>
                 </td>
-                <td style="padding:0.75rem 0.875rem;font-size:0.82rem;color:var(--text-secondary)"><?= htmlspecialchars($a['auteur'] ?? 'Admin') ?></td>
-                <td style="padding:0.75rem 0.875rem"><span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.72rem;font-weight:700;color:<?= $roleColor ?>;background:<?= $roleColor ?>15;padding:0.25rem 0.65rem;border-radius:var(--radius-full);border:1px solid <?= $roleColor ?>30"><?= htmlspecialchars($role) ?></span></td>
-                <td style="padding:0.75rem 0.875rem;text-align:center">
-                  <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;border-radius:var(--radius-full);background:<?= $sBg ?>;color:<?= $sColor ?>;font-size:0.72rem;font-weight:700">
-                    <i data-lucide="<?= $sIcon ?>" style="width:0.75rem;height:0.75rem"></i><?= $sLabel ?>
-                  </span>
-                </td>
-                <td style="padding:0.75rem 0.875rem;text-align:center">
-                  <span style="font-family:var(--font-heading);font-weight:700;font-size:0.9rem;color:var(--text-primary)"><?= (int)($a['nb_commentaires'] ?? 0) ?></span>
-                </td>
-                <td style="padding:0.75rem 0.875rem;font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($a['date_publication'] ?? '') ?></td>
-                <td style="padding:0.75rem 0.875rem;text-align:center">
-                  <div style="display:inline-flex;gap:0.4rem;justify-content:center;align-items:center;flex-wrap:nowrap;white-space:nowrap">
-                    <a href="<?= BASE_URL ?>/?page=admin-article&action=edit&id=<?= (int)$a['id'] ?>"
-                       style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;text-decoration:none;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)"
-                       onmouseover="this.style.background='rgba(59,130,246,0.18)';this.style.transform='translateY(-1px)'"
-                       onmouseout="this.style.background='rgba(59,130,246,0.1)';this.style.transform='none'">
-                      <i data-lucide="edit" style="width:0.75rem;height:0.75rem"></i> Modifier
+                <td><?= htmlspecialchars($a['auteur'] ?? 'Admin') ?></td>
+                <td><span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.75rem;font-weight:600;color:<?= $roleColor ?>;background:<?= $roleColor ?>10;padding:0.2rem 0.6rem;border-radius:var(--radius-full);border:1px solid <?= $roleColor ?>30"><?= htmlspecialchars($role) ?></span></td>
+                <td><span class="badge <?= $badgeClass ?>" style="font-size:0.65rem"><?= htmlspecialchars($statut) ?></span></td>
+                <td style="text-align:center"><?= (int)($a['nb_commentaires'] ?? 0) ?></td>
+                <td style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($a['date_publication'] ?? '') ?></td>
+                <td>
+                  <div style="display:flex;gap:0.375rem;align-items:center">
+                    <a href="<?= BASE_URL ?>/?page=admin-article&action=edit&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Modifier" style="background:rgba(45,106,79,0.06);border-color:rgba(45,106,79,0.15)">
+                      <i data-lucide="edit-3" style="width:0.85rem;height:0.85rem"></i>
                     </a>
                     <?php if ($statut !== 'publie'): ?>
-                      <form method="post" action="<?= BASE_URL ?>/?page=admin-article&action=publish&id=<?= (int)$a['id'] ?>" style="display:inline" onsubmit="return confirm('Publier cet article ?')">
+                      <form method="post" action="<?= BASE_URL ?>/?page=admin-article&action=publish&id=<?= (int)$a['id'] ?>" style="display:inline" onsubmit="return false;" id="pub-form-<?= (int)$a['id'] ?>">
                         <input type="hidden" name="confirm" value="1">
-                        <button type="submit"
+                        <button type="button"
+                                onclick="gbConfirm('Publier cet article et le rendre visible ?', 'Publier', '✅', 'safe').then(ok => { if(ok) document.getElementById('pub-form-<?= (int)$a['id'] ?>').onsubmit=null, document.getElementById('pub-form-<?= (int)$a['id'] ?>').submit(); })"
                                 style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap"
                                 onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.3)'"
                                 onmouseout="this.style.transform='none';this.style.boxShadow='none'">
@@ -190,21 +170,19 @@ foreach (($allForCounts ?? $articles) as $a) {
                         </button>
                       </form>
                     <?php endif; ?>
-                    <?php if ($statut === 'publie'): ?>
-                      <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= (int)$a['id'] ?>"
-                         style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(14,165,233,0.08);color:#0ea5e9;border-radius:var(--radius-full);border:1px solid rgba(14,165,233,0.2);transition:all 0.2s;text-decoration:none"
-                         onmouseover="this.style.background='rgba(14,165,233,0.15)';this.style.transform='translateY(-1px)'"
-                         onmouseout="this.style.background='rgba(14,165,233,0.08)';this.style.transform='none'" title="Voir">
-                        <i data-lucide="external-link" style="width:0.75rem;height:0.75rem"></i>
-                      </a>
-                    <?php endif; ?>
                     <a href="<?= BASE_URL ?>/?page=admin-article&action=delete&id=<?= (int)$a['id'] ?>"
                        style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:rgba(239,68,68,0.08);color:#ef4444;border-radius:var(--radius-full);border:1px solid rgba(239,68,68,0.2);transition:all 0.2s;text-decoration:none"
                        onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.transform='translateY(-1px)'"
                        onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.transform='none'"
-                       title="Supprimer" onclick="return confirm('Supprimer cet article ?')">
+                       title="Supprimer"
+                       onclick="event.preventDefault(); var href=this.href; gbConfirm('Supprimer cet article définitivement ? Cette action est irréversible.','Supprimer l\'article','🗑️').then(function(ok){ if(ok) window.location.href=href; });">
                       <i data-lucide="trash-2" style="width:0.75rem;height:0.75rem"></i>
                     </a>
+                    <?php if ($statut === 'publie'): ?>
+                      <a href="<?= BASE_URL ?>/?page=article&action=detail&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Voir sur le site" style="background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.15);color:#3b82f6">
+                        <i data-lucide="external-link" style="width:0.85rem;height:0.85rem"></i>
+                      </a>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

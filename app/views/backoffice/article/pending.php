@@ -92,13 +92,13 @@
                 <td style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap"><?= htmlspecialchars($a['date_publication'] ?? '') ?></td>
                 <td>
                   <div style="display:flex;gap:0.375rem;align-items:center;flex-wrap:wrap">
-                    <a href="<?= BASE_URL ?>/?page=admin-article&action=publish&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Valider & publier" style="background:rgba(82,183,136,0.08);border-color:rgba(82,183,136,0.18);color:var(--primary)" onclick="return confirm('Valider et publier cet article ?')">
+                    <a href="<?= BASE_URL ?>/?page=admin-article&action=publish&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Valider & publier" style="background:rgba(82,183,136,0.08);border-color:rgba(82,183,136,0.18);color:var(--primary)" onclick="event.preventDefault(); var href=this.href+''; gbConfirm('Valider et publier cet article ?', 'Publier', '✅', 'safe').then(ok => { if(ok) { fetch(href+'&confirm=1',{method:'POST'}).then(()=>location.href=href+'&confirm=1'); window.location.href=href; } });">
                       <i data-lucide="check-circle-2" style="width:0.85rem;height:0.85rem"></i>
                     </a>
                     <a href="<?= BASE_URL ?>/?page=admin-article&action=edit&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Modifier" style="background:rgba(45,106,79,0.06);border-color:rgba(45,106,79,0.15)">
                       <i data-lucide="edit-3" style="width:0.85rem;height:0.85rem"></i>
                     </a>
-                    <a href="<?= BASE_URL ?>/?page=admin-article&action=delete&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Supprimer" style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15);color:#ef4444" onclick="return confirm('Supprimer cet article ?')">
+                    <a href="<?= BASE_URL ?>/?page=admin-article&action=delete&id=<?= (int)$a['id'] ?>" class="icon-btn" title="Supprimer" style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15);color:#ef4444" onclick="event.preventDefault(); var href=this.href; gbConfirm('Supprimer cet article définitivement ?', 'Supprimer', '🗑️').then(ok => { if(ok) window.location.href=href; });">
                       <i data-lucide="trash-2" style="width:0.85rem;height:0.85rem"></i>
                     </a>
                   </div>

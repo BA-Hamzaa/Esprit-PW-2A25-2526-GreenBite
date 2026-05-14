@@ -187,8 +187,13 @@
         <div class="sidebar-section-label">Social</div>
         <ul class="space-y-1 mb-5">
           <li>
-            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && in_array($_GET['page'], ['article','community'])) ? 'active' : '' ?>">
+            <a href="<?= BASE_URL ?>/?page=article&action=list" class="sidebar-nav-item <?= (isset($_GET['page']) && in_array($_GET['page'], ['article','community']) && (!isset($_GET['action']) || $_GET['action'] !== 'mes-activites')) ? 'active' : '' ?>">
               <i data-lucide="message-circle"></i><span>Communauté &amp; Blog</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?= BASE_URL ?>/?page=article&action=mes-activites" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'article' && isset($_GET['action']) && $_GET['action'] === 'mes-activites') ? 'active' : '' ?>">
+              <i data-lucide="activity"></i><span>Mes Activités</span>
             </a>
           </li>
         </ul>
@@ -271,6 +276,7 @@
               {label:'Mes Suggestions',   icon:'lightbulb',       bg:'#fef3c7',color:'#d97706',url:'<?= BASE_URL ?>/?page=recettes&action=my-suggestions'},
               {label:'Proposer',          icon:'plus-circle',     bg:'#ede9fe',color:'#7c3aed',url:'<?= BASE_URL ?>/?page=recettes&action=suggest'},
               {label:'Communauté & Blog', icon:'message-circle',  bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=article&action=list'},
+              {label:'Mes Activités',     icon:'activity',        bg:'#dcfce7',color:'#2D6A4F',url:'<?= BASE_URL ?>/?page=article&action=mes-activites'},
             ];
             const si=document.getElementById('frontSearchInput');
             const sd=document.getElementById('frontSearchDrop');
