@@ -7,7 +7,7 @@
 $citations = [
     [
         'image' => 'meme1.png',
-        'texte' => 'Eat bananito to feel goodito 🍌',
+        'texte' => 'Eat bananito to feel goodito 🍌 ',
     ],
     [
         'image' => 'meme2.png',
