@@ -333,7 +333,7 @@
         <ul style="list-style:none;padding:0;margin:0">
           <li>
             <a href="<?= BASE_URL ?>/?page=nutrition" class="sidebar-nav-item <?= (isset($_GET['page']) && $_GET['page'] === 'nutrition' && (!isset($_GET['action']) || $_GET['action'] === 'list')) ? 'active' : '' ?>">
-              <i data-lucide="utensils-crossed" style="width:1.1rem;height:1.1rem"></i><span>Repas</span>
+              <i data-lucide="utensils-crossed" style="width:1.1rem;height:1.1rem"></i><span>Mes Repas</span>
             </a>
           </li>
           <li>

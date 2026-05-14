@@ -6,7 +6,7 @@ require_once BASE_PATH . '/app/models/Commentaire.php';
 class ArticleController
 {
     //==========================================================================
-    // QUERIES — ARTICLES
+    // QUERIES â€” ARTICLES
     //==========================================================================
 
     function listArticlesPublies()
@@ -33,24 +33,24 @@ class ArticleController
 
     function listArticlesBack($statut = '', $sort = 'date_desc', $keyword = '')
     {
-        $where  = [];
+        $where = [];
         $params = [];
 
         if ($statut !== '' && in_array($statut, ['publie', 'en_attente', 'brouillon'])) {
-            $where[]          = "a.statut = :statut";
+            $where[] = "a.statut = :statut";
             $params['statut'] = $statut;
         }
         if ($keyword !== '') {
-            $where[]      = "(a.titre LIKE :kw OR a.auteur LIKE :kw)";
+            $where[] = "(a.titre LIKE :kw OR a.auteur LIKE :kw)";
             $params['kw'] = '%' . $keyword . '%';
         }
 
         $whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
-        $orderSQL = match($sort) {
+        $orderSQL = match ($sort) {
             'commentaires_desc' => 'ORDER BY nb_commentaires DESC',
-            'commentaires_asc'  => 'ORDER BY nb_commentaires ASC',
-            'date_asc'          => 'ORDER BY a.date_publication ASC',
-            default             => 'ORDER BY a.date_publication DESC',
+            'commentaires_asc' => 'ORDER BY nb_commentaires ASC',
+            'date_asc' => 'ORDER BY a.date_publication ASC',
+            default => 'ORDER BY a.date_publication DESC',
         };
 
         $sql = "SELECT a.*,
@@ -70,9 +70,9 @@ class ArticleController
 
     function getAllArticlesBack()
     {
-        // Used only for counting per statut — always returns all articles
+        // Used only for counting per statut â€” always returns all articles
         $sql = "SELECT statut FROM article";
-        $db  = Database::getConnexion();
+        $db = Database::getConnexion();
         try {
             return $db->query($sql)->fetchAll();
         } catch (Exception $e) {
@@ -118,11 +118,11 @@ class ArticleController
         try {
             $q = $db->prepare($sql);
             $q->execute([
-                'titre'            => $article->getTitre(),
-                'contenu'          => $article->getContenu(),
-                'auteur'           => $article->getAuteur(),
+                'titre' => $article->getTitre(),
+                'contenu' => $article->getContenu(),
+                'auteur' => $article->getAuteur(),
                 'role_utilisateur' => $article->getRoleUtilisateur(),
-                'statut'           => $article->getStatut(),
+                'statut' => $article->getStatut(),
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
@@ -143,12 +143,12 @@ class ArticleController
         try {
             $q = $db->prepare($sql);
             $q->execute([
-                'titre'            => $article->getTitre(),
-                'contenu'          => $article->getContenu(),
-                'auteur'           => $article->getAuteur(),
+                'titre' => $article->getTitre(),
+                'contenu' => $article->getContenu(),
+                'auteur' => $article->getAuteur(),
                 'role_utilisateur' => $article->getRoleUtilisateur(),
-                'statut'           => $article->getStatut(),
-                'id'               => $id,
+                'statut' => $article->getStatut(),
+                'id' => $id,
             ]);
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
@@ -182,7 +182,7 @@ class ArticleController
     }
 
     //==========================================================================
-    // QUERIES — COMMENTAIRES
+    // QUERIES â€” COMMENTAIRES
     //==========================================================================
 
     function listCommentairesValides($article_id)
@@ -212,10 +212,10 @@ class ArticleController
             $q = $db->prepare($sql);
             $q->execute([
                 'article_id' => $commentaire->getArticleId(),
-                'pseudo'     => $commentaire->getAuteur(),
-                'pin'        => $pin,
-                'contenu'    => $commentaire->getContenu(),
-                'statut'     => $commentaire->getStatut(),
+                'pseudo' => $commentaire->getAuteur(),
+                'pin' => $pin,
+                'contenu' => $commentaire->getContenu(),
+                'statut' => $commentaire->getStatut(),
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
@@ -230,26 +230,26 @@ class ArticleController
     function validerArticle($post)
     {
         $errors = [];
-        $titre            = trim($post['titre'] ?? '');
-        $contenu          = trim($post['contenu'] ?? '');
-        $auteur           = trim($post['auteur'] ?? '');
+        $titre = trim($post['titre'] ?? '');
+        $contenu = trim($post['contenu'] ?? '');
+        $auteur = trim($post['auteur'] ?? '');
         $role_utilisateur = trim($post['role_utilisateur'] ?? '');
-        $statut           = $post['statut'] ?? 'brouillon';
+        $statut = $post['statut'] ?? 'brouillon';
 
         if ($titre === '' || mb_strlen($titre) < 3) {
-            $errors[] = "Le titre est obligatoire (min 3 caractères).";
+            $errors[] = "Le titre est obligatoire (min 3 caractÃ¨res).";
         }
         if (mb_strlen($titre) > 150) {
-            $errors[] = "Le titre ne peut pas dépasser 150 caractères.";
+            $errors[] = "Le titre ne peut pas dÃ©passer 150 caractÃ¨res.";
         }
         if ($contenu === '' || mb_strlen($contenu) < 20) {
-            $errors[] = "Le contenu est obligatoire (min 20 caractères).";
+            $errors[] = "Le contenu est obligatoire (min 20 caractÃ¨res).";
         }
         if ($auteur === '' || mb_strlen($auteur) < 2) {
-            $errors[] = "L'auteur est obligatoire (min 2 caractères).";
+            $errors[] = "L'auteur est obligatoire (min 2 caractÃ¨res).";
         }
         if ($role_utilisateur === '') {
-            $errors[] = "Veuillez sélectionner votre profil.";
+            $errors[] = "Veuillez sÃ©lectionner votre profil.";
         }
         $statutsValides = ['brouillon', 'en_attente', 'publie'];
         if (!in_array($statut, $statutsValides)) {
@@ -261,23 +261,23 @@ class ArticleController
     function validerCommentaire($post)
     {
         $errors = [];
-        $auteur  = trim($post['auteur'] ?? '');
+        $auteur = trim($post['auteur'] ?? '');
         $contenu = trim($post['contenu'] ?? '');
 
         if ($auteur === '' || mb_strlen($auteur) < 2) {
-            $errors[] = "Votre nom est obligatoire (min 2 caractères).";
+            $errors[] = "Votre nom est obligatoire (min 2 caractÃ¨res).";
         }
         if ($contenu === '' || mb_strlen($contenu) < 5) {
-            $errors[] = "Le commentaire est obligatoire (min 5 caractères).";
+            $errors[] = "Le commentaire est obligatoire (min 5 caractÃ¨res).";
         }
         if (mb_strlen($contenu) > 2000) {
-            $errors[] = "Le commentaire ne peut pas dépasser 2000 caractères.";
+            $errors[] = "Le commentaire ne peut pas dÃ©passer 2000 caractÃ¨res.";
         }
         return $errors;
     }
 
     //==========================================================================
-    // ROUTING — FRONTOFFICE
+    // ROUTING â€” FRONTOFFICE
     //==========================================================================
 
     function listFront()
@@ -285,17 +285,17 @@ class ArticleController
         unset($_SESSION['mes_activites_auteur'], $_SESSION['mes_activites_pin']);
 
         $keyword = trim($_GET['q'] ?? '');
-        $page    = max(1, (int)($_GET['p'] ?? 1));
+        $page = max(1, (int) ($_GET['p'] ?? 1));
         $perPage = 6;
 
         $allArticles = $keyword !== ''
             ? $this->rechercherArticles($keyword)
             : $this->listArticlesPublies();
 
-        $total      = count($allArticles);
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page       = min($page, $totalPages);
-        $articles   = array_slice($allArticles, ($page - 1) * $perPage, $perPage);
+        $total = count($allArticles);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        $page = min($page, $totalPages);
+        $articles = array_slice($allArticles, ($page - 1) * $perPage, $perPage);
 
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/frontoffice/article/list.php';
@@ -304,7 +304,7 @@ class ArticleController
 
     function detailFront()
     {
-        $id      = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $article = $this->getArticle($id);
         if (!$article || $article['statut'] !== 'publie') {
             $_SESSION['error'] = "Article introuvable.";
@@ -312,7 +312,7 @@ class ArticleController
             exit;
         }
         $commentaires = $this->listCommentairesValides($id);
-        $errors       = [];
+        $errors = [];
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/frontoffice/article/detail.php';
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
@@ -321,22 +321,24 @@ class ArticleController
     function addCommentFront()
     {
         $article_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        $article    = $this->getArticle($article_id);
+        $article = $this->getArticle($article_id);
         if (!$article || $article['statut'] !== 'publie') {
             $_SESSION['error'] = "Article introuvable.";
             header('Location: ' . BASE_URL . '/?page=article&action=list');
             exit;
         }
 
+        $loggedIn = !empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
         $errors = [];
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if ($loggedIn) {
+                $_POST['auteur'] = $_SESSION['username'] ?? 'User';
+            }
+            $_POST['pin'] = '0000'; // Force PIN to 0000 for everyone since we removed it from UI
+
             $errors = $this->validerCommentaire($_POST);
             $pseudo = trim($_POST['auteur'] ?? '');
-            $pin    = trim($_POST['pin'] ?? '');
-
-            if (!preg_match('/^\d{4}$/', $pin)) {
-                $errors[] = "Le PIN doit contenir exactement 4 chiffres.";
-            }
+            $pin = '0000';
 
             // Check ban list
             if (empty($errors)) {
@@ -344,35 +346,21 @@ class ArticleController
                 $bannis = [];
                 if (file_exists($fichierBannis)) {
                     $bannis = json_decode(file_get_contents($fichierBannis), true);
-                    if (!is_array($bannis)) $bannis = [];
+                    if (!is_array($bannis))
+                        $bannis = [];
                 }
 
                 foreach ($bannis as $entry) {
                     $bpseudo = is_string($entry) ? $entry : ($entry['pseudo'] ?? '');
-                    $bpin    = is_string($entry) ? null   : ($entry['pin'] ?? null);
-                    if ($bpseudo === $pseudo && $bpin === $pin) {
-                        $errors[] = "? Vous êtes banni et ne pouvez plus commenter.";
-                        break;
+                    $b_article_id = is_string($entry) ? null : ($entry['article_id'] ?? null);
+                    
+                    if ($bpseudo === $pseudo) {
+                        // Global ban (null) or specific article ban
+                        if ($b_article_id === null || $b_article_id == $article_id) {
+                            $errors[] = "ðŸš© Vous Ãªtes banni et ne pouvez plus commenter sur cet article.";
+                            break;
+                        }
                     }
-                }
-            }
-
-            // Check PIN consistency
-            if (empty($errors)) {
-                $db = Database::getConnexion();
-
-                $q = $db->prepare("SELECT pin FROM commentaire WHERE pseudo = :pseudo AND pin IS NOT NULL LIMIT 1");
-                $q->execute(['pseudo' => $pseudo]);
-                $existingComment = $q->fetch();
-
-                if (!$existingComment) {
-                    $q = $db->prepare("SELECT pin FROM article WHERE auteur = :auteur LIMIT 1");
-                    $q->execute(['auteur' => $pseudo]);
-                    $existingComment = $q->fetch();
-                }
-
-                if ($existingComment && $existingComment['pin'] !== $pin) {
-                    $errors[] = "PIN incorrect pour ce nom. Si vous avez oublié votre PIN, utilisez un autre nom.";
                 }
             }
 
@@ -384,7 +372,7 @@ class ArticleController
                     'valide'
                 );
                 $this->addCommentaire($c, $pin);
-                $_SESSION['success'] = "Commentaire publié ! ? Votre PIN est <strong>" . htmlspecialchars($pin) . "</strong> — gardez-le pour retrouver vos commentaires.";
+                $_SESSION['success'] = "Commentaire publiÃ© avec succÃ¨s !";
                 header('Location: ' . BASE_URL . '/?page=article&action=detail&id=' . $article_id);
                 exit;
             }
@@ -397,29 +385,29 @@ class ArticleController
     }
 
     //==========================================================================
-    // COMMENT ACTIONS (Edit / Delete / Report) — AJAX
+    // COMMENT ACTIONS (Edit / Delete / Report) â€” AJAX
     //==========================================================================
 
     function editCommentFront()
     {
         header('Content-Type: application/json');
 
-        $id      = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $user    = trim($_POST['user'] ?? '');
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $user = trim($_POST['user'] ?? '');
         $contenu = trim($_POST['contenu'] ?? '');
 
         if ($id === 0 || $user === '') {
-            echo json_encode(['success' => false, 'error' => 'Données manquantes.']);
+            echo json_encode(['success' => false, 'error' => 'DonnÃ©es manquantes.']);
             exit;
         }
         if (mb_strlen($contenu) < 5) {
-            echo json_encode(['success' => false, 'error' => 'Le commentaire doit contenir au moins 5 caractères.']);
+            echo json_encode(['success' => false, 'error' => 'Le commentaire doit contenir au moins 5 caractÃ¨res.']);
             exit;
         }
 
         $comment = Commentaire::getById($id);
         if (!$comment || ($comment['pseudo'] ?? '') !== $user) {
-            echo json_encode(['success' => false, 'error' => 'Action non autorisée.']);
+            echo json_encode(['success' => false, 'error' => 'Action non autorisÃ©e.']);
             exit;
         }
 
@@ -432,17 +420,17 @@ class ArticleController
     {
         header('Content-Type: application/json');
 
-        $id   = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $user = trim($_POST['user'] ?? '');
 
         if ($id === 0 || $user === '') {
-            echo json_encode(['success' => false, 'error' => 'Données manquantes.']);
+            echo json_encode(['success' => false, 'error' => 'DonnÃ©es manquantes.']);
             exit;
         }
 
         $comment = Commentaire::getById($id);
         if (!$comment || ($comment['pseudo'] ?? '') !== $user) {
-            echo json_encode(['success' => false, 'error' => 'Action non autorisée.']);
+            echo json_encode(['success' => false, 'error' => 'Action non autorisÃ©e.']);
             exit;
         }
 
@@ -455,7 +443,7 @@ class ArticleController
     {
         header('Content-Type: application/json');
 
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         if ($id === 0) {
             echo json_encode(['success' => false, 'error' => 'ID manquant.']);
             exit;
@@ -467,14 +455,14 @@ class ArticleController
     }
 
     //==========================================================================
-    // ROUTING — BACKOFFICE
+    // ROUTING â€” BACKOFFICE
     //==========================================================================
 
     function listBack()
     {
-        $statut   = trim($_GET['statut'] ?? '');
-        $sort     = trim($_GET['sort']   ?? 'date_desc');
-        $keyword  = trim($_GET['q']      ?? '');
+        $statut = trim($_GET['statut'] ?? '');
+        $sort = trim($_GET['sort'] ?? 'date_desc');
+        $keyword = trim($_GET['q'] ?? '');
 
         // Filtered articles for display
         $articles = $this->listArticlesBack($statut, $sort, $keyword);
@@ -504,7 +492,7 @@ class ArticleController
                 // Sanitize role: if the submitted role is actually a status, reset to default
                 $role = trim($_POST['role_utilisateur'] ?? '');
                 if (empty($role) || in_array($role, ['brouillon', 'en_attente', 'publie'])) {
-                    $role = 'Passionné de cuisine';
+                    $role = 'PassionnÃ© de cuisine';
                 }
 
                 $a = new Article(
@@ -516,7 +504,7 @@ class ArticleController
                     $_POST['statut'] ?? 'brouillon'
                 );
                 $this->addArticle($a);
-                $_SESSION['success'] = "Article ajouté.";
+                $_SESSION['success'] = "Article ajoutÃ©.";
                 header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
                 exit;
             }
@@ -528,7 +516,7 @@ class ArticleController
 
     function editBack()
     {
-        $id      = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $article = $this->getArticle($id);
         if (!$article) {
             $_SESSION['error'] = "Article introuvable.";
@@ -542,7 +530,7 @@ class ArticleController
                 // Sanitize role
                 $role = trim($_POST['role_utilisateur'] ?? $article['role_utilisateur'] ?? '');
                 if (empty($role) || in_array($role, ['brouillon', 'en_attente', 'publie'])) {
-                    $role = $article['role_utilisateur'] ?? 'Passionné de cuisine';
+                    $role = $article['role_utilisateur'] ?? 'PassionnÃ© de cuisine';
                 }
 
                 $a = new Article(
@@ -554,7 +542,7 @@ class ArticleController
                     $_POST['statut'] ?? 'brouillon'
                 );
                 $this->updateArticle($a, $id);
-                $_SESSION['success'] = "Article modifié.";
+                $_SESSION['success'] = "Article modifiÃ©.";
                 header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
                 exit;
             }
@@ -568,37 +556,37 @@ class ArticleController
     {
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $this->deleteArticle($id);
-        $_SESSION['success'] = "Article supprimé.";
+        $_SESSION['success'] = "Article supprimÃ©.";
         header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
         exit;
     }
 
     function getStatsSevenDays()
     {
-        $db   = Database::getConnexion();
+        $db = Database::getConnexion();
         $days = [];
-        $articlesData    = [];
+        $articlesData = [];
         $commentairesData = [];
 
         for ($i = 6; $i >= 0; $i--) {
-            $date   = date('Y-m-d', strtotime("-$i days"));
-            $label  = strftime('%a %d/%m', strtotime($date));
+            $date = date('Y-m-d', strtotime("-$i days"));
+            $label = strftime('%a %d/%m', strtotime($date));
             $days[] = $label;
 
-            // Articles publiés ce jour
+            // Articles publiÃ©s ce jour
             $q = $db->prepare("SELECT COUNT(*) FROM article WHERE DATE(date_publication) = :date AND statut = 'publie'");
             $q->execute(['date' => $date]);
-            $articlesData[] = (int)$q->fetchColumn();
+            $articlesData[] = (int) $q->fetchColumn();
 
-            // Commentaires postés ce jour
+            // Commentaires postÃ©s ce jour
             $q = $db->prepare("SELECT COUNT(*) FROM commentaire WHERE DATE(date_commentaire) = :date");
             $q->execute(['date' => $date]);
-            $commentairesData[] = (int)$q->fetchColumn();
+            $commentairesData[] = (int) $q->fetchColumn();
         }
 
         return [
-            'days'        => $days,
-            'articles'    => $articlesData,
+            'days' => $days,
+            'articles' => $articlesData,
             'commentaires' => $commentairesData,
         ];
     }
@@ -613,7 +601,7 @@ class ArticleController
 
     function publishBack()
     {
-        $id      = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         $article = $this->getArticle($id);
         if (!$article) {
             $_SESSION['error'] = "Article introuvable.";
@@ -623,7 +611,7 @@ class ArticleController
         // Only publish if confirmed via POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
             $this->publishArticle($id);
-            $_SESSION['success'] = "Article publié avec succès.";
+            $_SESSION['success'] = "Article publiÃ© avec succÃ¨s.";
             header('Location: ' . BASE_URL . '/?page=admin-article&action=list');
             exit;
         }
@@ -633,7 +621,7 @@ class ArticleController
     }
 
     //==========================================================================
-    // PIN — SAVE + VERIFY
+    // PIN â€” SAVE + VERIFY
     //==========================================================================
 
     function addArticleWithPin(Article $article, $pin)
@@ -644,12 +632,12 @@ class ArticleController
         try {
             $q = $db->prepare($sql);
             $q->execute([
-                'titre'            => $article->getTitre(),
-                'contenu'          => $article->getContenu(),
-                'auteur'           => $article->getAuteur(),
-                'pin'              => $pin,
+                'titre' => $article->getTitre(),
+                'contenu' => $article->getContenu(),
+                'auteur' => $article->getAuteur(),
+                'pin' => $pin,
                 'role_utilisateur' => $article->getRoleUtilisateur(),
-                'statut'           => $article->getStatut(),
+                'statut' => $article->getStatut(),
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
@@ -660,7 +648,7 @@ class ArticleController
     function verifyPin($article_id, $pin)
     {
         $sql = "SELECT id FROM article WHERE id = :id AND pin = :pin";
-        $db  = Database::getConnexion();
+        $db = Database::getConnexion();
         try {
             $q = $db->prepare($sql);
             $q->execute(['id' => $article_id, 'pin' => $pin]);
@@ -678,13 +666,16 @@ class ArticleController
         $valid = false;
         $q = $db->prepare("SELECT id FROM article WHERE auteur = :auteur AND pin = :pin LIMIT 1");
         $q->execute(['auteur' => $auteur, 'pin' => $pin]);
-        if ($q->fetch()) $valid = true;
+        if ($q->fetch())
+            $valid = true;
         if (!$valid) {
             $q = $db->prepare("SELECT id FROM commentaire WHERE pseudo = :pseudo AND pin = :pin LIMIT 1");
             $q->execute(['pseudo' => $auteur, 'pin' => $pin]);
-            if ($q->fetch()) $valid = true;
+            if ($q->fetch())
+                $valid = true;
         }
-        if (!$valid) return [];
+        if (!$valid)
+            return [];
 
         $sql = "SELECT * FROM article
                 WHERE auteur = :auteur
@@ -707,11 +698,11 @@ class ArticleController
         try {
             $q = $db->prepare($sql);
             $q->execute([
-                'titre'            => $article->getTitre(),
-                'contenu'          => $article->getContenu(),
-                'auteur'           => $article->getAuteur(),
+                'titre' => $article->getTitre(),
+                'contenu' => $article->getContenu(),
+                'auteur' => $article->getAuteur(),
                 'role_utilisateur' => $article->getRoleUtilisateur(),
-                'id'               => $id,
+                'id' => $id,
             ]);
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
@@ -719,43 +710,49 @@ class ArticleController
     }
 
     //==========================================================================
-    // ROUTING — MES ACTIVITÉS (front user space)
+    // ROUTING â€” MES ACTIVITÃ‰S (front user space)
     //==========================================================================
 
     function mesActivitesFront()
     {
-        $errors      = [];
-        $mesArticles  = [];
+        $errors = [];
+        $mesArticles = [];
         $mesCommentaires = [];
         $auteurSaisi = '';
-        $pinSaisi    = '';
+        $pinSaisi = '';
+        $sessionConnecte = false; // true = logged-in user, no PIN needed
 
-        // 1. If user already in session, load automatically
-        if (!empty($_SESSION['mes_activites_auteur']) && !empty($_SESSION['mes_activites_pin'])) {
+        // â”€â”€ Priority 1: User is logged in via main session â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        if (!empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && !empty($_SESSION['username'])) {
+            $sessionConnecte = true;
+            $auteurSaisi = $_SESSION['username'];
+            $mesArticles     = $this->getMesArticlesByUsername($auteurSaisi);
+            $mesCommentaires = $this->getMesCommentairesByUsername($auteurSaisi);
+        }
+        // â”€â”€ Priority 2: Legacy PIN session (guest who entered name+PIN before) â”€â”€
+        elseif (!empty($_SESSION['mes_activites_auteur']) && !empty($_SESSION['mes_activites_pin'])) {
             $auteurSaisi = $_SESSION['mes_activites_auteur'];
             $pinSaisi    = $_SESSION['mes_activites_pin'];
-            $mesArticles = $this->getMesArticles($auteurSaisi, $pinSaisi);
+            $mesArticles     = $this->getMesArticles($auteurSaisi, $pinSaisi);
             $mesCommentaires = $this->getMesCommentaires($auteurSaisi, $pinSaisi);
         }
-
-        // 2. Process login form
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // â”€â”€ Priority 3: POST form submission (guest PIN login) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $auteurSaisi = trim($_POST['auteur'] ?? '');
             $pinSaisi    = trim($_POST['pin'] ?? '');
 
             if (mb_strlen($auteurSaisi) < 2) {
-                $errors[] = "Veuillez entrer votre nom (min 2 caractères).";
+                $errors[] = "Veuillez entrer votre nom (min 2 caractÃ¨res).";
             }
             if (!preg_match('/^\d{4}$/', $pinSaisi)) {
                 $errors[] = "Le PIN doit contenir exactement 4 chiffres.";
             }
             if (empty($errors)) {
-                $mesArticles = $this->getMesArticles($auteurSaisi, $pinSaisi);
+                $mesArticles     = $this->getMesArticles($auteurSaisi, $pinSaisi);
                 $mesCommentaires = $this->getMesCommentaires($auteurSaisi, $pinSaisi);
                 if (empty($mesArticles) && empty($mesCommentaires)) {
-                    $errors[] = "Aucune activité trouvée. Vérifiez votre nom et votre PIN.";
+                    $errors[] = "Aucune activitÃ© trouvÃ©e. VÃ©rifiez votre nom et votre PIN.";
                 } else {
-                    // Store in session for seamless navigation
                     $_SESSION['mes_activites_auteur'] = $auteurSaisi;
                     $_SESSION['mes_activites_pin']    = $pinSaisi;
                 }
@@ -765,6 +762,30 @@ class ArticleController
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_header.php';
         require_once BASE_PATH . '/app/views/frontoffice/article/mes_activites.php';
         require_once BASE_PATH . '/app/views/frontoffice/layouts/front_footer.php';
+    }
+
+    /** Articles by logged-in username â€” no PIN required */
+    function getMesArticlesByUsername($username)
+    {
+        $db = Database::getConnexion();
+        $q  = $db->prepare("SELECT * FROM article WHERE auteur = :auteur ORDER BY date_publication DESC");
+        $q->execute(['auteur' => $username]);
+        return $q->fetchAll();
+    }
+
+    /** Comments by logged-in username â€” no PIN required */
+    function getMesCommentairesByUsername($username)
+    {
+        $db = Database::getConnexion();
+        $q  = $db->prepare(
+            "SELECT c.*, a.titre AS article_titre, a.statut AS article_statut
+             FROM commentaire c
+             JOIN article a ON a.id = c.article_id
+             WHERE c.pseudo = :pseudo
+             ORDER BY c.date_commentaire DESC"
+        );
+        $q->execute(['pseudo' => $username]);
+        return $q->fetchAll();
     }
 
     function getMesCommentaires($auteur, $pin)
@@ -777,7 +798,8 @@ class ArticleController
         if (!$q->fetch()) {
             $q = $db->prepare("SELECT id FROM article WHERE auteur = :auteur AND pin = :pin LIMIT 1");
             $q->execute(['auteur' => $auteur, 'pin' => $pin]);
-            if (!$q->fetch()) return [];
+            if (!$q->fetch())
+                return [];
         }
 
         $sql = "SELECT c.*, a.titre AS article_titre, a.statut AS article_statut
@@ -792,38 +814,48 @@ class ArticleController
 
     function editMesCommentairesFront()
     {
-        $id      = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $pseudo  = trim($_GET['pseudo'] ?? '');
-        $pin     = trim($_GET['pin'] ?? '');
+        $id     = isset($_GET['id'])     ? (int) $_GET['id']    : 0;
+        $pseudo = trim($_GET['pseudo'] ?? '');
+        $pin    = trim($_GET['pin']    ?? '');
 
-        $db = Database::getConnexion();
-        // Verify PIN belongs to this user
-        $q = $db->prepare("SELECT id FROM article WHERE auteur = :auteur AND pin = :pin LIMIT 1");
-        $q->execute(['auteur' => $pseudo, 'pin' => $pin]);
-        if (!$q->fetch()) {
-            $q = $db->prepare("SELECT id FROM commentaire WHERE pseudo = :pseudo AND pin = :pin LIMIT 1");
-            $q->execute(['pseudo' => $pseudo, 'pin' => $pin]);
+        // â”€â”€ Authorisation: session login OR valid PIN â”€â”€
+        $loggedIn        = !empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+        $sessionUsername = $_SESSION['username'] ?? '';
+        $comment         = Commentaire::getById($id);
+        $commentOwner    = $comment['pseudo'] ?? '';
+        $isOwnerBySession = $loggedIn && $comment && ($commentOwner === $sessionUsername);
+
+        if (!$isOwnerBySession) {
+            // Fallback: verify by PIN
+            $db = Database::getConnexion();
+            $q = $db->prepare("SELECT id FROM article WHERE auteur = :auteur AND pin = :pin LIMIT 1");
+            $q->execute(['auteur' => $pseudo, 'pin' => $pin]);
             if (!$q->fetch()) {
-                $_SESSION['error'] = "Action non autorisée.";
-                header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
-                exit;
+                $q = $db->prepare("SELECT id FROM commentaire WHERE pseudo = :pseudo AND pin = :pin LIMIT 1");
+                $q->execute(['pseudo' => $pseudo, 'pin' => $pin]);
+                if (!$q->fetch()) {
+                    $_SESSION['error'] = "Action non autorisÃ©e.";
+                    header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
+                    exit;
+                }
             }
         }
 
-        $comment = Commentaire::getById($id);
-        if (!$comment || ($comment['pseudo'] ?? '') !== $pseudo) {
-            $_SESSION['error'] = "Action non autorisée.";
+        if (!$comment || $commentOwner !== ($isOwnerBySession ? $sessionUsername : $pseudo)) {
+            $_SESSION['error'] = "Action non autorisÃ©e.";
             header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
             exit;
         }
+        // Ensure $pseudo is set to actual owner for downstream use
+        $pseudo = $commentOwner;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $contenu = trim($_POST['contenu'] ?? '');
             if (mb_strlen($contenu) < 5) {
-                $_SESSION['error'] = "Le commentaire doit contenir au moins 5 caractères.";
+                $_SESSION['error'] = "Le commentaire doit contenir au moins 5 caractÃ¨res.";
             } else {
                 Commentaire::updateContenu($id, $pseudo, $contenu);
-                $_SESSION['success'] = "Commentaire modifié !";
+                $_SESSION['success'] = "Commentaire modifiÃ© !";
                 header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
                 exit;
             }
@@ -836,25 +868,37 @@ class ArticleController
 
     function deleteMesCommentairesFront()
     {
-        $id      = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $pseudo  = trim($_GET['pseudo'] ?? '');
-        $pin     = trim($_GET['pin'] ?? '');
+        $id     = isset($_GET['id'])     ? (int) $_GET['id']    : 0;
+        $pseudo = trim($_GET['pseudo'] ?? '');
+        $pin    = trim($_GET['pin']    ?? '');
 
-        $db = Database::getConnexion();
-        $q = $db->prepare("SELECT id FROM article WHERE auteur = :auteur AND pin = :pin LIMIT 1");
-        $q->execute(['auteur' => $pseudo, 'pin' => $pin]);
-        if (!$q->fetch()) {
-            $q = $db->prepare("SELECT id FROM commentaire WHERE pseudo = :pseudo AND pin = :pin LIMIT 1");
-            $q->execute(['pseudo' => $pseudo, 'pin' => $pin]);
+        // â”€â”€ Authorisation: session login OR valid PIN â”€â”€
+        $loggedIn        = !empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+        $sessionUsername = $_SESSION['username'] ?? '';
+        $comment         = Commentaire::getById($id);
+        $commentOwner    = $comment['pseudo'] ?? '';
+        $isOwnerBySession = $loggedIn && $comment && ($commentOwner === $sessionUsername);
+
+        if (!$isOwnerBySession) {
+            // Fallback: verify by PIN
+            $db = Database::getConnexion();
+            $q = $db->prepare("SELECT id FROM article WHERE auteur = :auteur AND pin = :pin LIMIT 1");
+            $q->execute(['auteur' => $pseudo, 'pin' => $pin]);
             if (!$q->fetch()) {
-                $_SESSION['error'] = "Action non autorisée.";
-                header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
-                exit;
+                $q = $db->prepare("SELECT id FROM commentaire WHERE pseudo = :pseudo AND pin = :pin LIMIT 1");
+                $q->execute(['pseudo' => $pseudo, 'pin' => $pin]);
+                if (!$q->fetch()) {
+                    $_SESSION['error'] = "Action non autorisÃ©e.";
+                    header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
+                    exit;
+                }
             }
         }
 
-        Commentaire::deleteByOwner($id, $pseudo);
-        $_SESSION['success'] = "Commentaire supprimé.";
+        // Use the actual comment owner (robust against URL tampering)
+        $ownerToDelete = $isOwnerBySession ? $sessionUsername : $pseudo;
+        Commentaire::deleteByOwner($id, $ownerToDelete);
+        $_SESSION['success'] = "Commentaire supprimÃ©.";
         header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
         exit;
     }
@@ -862,8 +906,17 @@ class ArticleController
     function addFront()
     {
         $errors = [];
+        $loggedIn = !empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['statut'] = 'en_attente';
+            
+            // If logged in, force the author to the session username and pin to 0000
+            if ($loggedIn) {
+                $_POST['auteur'] = $_SESSION['username'] ?? 'User';
+                $_POST['pin'] = '0000';
+            }
+
             $errors = $this->validerArticleFront($_POST);
             if (empty($errors)) {
                 $a = new Article(
@@ -871,12 +924,18 @@ class ArticleController
                     trim($_POST['contenu']),
                     trim($_POST['auteur']),
                     trim($_POST['pin']),
-                    trim($_POST['role_utilisateur'] ?? 'Passionné de cuisine'),
+                    trim($_POST['role_utilisateur'] ?? 'PassionnÃ© de cuisine'),
                     'en_attente'
                 );
                 $pin = trim($_POST['pin']);
                 $this->addArticleWithPin($a, $pin);
-                $_SESSION['success'] = "Article soumis ! ?? Votre PIN est <strong>" . htmlspecialchars($pin) . "</strong> — gardez-le précieusement pour retrouver vos articles.";
+
+                if ($loggedIn) {
+                    $_SESSION['success'] = "Article soumis ! Il passera en validation avant publication.";
+                } else {
+                    $_SESSION['success'] = "Article soumis ! Votre PIN est <strong>" . htmlspecialchars($pin) . "</strong> â€” gardez-le prÃ©cieusement pour retrouver vos articles.";
+                }
+                
                 header('Location: ' . BASE_URL . '/?page=article&action=list');
                 exit;
             }
@@ -889,32 +948,43 @@ class ArticleController
     function validerArticleFront($post)
     {
         $errors = [];
-        $titre   = trim($post['titre'] ?? '');
+        $titre = trim($post['titre'] ?? '');
         $contenu = trim($post['contenu'] ?? '');
-        $auteur  = trim($post['auteur'] ?? '');
-        $pin     = trim($post['pin'] ?? '');
-        $role    = trim($post['role_utilisateur'] ?? '');
+        $auteur = trim($post['auteur'] ?? '');
+        $pin = trim($post['pin'] ?? '');
+        $role = trim($post['role_utilisateur'] ?? '');
 
-        if ($titre === '' || mb_strlen($titre) < 3)    $errors[] = "Titre obligatoire (min 3 caractères).";
-        if (mb_strlen($titre) > 150)                   $errors[] = "Titre max 150 caractères.";
-        if ($contenu === '' || mb_strlen($contenu) < 20) $errors[] = "Contenu obligatoire (min 20 caractères).";
-        if ($auteur === '' || mb_strlen($auteur) < 2)  $errors[] = "Nom obligatoire (min 2 caractères).";
-        if (!preg_match('/^\d{4}$/', $pin))            $errors[] = "Le PIN doit contenir exactement 4 chiffres.";
-        if ($role === '')                              $errors[] = "Veuillez sélectionner votre profil.";
+        if ($titre === '' || mb_strlen($titre) < 3)
+            $errors[] = "Titre obligatoire (min 3 caractÃ¨res).";
+        if (mb_strlen($titre) > 150)
+            $errors[] = "Titre max 150 caractÃ¨res.";
+        if ($contenu === '' || mb_strlen($contenu) < 20)
+            $errors[] = "Contenu obligatoire (min 20 caractÃ¨res).";
+        if ($auteur === '' || mb_strlen($auteur) < 2)
+            $errors[] = "Nom obligatoire (min 2 caractÃ¨res).";
+        if (!preg_match('/^\d{4}$/', $pin))
+            $errors[] = "Le PIN doit contenir exactement 4 chiffres.";
+        if ($role === '')
+            $errors[] = "Veuillez sÃ©lectionner votre profil.";
 
         return $errors;
     }
 
     function editMesArticlesFront()
     {
-        $id  = isset($_GET['id'])  ? (int)$_GET['id']        : 0;
-        $pin = isset($_GET['pin']) ? trim($_GET['pin'])       : '';
-        $auteur = isset($_GET['auteur']) ? trim($_GET['auteur']) : '';
+        $id     = isset($_GET['id'])     ? (int) $_GET['id']        : 0;
+        $pin    = isset($_GET['pin'])    ? trim($_GET['pin'])        : '';
+        $auteur = isset($_GET['auteur']) ? trim($_GET['auteur'])     : '';
 
         $article = $this->getArticle($id);
 
-        if (!$article || !$this->verifyPin($id, $pin)) {
-            $_SESSION['error'] = "Action non autorisée.";
+        // â”€â”€ Authorisation: session login OR valid PIN â”€â”€
+        $loggedIn       = !empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+        $sessionUsername = $_SESSION['username'] ?? '';
+        $isOwnerBySession = $loggedIn && $article && ($article['auteur'] === $sessionUsername);
+
+        if (!$article || (!$isOwnerBySession && !$this->verifyPin($id, $pin))) {
+            $_SESSION['error'] = "Action non autorisÃ©e.";
             header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
             exit;
         }
@@ -925,7 +995,7 @@ class ArticleController
             $_POST['auteur'] = $article['auteur'];
             $errors = $this->validerArticleFront($_POST);
             // Remove errors about PIN (already verified) and author (pre-filled)
-            $errors = array_filter($errors, function($e) {
+            $errors = array_filter($errors, function ($e) {
                 return strpos($e, 'PIN') === false && strpos($e, 'Nom obligatoire') === false;
             });
             $errors = array_values($errors);
@@ -940,7 +1010,7 @@ class ArticleController
                     'en_attente'
                 );
                 $this->updateArticleUser($a, $id);
-                $_SESSION['success'] = "Article modifié ! Il repassera en validation avant publication.";
+                $_SESSION['success'] = "Article modifiÃ© ! Il repassera en validation avant publication.";
                 header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
                 exit;
             }
@@ -953,18 +1023,24 @@ class ArticleController
 
     function deleteMesArticlesFront()
     {
-        $id     = isset($_GET['id'])     ? (int)$_GET['id']        : 0;
-        $pin    = isset($_GET['pin'])    ? trim($_GET['pin'])       : '';
-        $auteur = isset($_GET['auteur']) ? trim($_GET['auteur'])    : '';
+        $id     = isset($_GET['id'])     ? (int) $_GET['id']    : 0;
+        $pin    = isset($_GET['pin'])    ? trim($_GET['pin'])    : '';
+        $auteur = isset($_GET['auteur']) ? trim($_GET['auteur']) : '';
 
-        if (!$this->verifyPin($id, $pin)) {
-            $_SESSION['error'] = "Action non autorisée.";
+        // â”€â”€ Authorisation: session login OR valid PIN â”€â”€
+        $loggedIn        = !empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+        $sessionUsername = $_SESSION['username'] ?? '';
+        $article         = $this->getArticle($id);
+        $isOwnerBySession = $loggedIn && $article && ($article['auteur'] === $sessionUsername);
+
+        if (!$isOwnerBySession && !$this->verifyPin($id, $pin)) {
+            $_SESSION['error'] = "Action non autorisÃ©e.";
             header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
             exit;
         }
 
         $this->deleteArticle($id);
-        $_SESSION['success'] = "Article supprimé.";
+        $_SESSION['success'] = "Article supprimÃ©.";
         header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
         exit;
     }
@@ -976,16 +1052,16 @@ class ArticleController
         header('Location: ' . BASE_URL . '/?page=article&action=mes-activites');
         exit;
     }
-        
+
     //==========================================================================
-    // TRADUCTION — API LibreTranslate
+    // TRADUCTION â€” API LibreTranslate
     //==========================================================================
     function apiTranslateArticle()
     {
         header('Content-Type: application/json');
 
-        $contenu  = trim($_POST['contenu'] ?? '');
-        $langue   = trim($_POST['langue'] ?? 'en');
+        $contenu = trim($_POST['contenu'] ?? '');
+        $langue = trim($_POST['langue'] ?? 'en');
 
         if ($contenu === '' || mb_strlen($contenu) < 10) {
             echo json_encode(['success' => false, 'error' => 'Contenu trop court.']);
@@ -994,7 +1070,7 @@ class ArticleController
 
         $allowed = ['en', 'ar', 'fr'];
         if (!in_array($langue, $allowed)) {
-            echo json_encode(['success' => false, 'error' => 'Langue non supportée.']);
+            echo json_encode(['success' => false, 'error' => 'Langue non supportÃ©e.']);
             exit;
         }
 
@@ -1030,13 +1106,13 @@ class ArticleController
         if ($traduction !== '') {
             echo json_encode(['success' => true, 'traduction' => $traduction]);
         } else {
-            echo json_encode(['success' => false, 'error' => 'Aucune traduction reçue.']);
+            echo json_encode(['success' => false, 'error' => 'Aucune traduction reÃ§ue.']);
         }
         exit;
     }
-    
+
     //==========================================================================
-    // RÉSUMÉ AUTOMATIQUE — Gemini API
+    // RÃ‰SUMÃ‰ AUTOMATIQUE â€” Gemini API
     //==========================================================================
 
     function apiResumeArticle()
@@ -1046,7 +1122,7 @@ class ArticleController
         $contenu = trim($_POST['contenu'] ?? '');
 
         if ($contenu === '' || mb_strlen($contenu) < 500) {
-            echo json_encode(['success' => false, 'error' => 'Article trop court (min 500 caractères).']);
+            echo json_encode(['success' => false, 'error' => 'Article trop court (min 500 caractÃ¨res).']);
             exit;
         }
 

@@ -141,53 +141,189 @@ $showResumeBtn = true;
   </div>
 
   <!-- FORMULAIRE AJOUT COMMENTAIRE -->
-  <div style="margin-top:1.25rem" class="card">
-    <h3 style="font-family:var(--font-heading);font-size:1.05rem;font-weight:900;color:var(--text-primary);margin:0 0 0.9rem;display:flex;align-items:center;gap:0.5rem">
-      <i data-lucide="send" style="width:1rem;height:1rem;color:var(--primary)"></i>
-      Laisser un commentaire
-    </h3>
+  <style>
+  /* ─── Dynamic validation styles (from add.php) ─── */
+  .art-field-error {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #ef4444;
+    animation: artFadeUp 0.2s ease;
+  }
+  .art-field-error.visible { display: flex; }
+  .art-input-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+  }
+  .art-input-valid {
+    border-color: #22c55e !important;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.10) !important;
+  }
+  @keyframes artFadeUp {
+    from { opacity:0; transform:translateY(4px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
 
-    <?php if (!empty($errors)): ?>
-      <div class="p-4 rounded-xl mb-4" style="background:linear-gradient(135deg,#fee2e2,#fef2f2);color:#991b1b;border:1px solid #fca5a5">
-        <div style="font-weight:800;margin-bottom:0.3rem">Veuillez corriger :</div>
-        <ul style="margin:0;padding-left:1.2rem">
+  .art-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 0.875rem;
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--foreground);
+    transition: all 0.25s;
+    outline: none;
+    font-family: inherit;
+  }
+  .art-input:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(82,183,136,0.12);
+  }
+  .art-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .art-char-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.3rem;
+    transition: color 0.2s;
+  }
+
+  .art-submit-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .art-submit-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+  }
+  .art-submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .pin-dots {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .pin-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.2s;
+  }
+  .pin-dot.filled {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 0 6px rgba(245,158,11,0.5);
+  }
+  </style>
+
+  <div style="margin-top:2.5rem;margin-bottom:2rem">
+    <div class="card" style="padding:2.25rem;border:1.5px solid var(--border);border-radius:1.25rem;display:flex;flex-direction:column;gap:1.6rem">
+      
+      <!-- HEADER -->
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+        <div style="display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;
+                    background:linear-gradient(135deg,#e0e7ff,#c7d2fe);border-radius:1rem;
+                    box-shadow:0 8px 24px rgba(99,102,241,0.25)">
+          <i data-lucide="message-square-plus" style="width:1.5rem;height:1.5rem;color:#4f46e5"></i>
+        </div>
+        <div>
+          <h3 style="font-family:var(--font-heading);font-size:1.3rem;font-weight:900;
+                     color:var(--text-primary);letter-spacing:-0.02em;margin:0">
+            Laisser un commentaire
+          </h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 0 0">
+            Participez à la discussion et donnez votre avis ! 💬
+          </p>
+        </div>
+      </div>
+
+      <?php if (!empty($errors)): ?>
+        <div style="background:linear-gradient(135deg,#fee2e2,#fef2f2);border:1.5px solid #fca5a5;
+                    border-radius:var(--radius-xl);padding:1rem 1.25rem">
           <?php foreach ($errors as $e): ?>
-            <li><?= htmlspecialchars($e) ?></li>
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:#dc2626;padding:0.2rem 0">
+              <i data-lucide="alert-circle" style="width:0.875rem;height:0.875rem;flex-shrink:0"></i>
+              <?= htmlspecialchars($e) ?>
+            </div>
           <?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
+        </div>
+      <?php endif; ?>
 
-    <form method="post" action="<?= BASE_URL ?>/?page=article&action=comment-add&id=<?= $articleId ?>" onsubmit="return validateCommentForm();">
-      <div class="grid grid-cols-2 gap-4">
+      <form method="post" action="<?= BASE_URL ?>/?page=article&action=comment&id=<?= $articleId ?>" id="commentAddForm" novalidate style="display:flex;flex-direction:column;gap:1.6rem">
+        
+        <!-- ROW 1: Auteur + PIN -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+          <!-- Auteur -->
+          <div>
+            <label for="commentAuteur" class="art-label">
+              <i data-lucide="user" style="width:0.85rem;height:0.85rem;color:#3b82f6"></i>
+              Votre nom <span style="color:#ef4444">*</span>
+            </label>
+            <input type="text" name="auteur" id="commentAuteur" class="art-input"
+                   value="<?= htmlspecialchars($_POST['auteur'] ?? $_SESSION['username'] ?? '') ?>"
+                   placeholder="Ex: Amine Khoury" maxlength="120" autocomplete="name">
+            <div class="art-field-error" id="err-commentAuteur">
+              <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+              <span></span>
+            </div>
+          </div>
+
+          <!-- PIN removed for connected users -->
+          <input type="hidden" name="pin" value="0000">
+        </div>
+
+        <!-- ROW 2: Contenu -->
         <div>
-          <label class="label">Votre nom</label>
-          <input type="text" name="auteur" id="commentAuteur" class="input" value="<?= htmlspecialchars($_POST['auteur'] ?? '') ?>" placeholder="Ex: Amine" />
-          <div id="commentAuteurErr" style="margin-top:6px;font-size:0.75rem;color:#b91c1c;display:none"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.45rem">
+            <label for="commentContenu" class="art-label" style="margin-bottom:0">
+              <i data-lucide="message-square-dashed" style="width:0.85rem;height:0.85rem;color:#10b981"></i>
+              Votre commentaire <span style="color:#ef4444">*</span>
+            </label>
+            <span style="font-size:0.7rem;color:var(--text-muted)">min 5 caractères</span>
+          </div>
+          <textarea name="contenu" id="commentContenu" class="art-input" rows="4"
+                    placeholder="Qu'avez-vous pensé de cet article ?..."
+                    style="line-height:1.6;resize:vertical;min-height:100px"><?= htmlspecialchars($_POST['contenu'] ?? '') ?></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="art-field-error" id="err-commentContenu" style="margin-top:0.35rem">
+              <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
+              <span></span>
+            </div>
+            <div class="art-char-count" id="commentContenuCount" style="margin-left:auto">0 caractères</div>
+          </div>
         </div>
-        <div>
-          <label class="label">🔢 Votre PIN (4 chiffres)</label>
-          <input type="password" name="pin" id="commentPin" class="input" value="<?= htmlspecialchars($_POST['pin'] ?? '') ?>" placeholder="Ex: 1234" maxlength="4" />
-          <div id="commentPinErr" style="margin-top:6px;font-size:0.75rem;color:#b91c1c;display:none"></div>
-          <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">Même PIN que pour vos articles. <a href="<?= BASE_URL ?>/?page=article&action=add" style="color:var(--primary)">Pas encore d'article ?</a></p>
-        </div>
-      </div>
 
-      <div style="margin-top:1rem">
-        <label class="label">Commentaire</label>
-        <textarea name="contenu" id="commentContenu" class="input" rows="5" placeholder="Votre message..."><?= htmlspecialchars($_POST['contenu'] ?? '') ?></textarea>
-        <div id="commentContenuErr" style="margin-top:6px;font-size:0.75rem;color:#b91c1c;display:none"></div>
-      </div>
-
-      <div style="margin-top:1rem;display:flex;justify-content:space-between;align-items:center">
-        <div style="padding:0.7rem 1rem;border:1px solid #fef3c7;border-radius:var(--radius);background:#fffbeb;color:#92400e;font-size:0.78rem;line-height:1.5">
-          🙏 Soyez respectueux — Les commentaires inappropriés peuvent être signalés.
+        <!-- SUBMIT -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:1rem;border-top:1.5px solid var(--border);flex-wrap:wrap;gap:1rem">
+          <div style="padding:0.7rem 1rem;border:1px solid #fef3c7;border-radius:0.75rem;background:#fffbeb;color:#92400e;font-size:0.78rem;line-height:1.5;flex:1;min-width:250px">
+            🙏 <strong>Soyez respectueux</strong> — Les commentaires inappropriés peuvent être signalés.
+          </div>
+          <button type="submit" id="commentSubmitBtn" class="btn btn-primary art-submit-btn"
+                  style="padding:0.8rem 2.2rem;font-size:0.95rem;border-radius:var(--radius-full);gap:0.5rem">
+            <i data-lucide="send-horizontal" style="width:1.1rem;height:1.1rem"></i>
+            Publier le commentaire
+          </button>
         </div>
-        <button class="btn btn-primary" type="submit" style="border-radius:var(--radius-full)">
-          <i data-lucide="send" style="width:1rem;height:1rem"></i> Envoyer
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -286,57 +422,68 @@ function closeResumePopup() {
 
 function copyResume() {
   navigator.clipboard.writeText(cachedResume || '').then(() => {
-    alert('Résumé copié !');
+    gbToast('success', '📋 Résumé copié dans le presse-papier !');
   });
 }
 
 // ==================== FAVORIS ====================
-function getFavorisKey(name, pin) {
-  return 'greenbite_favoris_' + name.toLowerCase().trim() + '_' + pin;
+function getFavorisKey(name) { return 'greenbite_favoris_' + name.toLowerCase().trim(); }
+function getFavoris(name)    { try { return JSON.parse(localStorage.getItem(getFavorisKey(name)) || '[]'); } catch(e) { return []; } }
+function saveFavoris(name, ids) { localStorage.setItem(getFavorisKey(name), JSON.stringify(ids)); }
+
+function toggleFavori(id) {
+  if (GB_LOGGED_IN) {
+    _doToggleFavori(id, <?= json_encode($_SESSION['username'] ?? '') ?>);
+  } else {
+    showFavoriPopup(id);
+  }
 }
 
-function getFavoris(name, pin) {
-  try { return JSON.parse(localStorage.getItem(getFavorisKey(name, pin)) || '[]'); } catch(e) { return []; }
+function _doToggleFavori(id, name) {
+  var favoris = getFavoris(name);
+  var idx = favoris.indexOf(id);
+  var btn = document.getElementById('favori-btn-' + id);
+  if (idx === -1) {
+    favoris.push(id);
+    if (btn) { btn.innerHTML = '⭐'; btn.style.color = '#f59e0b'; }
+    gbToast('success', '⭐ Ajouté à vos favoris !');
+  } else {
+    favoris.splice(idx, 1);
+    if (btn) { btn.innerHTML = '☆'; btn.style.color = 'var(--text-muted)'; }
+    gbToast('info', 'Retiré de vos favoris.');
+  }
+  saveFavoris(name, favoris);
 }
-
-function saveFavoris(name, pin, ids) {
-  localStorage.setItem(getFavorisKey(name, pin), JSON.stringify(ids));
-}
-
-function toggleFavori(id) { showFavoriPopup(id); }
 
 function showFavoriPopup(id) {
-  const existing = document.getElementById('favori-popup');
+  var existing = document.getElementById('favori-popup');
   if (existing) existing.remove();
-  const btn = document.getElementById('favori-btn-' + id);
-  const rect = btn.getBoundingClientRect();
-  const popup = document.createElement('div');
+  var btn  = document.getElementById('favori-btn-' + id);
+  var rect = btn.getBoundingClientRect();
+  var popup = document.createElement('div');
   popup.id = 'favori-popup';
-  popup.style.cssText = `position:fixed;top:${Math.min(rect.top-10,window.innerHeight-250)}px;left:${Math.max(10,rect.left-150)}px;background:var(--card);border:2px solid var(--border);border-radius:1rem;padding:1rem;z-index:10000;box-shadow:0 12px 40px rgba(0,0,0,0.2);min-width:230px;`;
-  popup.innerHTML = `<div style="margin-bottom:0.5rem;font-weight:700;font-size:0.85rem;color:var(--text-primary)">⭐ Sauvegarder ce favori</div>
-    <input type="text" id="fav-name-${id}" placeholder="Votre nom" style="width:100%;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:0.5rem;font-size:0.8rem;margin-bottom:0.4rem" />
-    <input type="password" id="fav-pin-${id}" placeholder="Votre PIN (4 chiffres)" maxlength="4" style="width:100%;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:0.5rem;font-size:0.8rem;margin-bottom:0.5rem" />
-    <div style="display:flex;gap:0.4rem"><button onclick="saveFavoriWithPin(${id})" style="flex:1;padding:0.4rem;border:none;border-radius:0.5rem;background:var(--primary);color:#fff;cursor:pointer;font-size:0.75rem;font-weight:700">Sauvegarder</button><button onclick="document.getElementById('favori-popup').remove()" style="padding:0.4rem 0.8rem;border:1px solid var(--border);border-radius:0.5rem;background:transparent;cursor:pointer;font-size:0.75rem">✕</button></div>
-    <div id="fav-error-${id}" style="font-size:0.7rem;color:#dc2626;margin-top:0.3rem;display:none"></div>`;
+  popup.style.cssText = 'position:fixed;top:' + Math.min(rect.bottom + 8, window.innerHeight - 130) + 'px;left:' + Math.max(10, rect.left - 120) + 'px;background:var(--card);border:2px solid var(--border);border-radius:1rem;padding:1rem;z-index:10000;box-shadow:0 12px 40px rgba(0,0,0,0.2);min-width:210px;';
+  popup.innerHTML = '<div style="margin-bottom:0.5rem;font-weight:700;font-size:0.85rem;color:var(--text-primary)">⭐ Sauvegarder ce favori</div>' +
+    '<input type="text" id="fav-name-' + id + '" placeholder="Votre nom" style="width:100%;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:0.5rem;font-size:0.8rem;margin-bottom:0.5rem;box-sizing:border-box" />' +
+    '<div style="display:flex;gap:0.4rem"><button onclick="_doGuestFavori(' + id + ')" style="flex:1;padding:0.4rem;border:none;border-radius:0.5rem;background:var(--primary);color:#fff;cursor:pointer;font-size:0.75rem;font-weight:700">Sauvegarder</button>' +
+    '<button onclick="document.getElementById(\'favori-popup\').remove()" style="padding:0.4rem 0.8rem;border:1px solid var(--border);border-radius:0.5rem;background:transparent;cursor:pointer;font-size:0.75rem">✕</button></div>' +
+    '<div id="fav-err-' + id + '" style="font-size:0.7rem;color:#dc2626;margin-top:0.3rem;display:none"></div>';
   document.body.appendChild(popup);
-  setTimeout(function() { const nameInput = document.getElementById('fav-name-' + id); if (nameInput) nameInput.focus(); }, 100);
-  setTimeout(function() { document.addEventListener('click', function closePopup(e) { if (!popup.contains(e.target) && e.target !== btn) { popup.remove(); document.removeEventListener('click', closePopup); } }); }, 200);
+  setTimeout(function() { var n = document.getElementById('fav-name-' + id); if (n) n.focus(); }, 100);
+  setTimeout(function() {
+    document.addEventListener('click', function closeIt(e) {
+      if (!popup.contains(e.target) && e.target !== btn) { popup.remove(); document.removeEventListener('click', closeIt); }
+    });
+  }, 200);
 }
 
-function saveFavoriWithPin(id) {
-  const name = (document.getElementById('fav-name-' + id)?.value || '').trim();
-  const pin = (document.getElementById('fav-pin-' + id)?.value || '').trim();
-  const err = document.getElementById('fav-error-' + id);
-  if (name.length < 2) { if (err) { err.textContent = 'Nom requis (min 2 caractères)'; err.style.display = 'block'; } return; }
-  if (!/^\d{4}$/.test(pin)) { if (err) { err.textContent = 'PIN requis (4 chiffres)'; err.style.display = 'block'; } return; }
-  const favoris = getFavoris(name, pin);
-  const idx = favoris.indexOf(id);
-  const btn = document.getElementById('favori-btn-' + id);
-  if (idx === -1) { favoris.push(id); if (btn) { btn.innerHTML = '⭐'; btn.style.color = '#f59e0b'; } }
-  else { favoris.splice(idx, 1); if (btn) { btn.innerHTML = '☆'; btn.style.color = 'var(--text-muted)'; } }
-  saveFavoris(name, pin, favoris);
-  const popup = document.getElementById('favori-popup');
-  if (popup) popup.remove();
+function _doGuestFavori(id) {
+  var nameEl = document.getElementById('fav-name-' + id);
+  var errEl  = document.getElementById('fav-err-' + id);
+  var name   = (nameEl ? nameEl.value : '').trim();
+  if (name.length < 2) { if (errEl) { errEl.textContent = 'Nom requis (min 2 car.)'; errEl.style.display = 'block'; } return; }
+  _doToggleFavori(id, name);
+  var p = document.getElementById('favori-popup'); if (p) p.remove();
 }
 
 // ==================== PARTAGE ====================
@@ -346,7 +493,7 @@ function shareArticle(id, titre) {
   popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:10001;display:flex;align-items:center;justify-content:center;';
   popup.innerHTML = `<div style="background:var(--card);border-radius:1.5rem;padding:2rem;max-width:340px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)"><div style="font-weight:800;margin-bottom:1rem;color:var(--text-primary)">📤 Partager cet article</div><div style="display:flex;flex-direction:column;gap:0.5rem"><button id="copy-link-btn" style="display:flex;align-items:center;gap:0.5rem;width:100%;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:0.75rem;background:transparent;cursor:pointer;font-size:0.85rem;color:var(--text-primary)">📋 Copier le lien</button><button id="wa-btn" style="display:flex;align-items:center;gap:0.5rem;width:100%;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:0.75rem;background:transparent;cursor:pointer;font-size:0.85rem;color:var(--text-primary)">💬 WhatsApp</button><button id="fb-btn" style="display:flex;align-items:center;gap:0.5rem;width:100%;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:0.75rem;background:transparent;cursor:pointer;font-size:0.85rem;color:var(--text-primary)">📘 Facebook</button><button id="close-share-btn" style="width:100%;padding:0.7rem;border:none;border-radius:0.75rem;background:rgba(0,0,0,0.05);cursor:pointer;font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem">Fermer</button></div></div>`;
   document.body.appendChild(popup);
-  popup.querySelector('#copy-link-btn').onclick = function() { navigator.clipboard.writeText(url).then(function() { alert('Lien copié !'); popup.remove(); }); };
+  popup.querySelector('#copy-link-btn').onclick = function() { navigator.clipboard.writeText(url).then(function() { gbToast('success', '📋 Lien copié dans le presse-papier !'); popup.remove(); }); };
   popup.querySelector('#wa-btn').onclick = function() { window.open('https://wa.me/?text=' + encodeURIComponent(titre + ' ' + url), '_blank'); popup.remove(); };
   popup.querySelector('#fb-btn').onclick = function() { window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank'); popup.remove(); };
   popup.querySelector('#close-share-btn').onclick = function() { popup.remove(); };
@@ -354,7 +501,13 @@ function shareArticle(id, titre) {
 }
 
 // ==================== REACTIONS ====================
+const GB_LOGGED_IN = <?= (!empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) ? 'true' : 'false' ?>;
+
 function toggleReaction(type, id, reaction) {
+  if (!GB_LOGGED_IN) {
+    gbToast('warning', '🔒 Connectez-vous pour liker ou disliker. <a href="<?= BASE_URL ?>/?page=login" style="color:#fff;font-weight:700;text-decoration:underline">Se connecter →</a>');
+    return;
+  }
   const key = 'reaction_' + type + '_' + id;
   const current = localStorage.getItem(key);
   const likeBtn = document.getElementById(type + '-like-btn-' + id);
@@ -389,8 +542,20 @@ function loadSingleReaction(type, id) {
 }
 
 function reportComment(id) {
-  if (!confirm('Signaler ce commentaire comme inapproprié ?')) return;
-  fetch('<?= BASE_URL ?>/?page=article&action=comment-report&id=' + id, { method: 'POST' }).then(r => r.json()).then(data => { if (data.success) { alert('Commentaire signalé.'); location.reload(); } else { alert(data.error || 'Erreur'); } });
+  gbConfirm('Signaler ce commentaire comme inapproprié ?', 'Signalement', '🚩').then(function(ok) {
+    if (!ok) return;
+    fetch('<?= BASE_URL ?>/?page=article&action=report-comment&id=' + id, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          gbToast('warning', '🚩 Commentaire signalé.');
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          gbToast('error', data.error || 'Erreur lors du signalement.');
+        }
+      })
+      .catch(() => gbToast('error', 'Erreur réseau.'));
+  });
 }
 
 // ==================== TRADUCTION ====================
@@ -408,23 +573,96 @@ function translateArticle() {
 function hideTranslation() { document.getElementById('translationResult').style.display = 'none'; document.getElementById('translateLang').value = ''; }
 
 // ==================== FORM VALIDATION ====================
-function validateCommentForm() {
-  const auteur = document.getElementById('commentAuteur');
-  const pin = document.getElementById('commentPin');
-  const contenu = document.getElementById('commentContenu');
-  const auteurErr = document.getElementById('commentAuteurErr');
-  const pinErr = document.getElementById('commentPinErr');
-  const contenuErr = document.getElementById('commentContenuErr');
-  let ok = true;
-  const a = (auteur.value || '').trim();
-  const p = (pin.value || '').trim();
-  const c = (contenu.value || '').trim();
-  auteurErr.style.display = 'none'; pinErr.style.display = 'none'; contenuErr.style.display = 'none';
-  if (a.length < 2) { auteurErr.textContent = "Nom obligatoire (min 2 caractères)."; auteurErr.style.display = 'block'; ok = false; }
-  if (!/^\d{4}$/.test(p)) { pinErr.textContent = "Le PIN doit contenir exactement 4 chiffres."; pinErr.style.display = 'block'; ok = false; }
-  if (c.length < 5) { contenuErr.textContent = "Commentaire obligatoire (min 5 caractères)."; contenuErr.style.display = 'block'; ok = false; }
-  return ok;
+function artShowError(fieldId, message) {
+  const field  = document.getElementById(fieldId);
+  const errBox = document.getElementById('err-' + fieldId);
+  if (!field || !errBox) return false;
+  field.classList.remove('art-input-valid');
+  field.classList.add('art-input-invalid');
+  errBox.querySelector('span').textContent = message;
+  errBox.classList.add('visible');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  return false;
 }
 
-document.addEventListener('DOMContentLoaded', function() { loadReactions(); });
+function artClearError(fieldId) {
+  const field  = document.getElementById(fieldId);
+  const errBox = document.getElementById('err-' + fieldId);
+  if (!field || !errBox) return true;
+  field.classList.remove('art-input-invalid');
+  errBox.classList.remove('visible');
+  return true;
+}
+
+function artMarkValid(fieldId) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  artClearError(fieldId);
+  field.classList.add('art-input-valid');
+}
+
+
+
+function updateCommentCharCount() {
+  const el = document.getElementById('commentContenu');
+  const cnt = document.getElementById('commentContenuCount');
+  if (!el || !cnt) return;
+  cnt.textContent = el.value.length + ' caractères';
+}
+
+function validateCommentAuteur() {
+  artClearError('commentAuteur');
+  const val = document.getElementById('commentAuteur').value.trim();
+  if (!val) return artShowError('commentAuteur', 'Votre nom est obligatoire.');
+  if (val.length < 2) return artShowError('commentAuteur', 'Le nom doit contenir au moins 2 caractères.');
+  artMarkValid('commentAuteur');
+  return true;
+}
+
+
+
+function validateCommentContenu() {
+  artClearError('commentContenu');
+  const val = document.getElementById('commentContenu').value.trim();
+  if (!val) return artShowError('commentContenu', 'Le commentaire est obligatoire.');
+  if (val.length < 5) return artShowError('commentContenu', 'Le commentaire doit contenir au moins 5 caractères.');
+  artMarkValid('commentContenu');
+  return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadReactions();
+
+  const cAuteur = document.getElementById('commentAuteur');
+  if(cAuteur) cAuteur.addEventListener('input', validateCommentAuteur);
+
+
+
+  const cContenu = document.getElementById('commentContenu');
+  if(cContenu) {
+    cContenu.addEventListener('input', function() {
+      validateCommentContenu();
+      updateCommentCharCount();
+    });
+    updateCommentCharCount();
+  }
+
+  const cForm = document.getElementById('commentAddForm');
+  if(cForm) {
+    cForm.addEventListener('submit', function(e) {
+      let valid = true;
+      if (!validateCommentAuteur()) valid = false;
+      if (!validateCommentContenu()) valid = false;
+
+      if (!valid) {
+        e.preventDefault();
+        const firstInvalid = document.querySelector('.art-input-invalid');
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior:'smooth', block:'center' });
+          firstInvalid.focus();
+        }
+      }
+    });
+  }
+});
 </script>

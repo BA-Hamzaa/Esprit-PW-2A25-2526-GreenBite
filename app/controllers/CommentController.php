@@ -61,32 +61,34 @@ class CommentController
         }
     }
 
-    function bannirUtilisateur($pseudo, $pin)
+    function bannirUtilisateur($pseudo, $pin, $article_id = null)
     {
         $fichier = BASE_PATH . '/config/bannis.json';
-        
+
         if (!file_exists($fichier)) {
             file_put_contents($fichier, '[]');
         }
-        
-        $bannis = json_decode(file_get_contents($fichier), true);
-        if (!is_array($bannis)) $bannis = [];
 
-        // Normaliser les anciens bannis (simples chaînes) en objets
+        $bannis = json_decode(file_get_contents($fichier), true);
+        if (!is_array($bannis))
+            $bannis = [];
+
+        // Normaliser les anciens bannis (simples chaÃ®nes) en objets
         foreach ($bannis as $key => $entry) {
             if (is_string($entry)) {
-                $bannis[$key] = ['pseudo' => $entry, 'pin' => null];
+                $bannis[$key] = ['pseudo' => $entry, 'pin' => null, 'article_id' => null];
             }
         }
 
-        // Vérifier si ce couple existe déjà
+        // VÃ©rifier si ce couple (pseudo, article_id) existe dÃ©jÃ 
         foreach ($bannis as $entry) {
-            if ($entry['pseudo'] === $pseudo && $entry['pin'] === $pin) {
-                return false; // déjà banni
+            $e_article_id = $entry['article_id'] ?? null;
+            if ($entry['pseudo'] === $pseudo && $e_article_id == $article_id) {
+                return false; // dÃ©jÃ  banni pour cet article
             }
         }
 
-        $bannis[] = ['pseudo' => $pseudo, 'pin' => $pin];
+        $bannis[] = ['pseudo' => $pseudo, 'pin' => $pin, 'article_id' => $article_id];
         file_put_contents($fichier, json_encode($bannis, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         return true;
     }
@@ -98,9 +100,10 @@ class CommentController
             $commentaire = $this->getCommentaire($id);
             if ($commentaire && !empty($commentaire['pseudo'])) {
                 $pin = $commentaire['pin'] ?? null;
-                $this->bannirUtilisateur($commentaire['pseudo'], $pin);
+                $article_id = $commentaire['article_id'] ?? null;
+                $this->bannirUtilisateur($commentaire['pseudo'], $pin, $article_id);
                 $this->deleteCommentaire($id);
-                $_SESSION['success'] = "Commentaire supprimé et <strong>" . htmlspecialchars($commentaire['pseudo']) . "</strong> est banni.";
+                $_SESSION['success'] = "Commentaire supprimÃ© et <strong>" . htmlspecialchars($commentaire['pseudo']) . "</strong> est banni de cet article.";
             }
         }
         header('Location: ' . BASE_URL . '/?page=admin-comment&action=list');
@@ -108,7 +111,7 @@ class CommentController
     }
 
     //==========================================================================
-    // ROUTING — BACKOFFICE
+    // ROUTING â€” BACKOFFICE
     //==========================================================================
 
     function listBack()
@@ -124,7 +127,7 @@ class CommentController
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         if ($id > 0) {
             $this->deleteCommentaire($id);
-            $_SESSION['success'] = "Commentaire supprimé.";
+            $_SESSION['success'] = "Commentaire supprimÃ©.";
         }
         header('Location: ' . BASE_URL . '/?page=admin-comment&action=list');
         exit;
@@ -135,7 +138,7 @@ class CommentController
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
         if ($id > 0) {
             $this->ignorerSignalement($id);
-            $_SESSION['success'] = "Signalement ignoré. Commentaire remis en valide.";
+            $_SESSION['success'] = "Signalement ignorÃ©. Commentaire remis en valide.";
         }
         header('Location: ' . BASE_URL . '/?page=admin-comment&action=list');
         exit;

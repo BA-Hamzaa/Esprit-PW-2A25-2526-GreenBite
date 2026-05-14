@@ -47,10 +47,11 @@ $objectifColors = [
     </a>
   </div>
 
-
   <!-- ============================================================
        AI REGIME GENERATOR
        ============================================================ -->
+  <?php if (!empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
+
   <div id="ai-generator-section" class="card mb-6" style="padding:0;overflow:hidden;border:1.5px solid rgba(45,106,79,0.18);box-shadow:0 8px 32px rgba(45,106,79,0.08)">
     <!-- Header -->
     <div style="background:linear-gradient(110deg,#1B4332,#2D6A4F,#52B788);padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem">
@@ -76,7 +77,7 @@ $objectifColors = [
             <option value="perte_poids">Perte de poids</option>
             <option value="prise_masse">Prise de masse</option>
             <option value="maintien">Maintien du poids</option>
-            <option value="sante_generale" selected>❤️ Santé générale & bien-être</option>
+            <option value="sante_generale" selected>❤️ Santé générale &amp; bien-être</option>
           </select>
         </div>
         <div style="flex:2;min-width:240px">
@@ -114,6 +115,41 @@ $objectifColors = [
       <div id="ai-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem"></div>
     </div>
   </div>
+
+  <?php else: ?>
+  <!-- ── Not logged in: show a teaser / login prompt ── -->
+  <div class="card mb-6" style="padding:0;overflow:hidden;border:1.5px solid rgba(45,106,79,0.18);box-shadow:0 8px 32px rgba(45,106,79,0.08)">
+    <!-- Same green header -->
+    <div style="background:linear-gradient(110deg,#1B4332,#2D6A4F,#52B788);padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1rem">
+      <div style="display:flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;background:rgba(255,255,255,0.15);border-radius:0.875rem;flex-shrink:0">
+        <span style="font-size:1.35rem;line-height:1">✨</span>
+      </div>
+      <div style="flex:1">
+        <h2 style="color:#fff;font-family:var(--font-heading);font-weight:800;font-size:1.05rem;margin:0">Générateur de Régimes IA</h2>
+        <p style="color:rgba(255,255,255,0.8);font-size:0.78rem;margin:0.2rem 0 0">Choisissez votre objectif — l'IA génère 3 régimes personnalisés instantanément</p>
+      </div>
+      <span style="padding:0.3rem 0.75rem;background:transparent;border:1px solid rgba(255,255,255,0.8);border-radius:999px;color:#fff;font-size:0.7rem;font-weight:700">POWERED BY AI</span>
+    </div>
+    <!-- Lock prompt -->
+    <div style="padding:2.5rem 2rem;text-align:center;background:linear-gradient(135deg,rgba(45,106,79,0.03),rgba(82,183,136,0.02))">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:4rem;height:4rem;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border-radius:50%;margin-bottom:1rem;box-shadow:0 6px 18px rgba(45,106,79,0.15)">
+        <i data-lucide="lock" style="width:1.75rem;height:1.75rem;color:var(--primary)"></i>
+      </div>
+      <h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--text-primary);margin:0 0 0.4rem">Fonctionnalité réservée aux membres</h3>
+      <p style="font-size:0.83rem;color:var(--text-muted);margin:0 0 1.5rem;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.6">
+        Connectez-vous pour accéder au générateur de régimes IA et obtenir 3 plans personnalisés en quelques secondes.
+      </p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+        <a href="<?= BASE_URL ?>/?page=login" class="btn btn-primary" style="border-radius:var(--radius-full);padding:0.65rem 1.6rem;font-size:0.875rem;font-weight:700">
+          <i data-lucide="log-in" style="width:0.9rem;height:0.9rem"></i> Se connecter
+        </a>
+        <a href="<?= BASE_URL ?>/?page=register" class="btn" style="border-radius:var(--radius-full);padding:0.65rem 1.6rem;font-size:0.875rem;border:1.5px solid var(--border);color:var(--text-secondary)">
+          <i data-lucide="user-plus" style="width:0.9rem;height:0.9rem"></i> Créer un compte
+        </a>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
 
   <style>
   @keyframes aiDot{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-8px);opacity:0.5}}
@@ -675,6 +711,11 @@ function getFallbackRegimes(goal, details) {
 }
 
 async function generateAIRegimes() {
+  // Guard: only logged-in users
+  if (!<?= (!empty($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) ? 'true' : 'false' ?>) {
+    window.location.href = '<?= BASE_URL ?>/?page=login';
+    return;
+  }
   var goal    = document.getElementById('ai-goal-select').value;
   var details = document.getElementById('ai-details-input').value.trim();
   var btn     = document.getElementById('ai-gen-btn');

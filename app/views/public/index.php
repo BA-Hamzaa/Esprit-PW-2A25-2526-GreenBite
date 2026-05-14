@@ -256,7 +256,7 @@ switch ($page) {
     // ---- MODULE BLOG / ARTICLES (Front) ----
     case 'article':
         // Actions nécessitant connexion
-        $actionsSensiblesArticle = ['add','comment','edit-comment','delete-comment','report-comment','mes-activites','edit-mes-articles','delete-mes-articles','edit-mes-commentaires','delete-mes-commentaires'];
+        $actionsSensiblesArticle = ['add','comment','edit-comment','delete-comment','mes-activites','edit-mes-articles','delete-mes-articles','edit-mes-commentaires','delete-mes-commentaires'];
         if (in_array($action, $actionsSensiblesArticle) && (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true)) {
             $_SESSION['error'] = '🔒 Vous devez être connecté pour effectuer cette action.';
             header('Location: ' . BASE_URL . '/?page=login');

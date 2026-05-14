@@ -259,31 +259,9 @@ $roles = [
       <!-- ════ ROW 2 : PIN + Profil ════ -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
 
-        <!-- PIN -->
-        <div>
-          <label for="aaPin" class="art-label">
-            <i data-lucide="key-round" style="width:0.85rem;height:0.85rem;color:#f59e0b"></i>
-            Code PIN (4 chiffres) <span style="color:#ef4444">*</span>
-          </label>
-          <input type="text" name="pin" id="aaPin" class="art-input"
-                 value="<?= htmlspecialchars($_POST['pin'] ?? '') ?>"
-                 placeholder="Ex: 1234"
-                 maxlength="4" inputmode="numeric" pattern="\d{4}"
-                 style="letter-spacing:0.4em;font-size:1.2rem;font-weight:700;max-width:160px">
-          <div class="pin-dots" id="aaPinDots">
-            <div class="pin-dot" id="pd0"></div>
-            <div class="pin-dot" id="pd1"></div>
-            <div class="pin-dot" id="pd2"></div>
-            <div class="pin-dot" id="pd3"></div>
-          </div>
-          <p style="font-size:0.7rem;color:var(--text-muted);margin:0.3rem 0 0">
-            🔐 Gardez-le précieusement — il vous permettra de retrouver vos articles.
-          </p>
-          <div class="art-field-error" id="err-aaPin">
-            <i data-lucide="alert-circle" style="width:0.75rem;height:0.75rem;flex-shrink:0"></i>
-            <span></span>
-          </div>
-        </div>
+        <!-- PIN removed for connected users -->
+        <input type="hidden" name="pin" value="0000">
+
 
         <!-- Profil / Rôle -->
         <div>
@@ -393,12 +371,23 @@ function artMarkValid(fieldId) {
   field.classList.add('art-input-valid');
 }
 
-/* ── PIN dots visual ── */
-function updatePinDots(val) {
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('pd' + i);
-    if (dot) dot.classList.toggle('filled', i < val.length);
-  }
+
+
+function validateRole() {
+  artClearError('aaRole');
+  const val = document.getElementById('aaRole').value;
+  if (!val) return artShowError('aaRole', 'Veuillez sélectionner votre profil.');
+  artMarkValid('aaRole');
+  return true;
+}
+
+function validateContenu() {
+  artClearError('aaContenu');
+  const val = document.getElementById('aaContenu').value.trim();
+  if (!val)            return artShowError('aaContenu', 'Le contenu est obligatoire.');
+  if (val.length < 20) return artShowError('aaContenu', 'Le contenu doit contenir au moins 20 caractères.');
+  artMarkValid('aaContenu');
+  return true;
 }
 
 /* ── char counter ── */
@@ -432,32 +421,6 @@ function validateAuteur() {
   return true;
 }
 
-function validatePin() {
-  artClearError('aaPin');
-  const val = document.getElementById('aaPin').value.trim();
-  if (!val)                   return artShowError('aaPin', 'Le code PIN est obligatoire.');
-  if (!/^\d{4}$/.test(val))  return artShowError('aaPin', 'Le PIN doit contenir exactement 4 chiffres.');
-  artMarkValid('aaPin');
-  return true;
-}
-
-function validateRole() {
-  artClearError('aaRole');
-  const val = document.getElementById('aaRole').value;
-  if (!val) return artShowError('aaRole', 'Veuillez sélectionner votre profil.');
-  artMarkValid('aaRole');
-  return true;
-}
-
-function validateContenu() {
-  artClearError('aaContenu');
-  const val = document.getElementById('aaContenu').value.trim();
-  if (!val)            return artShowError('aaContenu', 'Le contenu est obligatoire.');
-  if (val.length < 20) return artShowError('aaContenu', 'Le contenu doit contenir au moins 20 caractères.');
-  artMarkValid('aaContenu');
-  return true;
-}
-
 /* ─────────────── Bind events ─────────────── */
 document.getElementById('aaTitre').addEventListener('input', function() {
   validateTitre();
@@ -465,13 +428,6 @@ document.getElementById('aaTitre').addEventListener('input', function() {
 });
 
 document.getElementById('aaAuteur').addEventListener('input', validateAuteur);
-
-document.getElementById('aaPin').addEventListener('input', function() {
-  // Only allow digits
-  this.value = this.value.replace(/\D/g, '').slice(0, 4);
-  updatePinDots(this.value);
-  validatePin();
-});
 
 document.getElementById('aaRole').addEventListener('change', validateRole);
 
@@ -485,7 +441,6 @@ document.getElementById('articleAddForm').addEventListener('submit', function(e)
   let valid = true;
   if (!validateTitre())   valid = false;
   if (!validateAuteur())  valid = false;
-  if (!validatePin())     valid = false;
   if (!validateRole())    valid = false;
   if (!validateContenu()) valid = false;
 
@@ -503,7 +458,5 @@ document.getElementById('articleAddForm').addEventListener('submit', function(e)
 document.addEventListener('DOMContentLoaded', function() {
   updateCharCount('aaTitre', 'aaTitreCount', 150);
   updateCharCount('aaContenu', 'aaContenuCount', 0);
-  const pinVal = document.getElementById('aaPin').value;
-  if (pinVal) updatePinDots(pinVal);
 });
 </script>

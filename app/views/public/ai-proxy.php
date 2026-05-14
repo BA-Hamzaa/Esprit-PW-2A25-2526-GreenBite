@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-define('OR_KEY', '');
+define('OR_KEY', getenv('OR_KEY') ?: 'YOUR_API_KEY_HERE');
 define('OR_URL', 'https://openrouter.ai/api/v1/chat/completions');
 
 // ── Diagnostic endpoints ──────────────────────────────────────────────────────

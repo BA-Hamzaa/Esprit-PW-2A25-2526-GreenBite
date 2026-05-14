@@ -59,7 +59,7 @@ $db = Database::getConnexion();
         // Supprimer aussi l'avatar du serveur avant de supprimer le user
         $user = $this->RecupererUser($id);
         if ($user['avatar']) {
-            $avatarPath = dirname(__FILE__).'/../../public/assets/images/avatars/' . $user['avatar'];
+            $avatarPath = BASE_PATH . '/app/views/public/assets/images/avatars/' . $user['avatar'];
             if (file_exists($avatarPath)) {
                 unlink($avatarPath);
             }
@@ -139,7 +139,7 @@ $db = Database::getConnexion();
             // Supprimer l'ancien avatar du serveur
             $oldUser = $this->RecupererUser($id);
             if ($oldUser['avatar']) {
-                $oldPath = dirname(__FILE__).'/../../public/assets/images/avatars/' . $oldUser['avatar'];
+                $oldPath = BASE_PATH . '/app/views/public/assets/images/avatars/' . $oldUser['avatar'];
                 if (file_exists($oldPath)) {
                     unlink($oldPath);
                 }
@@ -229,7 +229,7 @@ $db = Database::getConnexion();
 
 /////..............................Upload Avatar (méthode privée)............................../////
     private function uploadAvatar($avatarFile) {
-        $uploadDir     = dirname(__FILE__).'/../../public/assets/images/avatars/';
+        $uploadDir     = BASE_PATH . '/app/views/public/assets/images/avatars/';
         $allowedTypes  = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         $maxSize       = 2 * 1024 * 1024; // 2MB
 
@@ -276,7 +276,7 @@ function DemandeCoach($userId, $certificateFile) {
             return ['error' => 'Fichier trop lourd (max 5MB).'];
         }
 
-        $uploadDir = dirname(__FILE__) . '/../../public/assets/images/certificates/';
+        $uploadDir = BASE_PATH . '/app/views/public/assets/images/certificates/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
         $ext      = pathinfo($certificateFile['name'], PATHINFO_EXTENSION);
